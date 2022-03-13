@@ -561,7 +561,7 @@
 			'max-results': 250, // default, can go up to 2500
 			//'orderBy'  : 'startTime',
 			'singleevents': true,
-			'key':'AIzaSyCrMG6uiZF5kGALvRaRRYtUh7J8xKmBXkI' // Google API Key for www.washington.edu
+			'key':'AIzaSyCTAulP3zlORSepvGEtj2796qbGzn-_2WA' // Google API Key for www.washington.edu
 		};
 		if (cnMF.tz.name != 'unknown') {
 			gCalObj.ctz = cnMF.tz.name; // ex: 'America/Chicago'
