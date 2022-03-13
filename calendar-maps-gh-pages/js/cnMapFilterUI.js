@@ -1582,7 +1582,7 @@ $(document).ready(function() {
 		// Pittsburgh = 40.44181,-80.01278
 		mapCenterLt: '40.44181',
 		mapCenterLg: '-80.01278',
-		mapZoom: 10,
+		mapZoom: 0,
 		mapType: 0,
 		mapAllOnInit: true,
 
