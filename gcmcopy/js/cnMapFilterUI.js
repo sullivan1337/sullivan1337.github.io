@@ -1569,7 +1569,7 @@ $(document).ready(function() {
 	//
 	defaults:  {
 		startDay: 0,
-		endDay: 42,
+		endDay: 180,
 		jumpTxt: "Jump to City, Address, or Zip",
 
 		// div id's used by mapFilter
