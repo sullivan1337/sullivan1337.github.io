@@ -149,8 +149,8 @@ $(document).ready(function() {
 		listId: "tableTab",
 		statusId: "MapStatus",
 		closeDrawer: validateInt('cd', 0, 9, 0),
-		mapCenterLt: validateFloat('lat',-180,180, 41.885405),
-		mapCenterLg: validateFloat('lng',-180,180, -87.626072), // default to Chicago
+		mapCenterLt: validateFloat('lat',-180,180, 40.44181),
+		mapCenterLg: validateFloat('lng',-180,180, -80.01278), // default to Chicago
 		mapZoom: validateInt('z',1,20, 13),
 		mapType: validateInt('m',0,4, 0),
 		mapAllOnInit: httpGetParam('z') === null,
@@ -1579,9 +1579,9 @@ $(document).ready(function() {
 
 		mapH: 800,
 		mapw: 600,
-		// Chicago = 41.885405,-87.626072
-		mapCenterLt: '41.885405',
-		mapCenterLg: '-87.626072',
+		// Pittsburgh= 40.44181,-80.01278
+		mapCenterLt: '40.44181',
+		mapCenterLg: '-80.01278',
 		mapZoom: 14,
 		mapType: 0,
 		mapAllOnInit: true,
