@@ -697,7 +697,7 @@
 		info.style.bottom='20px';
 		info.style.backgroundColor='transparent';
 		info.style.zIndex=25500;
-		info.innerHTML='<a href="http://chadnorwood.com/" title="Powered by Craft Beer"><img src="http://chadnorwood.com/beermug.ico" style="border:0; margin: 2px;"/></a>';
+		info.innerHTML='<a href="http://chadnorwood.com/" title="Powered by Craft Beer"><img src="https://chadnorwood.com/beermug.ico" style="border:0; margin: 2px;"/></a>';
 
 		oMap.getContainer().appendChild(info);
 	  }
