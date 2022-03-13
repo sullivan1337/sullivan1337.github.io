@@ -108,17 +108,19 @@ body {
 	z-index:2;
 }
 
+/*
 #gcmMapLogo { 
 	position:absolute;
 	bottom:20px;
 	right:4px;
-	background: url(https://chadnorwood.com/beermug.ico) no-repeat 0 0;
+	background: url(http://chadnorwood.com/beermug.ico) no-repeat 0 0;
 	height:17px;
 	width:17px;
 	overflow:hidden;
 	z-index:25500;
 }
-
+*/
+#gcmMapLogo { display: none; }
 
 .ui-slider .ui-slider-handle {
 	width: 34px;
@@ -170,6 +172,8 @@ body {
 	margin: 0;
 	text-align: left;
 }
+#calendarTitle { display: none; }
+
 #calendarTitle h4 {
 	font-size: 24px;
 	margin: 5px 5px 2px 5px;
@@ -200,6 +204,8 @@ body {
 	font-weight: bold;
 	margin: 0;
 }
+#gcmLogo { display: none; }
+
 #resultsData {
 	overflow:hidden;
 	padding-right: 100px; /* match gcmLogo width */	
@@ -319,6 +325,9 @@ table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSo
 }
 table.tablesorter {margin: 0 0 0 0;} 
 
+table.tablesorter col:nth-child(4) { display: none; }
+table.tablesorter th:nth-child(4) { display: none; }
+table.tablesorter td:nth-child(4) { display: none; }
 
  /*
   *  Plugins | jScrollPane

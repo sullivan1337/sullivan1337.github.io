@@ -149,8 +149,8 @@ $(document).ready(function() {
 		listId: "tableTab",
 		statusId: "MapStatus",
 		closeDrawer: validateInt('cd', 0, 9, 0),
-		mapCenterLt: validateFloat('lat',-180,180, 40.44181),
-		mapCenterLg: validateFloat('lng',-180,180, -80.01278), // default to Chicago
+		mapCenterLt: validateFloat('lat',-180,180, 41.885405),
+		mapCenterLg: validateFloat('lng',-180,180, -87.626072), // default to Chicago
 		mapZoom: validateInt('z',1,20, 13),
 		mapType: validateInt('m',0,4, 0),
 		mapAllOnInit: httpGetParam('z') === null,
@@ -208,15 +208,15 @@ $(document).ready(function() {
 			redrawing = false,
 			moreThanOneCal = false,
 			calendarsDecoding,
-			emptyTableHtml = "<td>nope</td><td>no match</td><td>uh-uh</td><td>nowhere</td>";
+			emptyTableHtml = "<td></td><td>no match</td><td></td><td></td>";
 
 		/*
 		 *   static variables
 		 */
 		var
-		urlIconDefault = "https://www.google.com/mapfiles/marker.png",
-		urlIconOrange = "https://gmaps-samples.googlecode.com/svn/trunk/markers/orange/blank.png",
-		urlIconBlue  = "https://gmaps-samples.googlecode.com/svn/trunk/markers/blue/blank.png",
+		urlIconDefault = "http://www.google.com/mapfiles/marker.png",
+		urlIconOrange = "http://gmaps-samples.googlecode.com/svn/trunk/markers/orange/blank.png",
+		urlIconBlue  = "http://gmaps-samples.googlecode.com/svn/trunk/markers/blue/blank.png",
 		mapVersion = "Map Version 2012-4-8";
 
 		cnMF.reportData.loadTime = (startMs2 +'').replace(/(\d{3})$/,".$1") // add period so its secs.msec
@@ -229,7 +229,7 @@ $(document).ready(function() {
 			myGmap = initGMap();
 			userInteraction.init();
 			initDivs();
-			mapJumpBox(); 
+			//mapJumpBox(); 
 			mapRightTab(cnMFUI.opts.mapId);
 			
 			//updateSizes();
@@ -364,7 +364,7 @@ $(document).ready(function() {
 			$('#rtSide').width( getRtSideWidth() ).height( getRtSideHeight() );
 			
 		
-			$('#gcmLogo').html("<h1><a href='https://chadnorwood.com/projects/gcm/' class='jumpLink' target='_blank' title='Click to view Google Calendar Map homepage in new window'>GCM</a></h1>");
+			$('#gcmLogo').html("<h1><a href='http://chadnorwood.com/projects/gcm/' class='jumpLink' target='_blank' title='Click to view Google Calendar Map homepage in new window'>GCM</a></h1>");
 			// need to init resultsDiv and put MapStatus under resultsDataStatus
 			$('#resultsDataStatus').html("<div id='MapStatus'>.. Loading Map ..</div><div id='MapStatus2'></div>");
 
@@ -1015,7 +1015,7 @@ $(document).ready(function() {
 
 		function addLinks (txt) {
 			if (txt && typeof txt == 'string') {
-				return txt.replace(/(https:\/\/[^<>\s]+)/gi,'<a href="$1">$1</a>');				
+				return txt.replace(/(http:\/\/[^<>\s]+)/gi,'<a target="_blank" href="$1">$1</a>');				
 			} else {
 				return txt;
 			}
@@ -1119,7 +1119,7 @@ $(document).ready(function() {
 		  // TODO: remove this?
 		function getXmlData () {
 			// jsoncallback=?
-			xmlUrl = 'https://feeds2.feedburner.com/torontoevents?format=xml&jsoncallback=?';
+			xmlUrl = 'http://feeds2.feedburner.com/torontoevents?format=xml&jsoncallback=?';
 			if (xmlUrl.search(/^(http|feed)/i) < 0) {
 			  debug.log("getXmlData(): bad url: "+ calendarId);
 			  return;
@@ -1579,9 +1579,9 @@ $(document).ready(function() {
 
 		mapH: 800,
 		mapw: 600,
-		// Pittsburgh= 40.44181,-80.01278
-		mapCenterLt: '40.44181',
-		mapCenterLg: '-80.01278',
+		// Chicago = 41.885405,-87.626072
+		mapCenterLt: '41.885405',
+		mapCenterLg: '-87.626072',
 		mapZoom: 14,
 		mapType: 0,
 		mapAllOnInit: true,

@@ -68,7 +68,7 @@
 		return this.validCoords ?  this.lt + "," + this.lg : '';
 	};
 	EventClass.prototype.getDirectionsUrlStr = function(){
-		return 'https://maps.google.com/maps?q=' + this.addrToGoogle.replace(/ /g, '+').replace(/"/g, '%22');
+		return 'http://maps.google.com/maps?q=' + this.addrToGoogle.replace(/ /g, '+').replace(/"/g, '%22');
 	};
 	EventClass.prototype.insideCurMap = function(mapbox){
 		return this.validCoords ? mapbox.contains(new google.maps.LatLng(this.lt, this.lg)) : false;
@@ -211,6 +211,7 @@
 		this.eventList = [eventObj.id];
 		this.googleMarker = new google.maps.Marker({
 			position: new google.maps.LatLng(eventObj.lt, eventObj.lg),
+			//icon: cnMF.iconUrls[eventObj.calendarNum],
 			map: gMap
 		});
 
@@ -265,6 +266,7 @@
 		types: [],
 		myMarkers: {},
 		tz: {},
+		iconUrls: [ '', 'http://maps.google.com/mapfiles/ms/icons/red-dot.png', 'http://maps.google.com/mapfiles/ms/icons/green-dot.png', 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' ],
 		eventList: []
 	}
 
@@ -559,9 +561,7 @@
 			'max-results': 250, // default, can go up to 2500
 			//'orderBy'  : 'startTime',
 			'singleevents': true,
-			'key':'AIzaSyCTAulP3zlORSepvGEtj2796qbGzn-_2WA' // Google API Key 2018-7-16 no restrictions
-			//'key':'AIzaSyCTAulP3zlORSepvGEtj2796qbGzn-_2WA' // Google API Key for chadnorwood.com, created 2015-1-6
-	    //		'key':'AIzaSyCTAulP3zlORSepvGEtj2796qbGzn-_2WA' // Google API Key for chadnorwood.com 2014
+			'key':'AIzaSyCrMG6uiZF5kGALvRaRRYtUh7J8xKmBXkI' // Google API Key for www.washington.edu
 		};
 		if (cnMF.tz.name != 'unknown') {
 			gCalObj.ctz = cnMF.tz.name; // ex: 'America/Chicago'
@@ -592,8 +592,15 @@
 
 		debug.debug(" parseGCalData() calendar data: ",cdata);
 
+
+		if (cnMF.numCalendars) {
+			cnMF.numCalendars++;
+		} else {
+			cnMF.numCalendars = 1;
+		}
+		calendarInfo.calendarNum = cnMF.numCalendars;
 		calendarInfo.calendarId = calendarId;
-		calendarInfo.gcTitle = cdata.summary || 'title3 unknown';
+		calendarInfo.gcTitle = cdata.summary || 'title unknown';
 		calendarInfo.gcTitle.replace(/"/,'&quot;');
 		calendarInfo.desc = cdata.description || '';
 		calendarInfo.gcLink = 'https://www.google.com/calendar/embed?src='+ calendarId;
@@ -645,6 +652,7 @@
 				desc: curItem.description,
 				addrOrig: curItem.location || '',  // addrOrig is the location field of the event
 				addrToGoogle: curItem.location || '',
+				calendarNum: calendarInfo.calendarNum,
 				gCalId: curItem.id,
 				//url: url.related || url.alternate, // TODO - is this what we want? see href above
 				url: curItem.htmlLink || '',
@@ -761,6 +769,7 @@
 				desc: curItem.description,
 				addrOrig: curItem.location || '',  // addrOrig is the location field of the event
 				addrToGoogle: curItem.location || '',
+				calendarNum: calendarInfo.calendarNum,
 				gCalId: gCalId,
 				url: curItem.htmlLink || '',
 				dateStart: dateStart,
