@@ -1568,7 +1568,7 @@ $(document).ready(function() {
 	// cnMFUI.defaults.gCalDays = 3;
 	//
 	defaults:  {
-		startDay: -365,
+		startDay: 0,
 		endDay: 365,
 		jumpTxt: "Jump to City, Address, or Zip",
 
