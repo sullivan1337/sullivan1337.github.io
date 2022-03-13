@@ -593,7 +593,7 @@
 		debug.debug(" parseGCalData() calendar data: ",cdata);
 
 		calendarInfo.calendarId = calendarId;
-		calendarInfo.gcTitle = cdata.Title || 'title1 unknown';
+		calendarInfo.gcTitle = cdata.feed.title ? cdata.feed.title['$t'] : 'title2 unknown';
 		calendarInfo.gcTitle.replace(/"/,'&quot;');
 		calendarInfo.desc = cdata.description || '';
 		calendarInfo.gcLink = 'https://www.google.com/calendar/embed?src='+ calendarId;
