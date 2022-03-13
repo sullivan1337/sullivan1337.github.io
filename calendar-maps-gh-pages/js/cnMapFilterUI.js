@@ -1568,8 +1568,8 @@ $(document).ready(function() {
 	// cnMFUI.defaults.gCalDays = 3;
 	//
 	defaults:  {
-		startDay: 0,
-		endDay: 42,
+		startDay: -365,
+		endDay: 365,
 		jumpTxt: "Jump to City, Address, or Zip",
 
 		// div id's used by mapFilter
@@ -1580,9 +1580,9 @@ $(document).ready(function() {
 		mapH: 800,
 		mapw: 600,
 		// Chicago = 41.885405,-87.626072
-		mapCenterLt: '41.885405',
-		mapCenterLg: '-87.626072',
-		mapZoom: 14,
+		mapCenterLt: '40.44181',
+		mapCenterLg: '-80.01278',
+		mapZoom: 10,
 		mapType: 0,
 		mapAllOnInit: true,
 
