@@ -5,6 +5,15 @@ CHANGELOG
 * Project homepage: http://chadnorwood.com/projects/gcm/
 * Working example: http://chadnorwood.com/gcm/
 
+2022-03-14
+MAJOR Cleaning and new working version
+
+Cleanup dirs
+wget "http://localhost/gmap/igor_work/examples/gcm/index.html?ed=180&u=https://www.google.com/calendar/feeds/edbd7jqqu7s83ndvv276mueeig%40group.calendar.google.com/public/basic" -O igor
+wget "http://chadnorwood.com/gcm/?ed=180&u=https://www.google.com/calendar/feeds/edbd7jqqu7s83ndvv276mueeig%40group.calendar.google.com/public/basic" -O chad
+meld chad igor
+
+
 2014-12-3
 ----------
 

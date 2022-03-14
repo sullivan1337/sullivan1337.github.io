@@ -27,6 +27,27 @@ This code is released under the terms of the [MIT license](LICENSE).
 The MIT License is simple and easy to understand and it places almost no restrictions on what you can do.
 You are free to use in any other project (even commercial projects) as long as the copyright header is left intact.
 
+The Following Events Had Addresses (Where) That Could Not Be Found</DT>
+GCM relies on the &ldquo;where&rdquo; field found in the google calendar which has been specified. 
+The value of this &ldquo;where&rdquo; field is converted into a latitude and longitude using Google's geolocation API; 
+the conversion sometimes may fail for various reasons, but most usually it is because the where data is incomplete. 
+To make sure the data is sufficient, copy and paste the &ldquo;where&rdquo; field into 
+<a href="http://maps.google.com/">google maps</a>. If a single location is returned, then the data is correct.
 
+#### Testing
+This document is a very high level guide test guide to use when updating code
+
+
+Makers, Events:
+Load a calendar that has multiple events at the same address.
+Sort events table so you can see which events share address.
+Click on event in table,  marker should reveal infowindow with just that event.
+Close infowindow, then click on marker.  marker should reveal infowindow with multiple events info at bottom of infowindow. 
+Click on next/prev on infowindow.  event list should highlight corresponding event.
+Adjust date sliders to exclude one of the events from next/prev.  Note that nothing changes till you close infowindow, then events table is updated.
+Click on same marker again, infowindow should now not show event based on date slider
+
+Link:
+Load a calendar.  Zoom somewhere.  Change dates.  Get Link.
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/6280089702654e2e4bd7e4dc622097df "githalytics.com")](http://githalytics.com/chadn/mapfilter)
