@@ -1230,8 +1230,8 @@ $(document).ready(function() {
 				_gaq.push(['_trackEvent', 'Interaction', 'reloadPage', url]);
 				alert('Reloading to url: '+url);
 				window.location = url;
-				$("#newDates").dialog('close');
-				getGCalData(cnMFUI.opts.calendarId, date2days( $("#startDate").val()), date2days( $("#endDate").val()));
+				//$("#newDates").dialog('close');
+				//getGCalData(cnMFUI.opts.calendarId, date2days( $("#startDate").val()), date2days( $("#endDate").val()));
 			  });
 		}
 
