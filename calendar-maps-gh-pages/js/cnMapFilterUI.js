@@ -1582,7 +1582,7 @@ $(document).ready(function() {
 		// Pittsburgh = 40.44181,-80.01278
 		mapCenterLt: '40.44181',
 		mapCenterLg: '-80.01278',
-		mapZoom: 20,
+		mapZoom: 0,
 		mapType: 0,
 		mapAllOnInit: true,
 
@@ -1606,7 +1606,7 @@ $(document).ready(function() {
 
 		// If its a street address, we want to zoom in more than if city or country
 		// For now, assuming street address if address contains a comma
-		if (address.search(/,/) == -1) {cZoom=11;} else {cZoom=20;}
+		if (address.search(/,/) == -1) {cZoom=11;} else {cZoom=16;}
 
 		cnMF.myMarkers.closeInfoWindow();
 
