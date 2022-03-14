@@ -150,7 +150,7 @@ $(document).ready(function() {
 		statusId: "MapStatus",
 		closeDrawer: validateInt('cd', 0, 9, 0),
 		mapCenterLt: validateFloat('lat',-180,180, 40.44181),
-		mapCenterLg: validateFloat('lng',-180,180, -80.01278), // default to Chicago
+		mapCenterLg: validateFloat('lng',-180,180, -80.01278), // default to Pittsburgh
 		mapZoom: validateInt('z',1,20, 13),
 		mapType: validateInt('m',0,4, 0),
 		mapAllOnInit: httpGetParam('z') === null,
@@ -159,8 +159,8 @@ $(document).ready(function() {
 		gCalGroups: myURL.params.gcg,
 		gCalImports: myURL.params.gci,
 		gCalEmails: myURL.params.gc,
-		startDay: httpGetParam('sd') || 0,
-		endDay: httpGetParam('ed') || 42,
+		startDay: httpGetParam('sd') || -90,
+		endDay: httpGetParam('ed') || 365,
 
 		mapChangeCallback: function (curData) {
 			msg = "<a href='"+ genLink(curData)+"' class='jumpLink' title='Click to load URL of this map in its current state (same zoom, coords, start and end dates). Copy and paste it for email, IM, etc.'>Map Link</a>";
@@ -1592,7 +1592,7 @@ $(document).ready(function() {
 			|| (navigator.userAgent.match(/iPad/i) != null), // iPad
 
 		numTableRows: 5
-		// googleApiKey: 'ABQIAAAAQ8l06ldZX6JSGI8gETtVhhTrRIj9DJoJiLGtM4J1SrTlGmVDcxQDT5BVw88R8j75IQxYlwFcEw6w9w' // v2 api for chadnorwood.com
+		// googleApiKey: 'ABQIAAAAQ8l06ldZX6JSGI8gETtVhhTrRIj9DJoJiLGtM4J1SrTlGmVDcxQDT5BVw88R8j75IQxYlwFcEw6w9w'
 
 	},
 
