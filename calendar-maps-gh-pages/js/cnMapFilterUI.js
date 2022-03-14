@@ -159,7 +159,7 @@ $(document).ready(function() {
 		gCalGroups: myURL.params.gcg,
 		gCalImports: myURL.params.gci,
 		gCalEmails: myURL.params.gc,
-		startDay: httpGetParam('sd') || -90,
+		startDay: httpGetParam('sd') || 0,
 		endDay: httpGetParam('ed') || 365,
 
 		mapChangeCallback: function (curData) {
