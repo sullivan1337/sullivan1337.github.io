@@ -3,6 +3,17 @@ What is the 'src' directory (ask Chad)?
 Remove external calls 
   $.getJSON("http://chadnorwood.com/saveJson/?callback=?", {sj: cnMF.reportData}); 
 
+Document info from:
+  https://www.washington.edu/classroom/gcm/
+  https://chadnorwood.com/projects/gcm/
+  https://developers.google.com/maps/documentation/javascript/get-api-key
+
+Change map default view:
+  https://developers.google.com/maps/documentation/javascript/maptypes
+
+Updated list
+  https://www.50statesofdrift.com/2021-drift-events-database
+
 
 [DONE] Write a feature list. See http://chadnorwood.com/projects/gcm/#KeyFeatures
 
