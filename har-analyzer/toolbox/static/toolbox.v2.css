@@ -1,0 +1,290 @@
+/*
+ * Copyright 2015 Google Inc, All Rights Reserved
+ *
+ * Additional styles for the toolbox.
+ *
+ * Author: jacksonlin@google.com (Jackson Lin)
+ */
+
+.toolbox-pagename {
+  font-weight: bold;
+  text-decoration: none;
+}
+
+div#toolbox-help-dialog {
+  background: #fff9c4;
+  border-radius: 2px;
+  color: #212121;
+  display: none;
+  max-height: 800px;
+  max-width: 1000px
+  padding: 16px;
+  position: absolute;
+  right: 20px;
+  top: 55px;
+  width: auto;
+  z-index: 3;
+}
+
+.toolbox-page-links {
+  padding-right: 1.8em;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.toolbox-page-links a {
+  padding-left: 1em;
+}
+
+.broken-external-link {
+  color: #ba0000;
+}
+
+#localeselector {
+  border-bottom: 1px solid #9e9e9e;
+  color: #212121;
+  cursor: default;
+  display: inline-block;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 28px;
+  max-width: 100%;
+  outline: 0;
+  padding: 0 2px;
+  position: relative;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-select: none;
+}
+
+.lockup {
+  line-height: 0;
+  max-height: 41px;
+}
+
+.lockup-logo,
+.lockup-text {
+  color: #fff;
+  display: inline-block;
+  opacity: 0.75;
+  transition: opacity 0.5s ease;
+}
+
+.lockup-text .tool-label {
+  font-size: 24px;
+  opacity: 0.57;
+  transition: opacity 0.5s ease;
+}
+
+.lockup-text:hover {
+  opacity: 1.0;
+}
+span.tool-label:hover {
+  opacity: 0.87;
+}
+
+
+/* Lockup text container */
+.lockup-text {
+  /* Fallback to fonts with broader language support */
+  font-family: 'Product Sans', Arial, Helvetica, sans-serif;
+  font-size: 27px;
+}
+
+.toolbox-nav-container .mdl-navigation__link:hover {
+  opacity: 1.0;
+}
+
+.logo-row a {
+  text-decoration: none;
+}
+
+h1.logo-row {
+  /* Enables kerning and ligatures */
+  text-rendering: optimizeLegibility;
+
+  /* Improves consistency of text rendering on OSX browsers */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.active.mdl-navigation__link {
+  font-weight: bold;
+}
+
+.mdl-layout__drawer .active.mdl-navigation__link {
+  background-color: #eeeeee;
+  color: #4184f3;
+}
+
+.custom-page-content {
+  margin: auto;
+  max-width: 1080px;
+  padding-bottom: 100px;
+}
+
+.custom-page-content.page-content {
+  margin-top: 30px;
+}
+
+.home-card .mdl-card__title{
+  font-size: 15px;
+  min-height: 56px; /* Required to make title height match up */
+  opacity: 0.87;
+  padding: 16px 6px 16px 16px;
+  width: auto;
+}
+
+.home-card hr {
+  margin: 1px auto;
+  width: 90%;
+}
+
+.home-card .mdl-card__supporting-text p {
+  margin: 0 0 8px;
+}
+
+.home-card .mdl-card__title b {
+  font-weight: normal;
+  margin-right: 4px;
+}
+
+.home-card {
+  height: 100%;
+  width: auto;
+}
+
+.home-card .mdl-button {
+  min-width: 0;
+}
+.home-card.mdl-card .mdl-card__supporting-text {
+  flex-grow: 1;
+}
+
+html body main, html body footer {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+}
+
+.my-drawer-separator {
+  background-color: #dcdcdc;
+  height: 1px;
+  margin: 8px 0;
+}
+
+.mdl-layout__drawer .drawer-icons {
+  color: rgb(120,144,156);
+  font-size: 18px;
+  padding-right: 4px;
+  vertical-align: text-bottom;
+}
+
+.internal-icon {
+  color: rgb(128,216,255) !important;
+}
+
+.mdl-layout__drawer.custom-drawer.is-visible {
+  width: 300px;
+}
+
+.custom-drawer .mdl-navigation__link {
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 13px;
+}
+
+.mdl-navigation .mdl-menu .internal.mdl-menu__item,
+.mdl-navigation .internal.mdl-navigation__link {
+  color: #304ffe;
+}
+
+/* Center the hamburger icon */
+.mdl-layout__drawer-button i{
+  position: relative;
+  top: 45%;
+  transform: translateY(-50%);
+}
+
+.mdl-layout__drawer-button {
+  opacity: 0.75;
+  transition: opacity 0.5s ease;
+}
+
+.mdl-layout__drawer-button:hover {
+  opacity: 1.0;
+}
+
+#external-link-wrapper #toolbox-external-link {
+  color: #feebee;
+}
+
+#external-link-wrapper {
+  background-color: rgba(211,47,47,0.95) !important;
+  color: #fff;
+  text-align: center;
+
+}
+nav.mdl-navigation {
+  margin-top: -4px;
+}
+
+.toolbox-footer {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.custom-right-footer {
+  margin-right:45px;
+}
+
+.custom-main-content {
+  position: relative;
+}
+
+.page-content.custom-page-content:after {
+    content: "";
+    display: block;
+}
+
+.help-link {
+  color: #ffcc80 !important;
+}
+
+.mdl-components__warning {
+  background-color: #fff9c4;
+  border-radius: 2px;
+  color: #212121;
+  margin: 0 auto;
+  max-width: 640px;
+  padding: 16px;
+  width: 100%;
+}
+
+header.mdl-layout__header {
+  background-color: #00796b;
+}
+
+div#cookie-notice {
+  bottom: 15px;
+  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-size: 12pt;
+  left: 50%;
+  margin-right: -50%;
+  max-height: 150px;
+  max-width: 600px;
+  min-width: 400px;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  width: auto;
+  z-index: 100;
+}
+
+div#cookie-notice p {
+  font-size: 12.5pt;
+}
+
+#cookie-notice-ack-button {
+  margin-left: 10px;
+}
