@@ -1,0 +1,559 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Google Admin Toolbox
+</title>
+     
+    <meta name="keywords" content="troubleshoot, G Suite, Google Apps, Google Workspace, ">
+    <link href="..\..\css.css?family=Product+Sans" rel="stylesheet">
+    <link href='..\..\css-1.css?family=Roboto:400,500,700,400italic,500italic,300,300italic,100' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="..\..\external_hosted\material_design_lite\mdl_css-teal-blue-bundle.css">
+    <link rel="stylesheet" href="..\..\icon.css?family=Material+Icons+Extended">
+    <link rel="stylesheet" href="..\..\icon-1.css?family=Material+Icons">
+    <link rel="stylesheet" href="..\..\toolbox\static\toolbox.v2.css" type="text/css" media="screen" charset="utf-8">
+    <link rel="shortcut icon" href="..\..\toolbox\static\favicon.ico">
+     
+     
+    <script src="..\..\external_hosted\material_design_lite\mdl_all_js_compiled.js"></script>
+    <script type="text/javascript" src="..\..\toolbox\static\toolbox.js">
+    </script>
+    
+
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){
+    i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)
+    }, i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];
+    a.async=1;
+    a.src=g;
+    m.parentNode.insertBefore(a,m)
+  })
+  (window,document,'script','https://www.google-analytics.com/analytics.js','ga_global');
+  ga_global('set', 'anonymizeIp', true);
+  ga_global('set', 'title', document.location.href.substring(0, 15));
+  
+    ga_global('create', 'UA-32650299-1', 'auto');
+  
+  ga_global('send', 'pageview');
+</script>
+
+
+
+    
+  </head>
+
+  <body>
+
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+      <header class="mdl-layout__header mdl-layout__header--scroll">
+      
+        <div class="mdl-layout__header-row" id="maia-nav-x">
+          <span class="mdl-layout-title">
+            <h1 class="logo-row">
+              <div class="lockup">
+                <a href="index.htm">
+                  <span class="lockup-text">
+                    <span class="lockup-brand">&nbsp;Google Admin Toolbox</span>
+                  </span>
+                </a>
+                
+              </div>
+            </h1>
+          </span>
+          <div class="mdl-layout-spacer"></div>
+          <div class="toolbox-nav-container ">
+            <div id='toolbox-help-dialog' class="mdl-shadow--8dp" style='display:none;'>
+              <div>
+                
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      
+     </header>
+
+     <!-- Drawer menu -->
+     <div class="mdl-layout__drawer custom-drawer">
+        <span class="mdl-layout-title">Google Admin Toolbox</span>
+        <nav class="mdl-navigation">
+          <a class="mdl-navigation__link " href='index.htm'>
+            <i class="drawer-icons material-icons" role="presentation">
+              home
+            </i>
+            Home</a>
+          <div class="my-drawer-separator"></div>
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/browserinfo/'>
+                    Browserinfo
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/checkmx/'>
+                    Check MX
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/dig/'>
+                    Dig
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/har_analyzer/'>
+                    HAR Analyzer
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/loganalyzer/'>
+                    Log Analyzer
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/loggershark/'>
+                    Log Analyzer 2
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/messageheader/'>
+                    Messageheader
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/useragent/'>
+                    Useragent
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/other_tools/'>
+                    Additional Tools
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/encode_decode/'>
+                    Encode/Decode
+                  </a>
+              
+            
+          
+            
+              
+                  <a class="mdl-navigation__link" href='/apps/screen_recorder/'>
+                    Screen Recorder
+                  </a>
+          <div class="my-drawer-separator"></div>
+        </nav>
+      </div>
+      <main class="mdl-layout__content custom-main-content">
+        <div class="page-content custom-page-content">
+          
+
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+      <p>
+      Use the Google Admin Toolbox to troubleshoot issues you have with
+      <b>Google Workspace</b> services.
+      </p>
+    </div>
+  </div>
+  <div class="mdl-grid">
+    
+    <div class="mdl-cell
+                
+                mdl-cell--4-col
+                
+                mdl-cell--12-col-tablet">
+      <div class="home-card mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+          
+              <i class="material-icons">
+                open_in_browser
+              </i>&nbsp;&nbsp;
+          
+          Debug Browser issues
+        </div>
+        <hr>
+        <div class="mdl-card__supporting-text">
+        
+          
+            <p><a href="/apps/browserinfo/">Browserinfo</a> is a browser based debugging tool to capture client side information. You can look for obvious information that might impact users experience on the Internet.</p>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+            <p><a href="/apps/useragent/">Useragent</a> is a tool that analyzes user agent string.</p>
+          
+        
+          
+        
+          
+        
+          
+        
+        </div>
+      </div>
+    </div>
+    
+    <div class="mdl-cell
+                
+                mdl-cell--4-col
+                
+                mdl-cell--12-col-tablet">
+      <div class="home-card mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+          
+            <i class="material-icons">
+              dns
+            </i>&nbsp;&nbsp;
+          
+          Verify DNS issues
+        </div>
+        <hr>
+        <div class="mdl-card__supporting-text">
+        
+          
+        
+          
+            <p><a href="/apps/checkmx/">Check MX</a> is an easy to use DNS validation tool that looks for common MX record misconfigurations.</p>
+          
+        
+          
+            <p><a href="/apps/dig/">Dig</a> can be used as a web-based equivalent of the Unix dig command.</p>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        </div>
+      </div>
+    </div>
+    
+    <div class="mdl-cell
+                
+                mdl-cell--4-col
+                
+                mdl-cell--12-col-tablet">
+      <div class="home-card mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+          
+            <i class="material-icons">
+              insert_chart
+            </i>&nbsp;&nbsp;
+          
+          Analyze HAR and log files
+        </div>
+        <hr>
+        <div class="mdl-card__supporting-text">
+        
+          
+        
+          
+        
+          
+        
+          
+            <p><a href="../../apps/har_analyzer/index.htm">HAR Analyzer</a> allows you to analyze captured <a href="https://en.wikipedia.org/wiki/HAR_(file_format)">HAR</a> files.</p>
+          
+        
+          
+            <p><a href="/apps/loganalyzer/">Log Analyzer</a> enables you you to analyze log files generated by Google products, including Chrome, Google Workspace Sync for Microsoft Outlook, and Google Cloud Directory Sync.</p>
+          
+        
+          
+            <p><a href="/apps/loggershark/">Log Analyzer 2</a> is a tool to open large log files generated by Google products, and diagnose common problems.</p>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        </div>
+      </div>
+    </div>
+    
+    <div class="mdl-cell
+                
+                mdl-cell--6-col
+                
+                mdl-cell--12-col-tablet">
+      <div class="home-card mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+          
+            <i class="material-icons">
+              email
+            </i>&nbsp;&nbsp;
+          
+          Investigate mail issues
+        </div>
+        <hr>
+        <div class="mdl-card__supporting-text">
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+            <p><a href="/apps/messageheader/">Messageheader</a> analyzes SMTP message headers, which help identify the root cause of delivery delays. You can detect misconfigured servers and mail-routing problems.</p>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        </div>
+      </div>
+    </div>
+    
+    <div class="mdl-cell
+                
+                mdl-cell--6-col
+                
+                mdl-cell--12-col-tablet">
+      <div class="home-card mdl-card mdl-shadow--4dp">
+        <div class="mdl-card__title">
+          
+          
+          <b>Other</b> debugging tools
+        </div>
+        <hr>
+        <div class="mdl-card__supporting-text">
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+            <p><a href="/apps/other_tools/">Additional Tools</a> to help you debug Google Workspace services.</p>
+          
+        
+          
+            <p><a href="/apps/encode_decode/">Encode/Decode</a> provides you encoding and decoding functions that are helpful for debugging web-related problems.</p>
+          
+        
+          
+            <p><a href="/apps/screen_recorder/">Screen Recorder</a> allows to record screen capture and audio.</p>
+          
+        
+        </div>
+      </div>
+    </div>
+    
+
+  </div>
+
+        </div>
+        
+        <footer class="mdl-mini-footer toolbox-footer">
+          <div class="mdl-mini-footer__left-section">
+            <ul class="mdl-mini-footer__link-list">
+              <li><a href='index.htm'>Home</a></li>
+            </ul>
+          </div>
+          <div class="mdl-mini-footer__right-section custom-right-footer">
+            <div class="sc-locales">
+              <label>
+                <span>Change language:</span>
+                <select onchange="javascript:switch_language(this);" id="localeselector">
+                  
+                    <option value="id">
+                      Bahasa Indonesia
+                    </option>
+                  
+                    <option value="da">
+                      Dansk
+                    </option>
+                  
+                    <option value="de">
+                      Deutsch
+                    </option>
+                  
+                    <option value="en" selected="selected">
+                      English
+                    </option>
+                  
+                    <option value="es">
+                      Español (España)
+                    </option>
+                  
+                    <option value="fil">
+                      Filipino
+                    </option>
+                  
+                    <option value="fr">
+                      Français (France)
+                    </option>
+                  
+                    <option value="it">
+                      Italiano
+                    </option>
+                  
+                    <option value="hu">
+                      Magyar
+                    </option>
+                  
+                    <option value="nl">
+                      Nederlands
+                    </option>
+                  
+                    <option value="no">
+                      Norsk
+                    </option>
+                  
+                    <option value="pl">
+                      Polski
+                    </option>
+                  
+                    <option value="pt-BR">
+                      Português (Brasil)
+                    </option>
+                  
+                    <option value="pt-PT">
+                      Português (Portugal)
+                    </option>
+                  
+                    <option value="fi">
+                      Suomi
+                    </option>
+                  
+                    <option value="sv">
+                      Svenska
+                    </option>
+                  
+                    <option value="vi">
+                      Tiếng Việt
+                    </option>
+                  
+                    <option value="tr">
+                      Türkçe
+                    </option>
+                  
+                    <option value="cs">
+                      Čeština
+                    </option>
+                  
+                    <option value="ru">
+                      Русский
+                    </option>
+                  
+                    <option value="uk">
+                      Українська
+                    </option>
+                  
+                    <option value="hi">
+                      हिन्दी
+                    </option>
+                  
+                    <option value="th">
+                      ภาษาไทย
+                    </option>
+                  
+                    <option value="zh-CN">
+                      中文 (简体)
+                    </option>
+                  
+                    <option value="zh-TW">
+                      中文 (繁體)
+                    </option>
+                  
+                    <option value="ja">
+                      日本語
+                    </option>
+                  
+                    <option value="ko">
+                      한국어
+                    </option>
+                  
+                </select>
+              </label>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
