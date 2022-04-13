@@ -975,7 +975,7 @@ $(document).ready(function() {
 			var info=document.createElement('div');
 			//info.id='SearchBox';
 			info.style.position='absolute';
-			info.style.right='47px';
+			info.style.right='58px';
 			info.style.top='42px';
 			//info.style.backgroundColor='transparent';
 			info.style.zIndex=10; // TODO: find proper zIndex - less than infowindow, but greater than map
