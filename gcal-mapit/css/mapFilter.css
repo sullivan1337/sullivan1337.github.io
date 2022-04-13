@@ -87,6 +87,7 @@ body {
 
 #rightTab {
     position:absolute;
+	padding-right:58px;
     top:40px;
     right:0;
     display:block;
