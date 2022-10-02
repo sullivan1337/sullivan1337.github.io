@@ -1,8 +1,0 @@
-Uri: https://alula.github.io/SpaceCadetPinball/
-File Name: C:\scp\cyoscp\alula.github.io\SpaceCadetPinball\index.htm
-Content Type: text/html
-
-Uri: https://alula.github.io/SpaceCadetPinball/SpaceCadetPinball.js
-File Name: C:\scp\cyoscp\alula.github.io\SpaceCadetPinball\SpaceCadetPinball.js
-Content Type: application/javascript
-
