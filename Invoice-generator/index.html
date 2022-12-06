@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Invoice Generator</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+        <link rel="stylesheet" href="./external-scripts/materialize.min.css">	
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-app.js"></script>            
+
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-auth.js"></script>
+
+        <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyCyBdwJeaD2Vm17T8BRXrumNoOk3Z8NucE",
+            authDomain: "invoice-generator-2ad43.firebaseapp.com",
+            databaseURL: "https://invoice-generator-2ad43.firebaseio.com",
+            projectId: "invoice-generator-2ad43",
+            storageBucket: "invoice-generator-2ad43.appspot.com",
+            messagingSenderId: "862076289309"
+        };
+        firebase.initializeApp(config);
+        </script>
+
+        <script src="https://cdn.firebase.com/libs/firebaseui/3.1.1/firebaseui.js"></script>
+        <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.1.1/firebaseui.css" />
+    </head>
+    
+    <body onload="loadContainer()">
+
+        <div id="invoice_form" class="row">
+            <div class="col offset-s2 s8">
+                <div class="card white">
+                    <div class="card-image" style="
+                        background-color: #8EC5FC; 
+                        background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+                        height: 50px;">
+                    </div>
+                    <div class="card-title">
+                        Welcome to Invoice Generator!
+                    </div>
+
+                    <div class="card-content">
+                        <p>
+                            One stop to generate and manage all your invoices!<br /> 
+                            Get started by signing in &#x1f44d;
+                        </p>
+                        <div id="firebaseui-auth-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col offset-s2 s8">
+                <div class="card white">
+                    <div class="card-content">
+                        <p>
+                            Made with &#x1F497 by 
+                            <b>
+                                <a href="https://www.linkedin.com/in/cherubim-palukury/">
+                                    Cherubim Palukury
+                                </a>
+                            </b>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+    <script>
+        function loadContainer() {
+            var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+            ui.start('#firebaseui-auth-container', {
+                signInSuccessUrl: 'pages/new_invoice.html',
+                signInOptions: [
+                    // firebase.auth.EmailAuthProvider.PROVIDER_ID,
+                    firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+                    // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+                    // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+                    // firebase.auth.GithubAuthProvider.PROVIDER_ID
+                ],
+            });
+        }
+
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                window.location = "pages/home.html";
+            } else {
+                // none
+            }
+        });
+    </script>
+
+    <script src="./external-scripts/materialize.min.js"></script>
+</html>

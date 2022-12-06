@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Invoice Generator</title>
+        <link rel="stylesheet" type="text/css" href="../style.css">
+        <link rel="stylesheet" href="../external-scripts/materialize.min.css">	
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-app.js"></script>
+
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/5.9.1/firebase-firestore.js"></script>
+
+        <script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "AIzaSyCyBdwJeaD2Vm17T8BRXrumNoOk3Z8NucE",
+                authDomain: "invoice-generator-2ad43.firebaseapp.com",
+                databaseURL: "https://invoice-generator-2ad43.firebaseio.com",
+                projectId: "invoice-generator-2ad43",
+                storageBucket: "invoice-generator-2ad43.appspot.com",
+                messagingSenderId: "862076289309"
+            };
+            firebase.initializeApp(config);
+        </script>
+    </head>
+    
+    <body>
+             
+        <!-- side nav content -->
+        <ul id="slide-out" class="sidenav">
+            <li>
+                <div class="user-view">
+                    
+                    <div class="background" style="background-color: #8EC5FC;
+                    background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);">
+                    </div>
+                    
+                    <img id="user_image" class="circle" src="../images/default_user_image.png"></img>
+                    <div id="user_name" class="white-text name"></div>
+                    <div id="user_email" class="white-text email"></div>
+                </div>
+            </li>
+            
+            <li><a class="subheader">Actions</a></li>
+            
+            <li><a href="home.html"><i class="fas fa-home fa-lg"></i></i>Home</a></li>
+            <li><a href="my_items.html"><i class="fas fa-shopping-bag fa-lg"></i></i>My Items</a></li>
+            <li><a href="my_clients.html"><i class="fas fa-users fa-lg"></i></i>My Clients</a></li>
+            <li><a href="new_invoice.html"><i class="fas fa-file-invoice fa-lg"></i></i>New Invoice</a></li>
+            <li><a href="history.html"><i class="fas fa-history fa-lg"></i></i>History</a></li>
+            <!-- <li><a href="#"><i class="fas fa-chart-bar fa-lg"></i></i>Analytics</a></li> -->
+
+            <li><div class="divider"></div></li>
+            
+            <li><a href="javascript:logOutUser();"><i class="fas fa-sign-out-alt fa-lg"></i>Logout</a></li>
+        </ul>
+
+        <div style="padding: 10px; position: fixed;">
+            <a href="#" data-target="slide-out" class="sidenav-trigger btn-floating btn-large waves-effect waves-light black">
+            <i class="material-icons">menu</i>
+            </a>
+        </div>
+
+        <div id="invoice_form" class="row">
+            <div class="card">
+                <div class="card-image" style="background-color: #FF9A8B;
+                background-image: linear-gradient(90deg, #FF9A8B 0%, #FF6A88 55%, #FF99AC 100%);
+                height: 100px;">
+                </div>
+
+                <div class="card-content">
+                <table class="striped centered">
+                    <thead>
+                        <tr>
+                            <th>Client Name</th>
+                            <th>Contact Number</th>
+                            <th>Place</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user_clients">
+                    </tbody>
+                </table>
+
+                <div id="preloader" class="preloader-wrapper big active">
+                    <div class="spinner-layer spinner-blue-only">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="gap-patch">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <br/>
+
+                <div class="row">
+                    <div class="col s6">
+                        <a class="btn-floating btn-large waves-effect waves-light black" onclick="addNewClient()"><i class="material-icons">add</i></a>
+                    </div>
+                    <div class="col s6">
+                        <a class="btn-floating btn-large waves-effect waves-light black" onclick="saveClients()"><i class="material-icons">backup</i></a>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script src="../scripts/my_clients.js"></script>
+    <script src="../external-scripts/materialize.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.sidenav');
+            var instances = M.Sidenav.init(elems, {});
+        });
+
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                retrieveUsersFromFirestore();
+                if (user.photoURL) {
+                    document.getElementById("user_image").src = user.photoURL;
+                }
+                document.getElementById("user_name").innerText = user.displayName;
+                document.getElementById("user_email").innerText = user.email;
+            } else {
+                window.location = "../index.html";
+            }
+        });
+
+        function logOutUser() {
+            firebase.auth().signOut().then(function() {
+                document.location.href = "https://www.google.com/accounts/Logout?continue=https://appengine.google.com/_ah/logout?continue=https://cherub7.github.io/Invoice-generator/"
+            }).catch(function(error) {
+                console.log(error);
+            });
+        }
+    </script>
+</html>
