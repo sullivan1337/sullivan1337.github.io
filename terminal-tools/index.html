@@ -24,11 +24,11 @@
           var links = htmlDoc.querySelectorAll("a");
           for (var i = 0; i < links.length; i++) {
             var link = links[i];
-            if (link.getAttribute("href") !== "../") {
+            if (link.getAttribute("href") !== "../" && link.textContent !== "../") {
               var li = document.createElement("li");
               var a = document.createElement("a");
               a.href = dir + "/" + link.getAttribute("href");
-              a.textContent = link.textContent;
+              a.textContent = link.textContent.trim();
               li.appendChild(a);
               fileList.appendChild(li);
             }
