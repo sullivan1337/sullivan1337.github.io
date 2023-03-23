@@ -65,6 +65,29 @@
     
     <main>
       <p>Gathering & backup of useful tools, tricks, and home projects</p>
+      
+      <p id="lastCommit">Last Commit:</p>
+    <script>
+      // set the GitHub API URL
+      var apiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/commits?per_page=1";
+
+      // use an AJAX request to get the last commit from the GitHub API
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          // parse the JSON response and output the last commit message and date in EST
+          var response = JSON.parse(this.responseText);
+          var lastCommit = response[0];
+          var commitDate = new Date(lastCommit.commit.author.date);
+          var estDate = new Date(commitDate.toLocaleString("en-US", { timeZone: "America/New_York" }));
+          var lastCommitElem = document.getElementById("lastCommit");
+          lastCommitElem.innerHTML = "Last commit: " + lastCommit.commit.message + " (" + estDate.toLocaleString() + " EST)";
+        }
+      };
+      xhttp.open("GET", apiUrl, true);
+      xhttp.send();
+    </script>
+
     </main>
   </body>
 </html>
