@@ -1,0 +1,72 @@
+body {
+    font-family: 'Neue Haas Grotesk Display Pro', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #0254EC;
+    color: white;
+    text-align: center;
+    padding: .1rem;
+}
+
+.api-key-input {
+    display: flex;
+    align-items: center;
+}
+#apiKey {
+    margin-left: 0px;
+}
+
+.api-key button {
+    margin-left: 20px;
+}
+
+#apiCheckmark {
+    font-size: 1.5rem;
+    margin-left: 20px;
+    visibility: hidden;
+    color: green;
+}
+
+#apiCrossmark {
+    font-size: 1.5rem;
+    margin-right: 220px;
+    visibility: hidden;
+    color: red;
+}
+
+.container {
+    display: flex;
+    justify-content: space-around;
+    margin: 1rem 13rem;
+}
+
+.json-input,
+.user-query {
+    display: flex;
+    flex-direction: column;
+    gap: .1rem 2rem;
+}
+
+textarea {
+    resize: vertical;
+    width: 100%;
+}
+
+button {
+    display: block;
+    background-color: #0254EC;
+    color: white;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    margin: .1rem auto;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #f700ad;
+}
