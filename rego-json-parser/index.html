@@ -32,14 +32,21 @@
                 <div class="json-input">
                     <h2>JSON Input</h2>
                     <textarea id="jsonInput" rows="22" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
+                    <button id="generateRego">Generate Rego Policy</button>
                 </div>
             </div>
             <div class="rego-output">
                 <h2>Generated Rego Policy</h2>
-                <textarea id="regoOutput" rows="40" cols="80" readonly></textarea>
+                <textarea id="regoOutput" rows="31" cols="80" readonly></textarea>
+                <div class="follow-up">
+                    <h2>Follow-up Request</h2>
+                    <textarea id="followUpInput" rows="4" cols="80" placeholder="Enter your follow-up request here"></textarea>
+                    <button id="sendFollowUp">Send Follow-up</button>
+                </div>
             </div>
+            
         </div>
-        <button id="generateRego">Generate Rego Policy</button>
+
     </main>
     <script src="app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/js/all.min.js" crossorigin="anonymous"></script>

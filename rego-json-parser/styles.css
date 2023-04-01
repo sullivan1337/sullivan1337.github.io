@@ -51,6 +51,10 @@ header {
     gap: .1rem 2rem;
 }
 
+.follow-up {
+    margin-top: .5rem;
+}
+
 textarea {
     resize: vertical;
     width: 100%;
