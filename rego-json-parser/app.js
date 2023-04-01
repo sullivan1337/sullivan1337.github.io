@@ -46,7 +46,14 @@ async function generateRegoPolicy() {
     const userQuery = document.getElementById('userQuery').value;
     const jsonInput = document.getElementById('jsonInput').value.trim();
     const regoOutput = document.getElementById('regoOutput');
+    const copyButton = document.getElementById('copyButton');
     const apiKey = apiKeyInput.value.trim();
+
+    
+    copyButton.addEventListener('click', () => {
+        regoOutput.select();
+        document.execCommand('copy');
+    });
 
     let parsedJson;
     try {
