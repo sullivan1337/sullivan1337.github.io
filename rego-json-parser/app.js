@@ -13,9 +13,10 @@ async function checkApiKey() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
     };
-    const url = "https://api.openai.com/v1/engines/text-davinci-002/completions";
+    const url = "https://api.openai.com/v1/completions";
     const data = {
         "prompt": "Test API key",
+        "model": "text-davinci-003",
         "max_tokens": 1,
         "n": 1,
         "stop": null,
@@ -107,7 +108,7 @@ assistant: [Sounds good! I'll follow those guidelines.]
 
 
 async function fetchChatGPT(prompt, apiKey, includeConversationHistory = true) {
-    const url = "https://api.openai.com/v1/engines/text-davinci-002/completions";
+    const url = "https://api.openai.com/v1/completions";
     const headers = {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
@@ -115,6 +116,7 @@ async function fetchChatGPT(prompt, apiKey, includeConversationHistory = true) {
 
     const data = {
         "prompt": prompt,
+        "model": "text-davinci-003",
         "max_tokens": 200,
         "n": 1,
         "stop": null,
