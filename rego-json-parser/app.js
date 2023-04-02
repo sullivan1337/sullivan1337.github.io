@@ -1,10 +1,19 @@
 document.getElementById('generateRego').addEventListener('click', generateRegoPolicy);
 document.getElementById('checkApiKey').addEventListener('click', checkApiKey);
 document.getElementById('sendFollowUp').addEventListener('click', sendFollowUp);
+document.getElementById('useCustomModel').addEventListener('change', toggleModel);
 const apiKeyCheckmark = document.getElementById('apiCheckmark');
 const apiKeyInput = document.getElementById('apiKey');
 
 let conversationId = null;
+let useCustomModel = false;
+
+async function toggleModel() {
+    useCustomModel = document.getElementById('useCustomModel').checked;
+    const customModelInput = document.getElementById('customModel');
+    customModelInput.disabled = !useCustomModel;
+}
+
 
 async function checkApiKey() {
     const apiKey = apiKeyInput.value.trim();
@@ -102,12 +111,13 @@ assistant: [Sounds good! I'll follow those guidelines.]
 `;
 
     const prompt = `${trainingPrompt}\nWrite a Rego policy using the user-q and JSON input "user-q":${userQuery}\n"JSON":${formattedJson}\n`;
-    const response = await fetchChatGPT(prompt, apiKey);
+    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
+    const response = await fetchChatGPT(prompt, apiKey, model);
     regoOutput.value = response.choices[0].text.trim();
 }
 
 
-async function fetchChatGPT(prompt, apiKey, includeConversationHistory = true) {
+async function fetchChatGPT(prompt, apiKey, model, includeConversationHistory = true) {
     const url = "https://api.openai.com/v1/completions";
     const headers = {
         "Content-Type": "application/json",
@@ -116,7 +126,7 @@ async function fetchChatGPT(prompt, apiKey, includeConversationHistory = true) {
 
     const data = {
         "prompt": prompt,
-        "model": "text-davinci-003",
+        "model": model,
         "max_tokens": 200,
         "n": 1,
         "stop": null,

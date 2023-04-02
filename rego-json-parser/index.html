@@ -29,11 +29,22 @@
                         <i id="apiCrossmark" class="fas fa-times-circle"></i>
                     </div>
                 </div>
+                
+                <div class="custom-model-selection">
+                    <h2>Custom Model Selection</h2>
+                    <p> (default model is currently <em><strong>text-davinci-003</strong></em>) </p>
+                    <label for="useCustomModel">Use Custom/fine-tuning Model</label>
+                    <input type="text" id="customModel" placeholder="Enter model ID" disabled>
+                    <input type="checkbox" id="useCustomModel">
+                </div>
+                
+
                 <div class="json-input">
                     <h2>JSON Input</h2>
                     <textarea id="jsonInput" rows="22" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
                     <button id="generateRego">Generate Rego Policy</button>
                 </div>
+                
             </div>
             <div class="rego-output">
                 <h2>Generated Rego Policy</h2>
