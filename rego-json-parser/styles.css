@@ -1,6 +1,6 @@
 body {
     font-family: 'Neue Haas Grotesk Display Pro', sans-serif;
-    background-color: #f0f0f0;
+    background-color: #b9b5b5;
     margin: 0;
     padding: 0;
 }
@@ -16,8 +16,9 @@ header {
     display: flex;
     align-items: center;
 }
-#apiKey {
-    margin-left: 0px;
+
+.api-key-input #apiKey {
+    width: 180px; /* Added width property */
 }
 
 .api-key button {
@@ -33,7 +34,7 @@ header {
 
 #apiCrossmark {
     font-size: 1.5rem;
-    margin-right: 220px;
+    margin-right: 190px; /* Changed from 220px to 190px */
     visibility: hidden;
     color: red;
 }
@@ -41,7 +42,7 @@ header {
 .container {
     display: flex;
     justify-content: space-around;
-    margin: 1rem 13rem;
+    margin: .1rem 15rem;
 }
 
 .json-input,
@@ -57,11 +58,13 @@ header {
 
 textarea {
     resize: vertical;
+    border-radius: 5px;
     width: 100%;
 }
 
 button {
     display: block;
+    border-radius: 5px;
     background-color: #0254EC;
     color: white;
     font-size: 1.2rem;
