@@ -137,14 +137,7 @@ some
 true
 with
 
-8. Net
-Basic functions for manipulating IP addresses:
-net.cidr_contains(cidr, cidr_or_ip) # true if 'cidr_or_ip' is contained within 'cidr'
-net.cidr_intersects(cidr1, cidr2) # true if 'cidr1' overlaps with 'cidr2'
-net.cidr_merge(cidrs_or_ips) # merging the provided list of IP addresses
-                             # net.cidr_merge(["192.0.128.0/24", "192.0.129.0/24"]) 
-                             # generates {"192.0.128.0/23"}
-9. Operators & logical expressions
+8. Operators & logical expressions
 Rego offers many built-in logical expressions:
 
 
@@ -169,43 +162,8 @@ not input.foo.bar
 
 # This is a negation of the return value of the called function
 not myfunction
-10. References & external input
-References are used to access nested documents:
 
-
-# Define an employee array and default value for allow
-employee := ["foo", "bar", "john"]
-default allow = false
-
-# Check in the condition if the first object in the array equals to "foo"
-allow {employee[0] == "foo"}
-
-# The condition is true, so the assignment is performed, overriding the default value of allow
-When using Rego to write Cloud Configuration Rules, you essentially always need external input in the form of a JSON that contains a cloud resource's properties, an IaC template, etc. When reading external JSON files or other input, you must start your call with input. You can refer to data in the input using the . (dot) operator.
-
-Assume the external input is:
-
-Input JSON
-
-{ "SecurityGroups": [
-    {"GroupId":"xyz"},
-    {"GroupName": "myGroup"}
-  ]
-}
-You can call the value "myGroup" from the JSON input:
-
-
-input.SecurityGroups[1].GroupName
-The dot . operator (aka interpunction) can be used only when a key is alphanumeric starting with a letter.
-
-Dot . is shorthand for brackets []. In other words, Rego makes x.y into x["y"]. For example:
-
-
-# Assume the external input is the same JSON as above
-
-# Call the value "myGroup" of the JSON input with brackets instead of dot:
-input["SecurityGroups"][1]["GroupName"]
-11. 
+10. 
 Logical evaluations
 Every line of code in a policy performs a logical evaluation that returns either true or false. If the conditions in a rule never evaluate to true, the result is undefined. As a result, the document that would otherwise be defined by the rule's assignment remains undefined.
 
