@@ -7,6 +7,7 @@ const apiKeyInput = document.getElementById('apiKey');
 
 let conversationId = null;
 let useCustomModel = false;
+let generatedRegoPolicy = false;
 
 async function toggleModel() {
     useCustomModel = document.getElementById('useCustomModel').checked;
@@ -190,8 +191,16 @@ assistant: [Sounds good! I'll follow those guidelines.]
     const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
     const response = await fetchChatGPT(prompt, apiKey, model);
     regoOutput.value = response.choices[0].text.trim();
+    generatedRegoPolicy = true;
+    updateFollowUpInputState();
 }
 
+function updateFollowUpInputState() {
+    const followUpInput = document.getElementById('followUpInput');
+    followUpInput.disabled = !generatedRegoPolicy;
+}
+
+updateFollowUpInputState();
 
 async function fetchChatGPT(prompt, apiKey, model, includeConversationHistory = true) {
     const url = "https://api.openai.com/v1/completions";
@@ -232,8 +241,11 @@ async function sendFollowUp() {
         return;
     }
 
-    const prompt = `${followUpInput}\n`;
-    const response = await fetchChatGPT(prompt, apiKey, false); // Pass 'false' to omit conversation history
+    const initialPolicy = document.getElementById('regoOutput').value.trim();
+    const prompt = `Initial Rego policy:\n${initialPolicy}\n\nFollow-up request: ${followUpInput}\nPlease provide an updated Rego policy based on the follow-up request.\n`;
+    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
+    const response = await fetchChatGPT(prompt, apiKey, model, false); // Pass 'false' to omit conversation history
+    const updatedPolicy = response.choices[0].text.trim();
     const regoOutput = document.getElementById('regoOutput');
-    regoOutput.value += `\n\n─────────────────────────────────────────────────────────────────────────────\n\n${response.choices[0].text.trim()}`; // Add the line separator
+    regoOutput.value += `\n\n─────────────────────────────────────────────────────────────────────────────\n\n${updatedPolicy}`; // Append the updated policy below the separator line
 }
