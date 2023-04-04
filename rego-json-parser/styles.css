@@ -18,24 +18,26 @@ header {
 }
 
 .api-key-input #apiKey {
-    width: 180px; /* Added width property */
+    width: 180px;
 }
 
 .api-key button {
     margin-left: 20px;
 }
 
-#apiCheckmark {
+#apiCheckmark,
+#apiCrossmark {
     font-size: 1.5rem;
-    margin-left: 20px;
     visibility: hidden;
+}
+
+#apiCheckmark {
+    margin-left: 20px;
     color: green;
 }
 
 #apiCrossmark {
-    font-size: 1.5rem;
-    margin-right: 190px; /* Changed from 220px to 190px */
-    visibility: hidden;
+    margin-right: 190px;
     color: red;
 }
 
@@ -52,14 +54,15 @@ header {
     gap: .1rem 2rem;
 }
 
-.follow-up {
-    margin-top: .5rem;
-}
-
-textarea {
+.json-input textarea,
+.user-query input[type="text"] {
     resize: vertical;
     border-radius: 5px;
     width: 100%;
+}
+
+.follow-up {
+    margin-top: .5rem;
 }
 
 button {
