@@ -51,12 +51,21 @@ header {
 
 .input-fields-container {
     flex: 1;
-    max-width: calc(50% - 0.5rem);
+    max-width: calc(48% - 0.5rem);
 }
 
 .rego-output {
     flex: 1;
-    max-width: calc(50% - 0.5rem);
+    max-width: calc(48% - 0.5rem);
+}
+
+h2 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.custom-model-selection p {
+    margin-bottom: 0.25rem;
 }
 
 .json-input,

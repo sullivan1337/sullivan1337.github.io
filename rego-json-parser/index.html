@@ -18,7 +18,7 @@
                     <p>Already includes the prompt is:<br> 
                         "<strong>Write a Rego policy based on the user query and JSON input</strong>"
                     </p>
-                    <input type="text" id="userQuery" placeholder="Example: Subnets should not allow automatic public IP assignment">
+                    <textarea id="userQuery" rows="2" placeholder="Example: Subnets should not allow automatic public IP assignment"></textarea>
                 </div>
                 <div class="api-key">
                     <h2>ChatGPT API Key</h2>
@@ -42,7 +42,7 @@
 
                 <div class="json-input">
                     <h2>JSON Input</h2>
-                    <textarea id="jsonInput" rows="17" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
+                    <textarea id="jsonInput" rows="18" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
                     <button id="generateRego">Generate Rego Policy</button>
                 </div>
                 
