@@ -1,6 +1,4 @@
-document.getElementById('generateRego').addEventListener('click', generateRegoPolicy);
 document.getElementById('checkApiKey').addEventListener('click', checkApiKey);
-document.getElementById('sendFollowUp').addEventListener('click', sendFollowUp);
 document.getElementById('useCustomModel').addEventListener('change', toggleModel);
 const apiKeyCheckmark = document.getElementById('apiCheckmark');
 const apiKeyInput = document.getElementById('apiKey');
