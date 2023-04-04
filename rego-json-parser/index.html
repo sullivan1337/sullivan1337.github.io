@@ -11,6 +11,10 @@
         <h1>JSON to Rego Policy Generator</h1>
     </header>
     <main>
+        <div id="loading" class="loading-overlay">
+            <div class="spinner"></div>
+        </div>
+        
         <div class="container">
             <div class="input-fields-container">
                 <div class="user-query">
@@ -42,7 +46,7 @@
 
                 <div class="json-input">
                     <h2>JSON Input</h2>
-                    <textarea id="jsonInput" rows="18" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
+                    <textarea id="jsonInput" rows="19" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
                     <button id="generateRego">Generate Rego Policy</button>
                 </div>
                 

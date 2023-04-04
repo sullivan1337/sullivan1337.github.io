@@ -247,3 +247,25 @@ async function sendFollowUp() {
     const regoOutput = document.getElementById('regoOutput');
     regoOutput.value += `\n\n─────────────────────────────────────────────────────────────────────────────\n\n${updatedPolicy}`; // Append the updated policy below the separator line
 }
+
+document.getElementById('generateRego').addEventListener('click', async function() {
+    document.getElementById('loading').style.display = 'flex';
+    try {
+        await generateRegoPolicy();
+    } catch (error) {
+        console.error(error);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+});
+
+document.getElementById('sendFollowUp').addEventListener('click', async function() {
+    document.getElementById('loading').style.display = 'flex';
+    try {
+        await sendFollowUp();
+    } catch (error) {
+        console.error(error);
+    } finally {
+        document.getElementById('loading').style.display = 'none';
+    }
+});
