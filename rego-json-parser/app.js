@@ -92,8 +92,6 @@ time.parse_duration_ns(duration) # duration valid time units:"s","m","h"("-1h","
 time.parse_rfc3339_ns(value) # representing the time value in nanoseconds since epoch
 For instance, if you wanted to check that secret keys are rotated at least every 90 days:
 
-JSON
-
 default result = "pass"
 
 now_ns := time.now_ns()
@@ -187,7 +185,7 @@ undefinedDocument { "hello" == "world" }
 assistant: [Sounds good! I'll follow those guidelines.]
 `;
 
-    const prompt = `${trainingPrompt}\nWrite a Rego policy using the user-q and JSON input "user-q":${userQuery}\n"JSON":${formattedJson}\nReturn only the rego rule code`;
+    const prompt = `${trainingPrompt}\nWrite a Rego policy using the user-q and JSON input "user-q":${userQuery}\n"JSON":${formattedJson}\nReturn only the rego rule code starting with "package wiz"`;
     const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
     const response = await fetchChatGPT(prompt, apiKey, model);
     regoOutput.value = response.choices[0].text.trim();
