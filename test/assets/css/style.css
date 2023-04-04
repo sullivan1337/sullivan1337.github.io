@@ -170,7 +170,6 @@
   .h4,
   .h5 {
     color: var(--white-2);
-    text-transform: capitalize;
   }
   
   .h2 { font-size: var(--fs-1); }
@@ -235,7 +234,7 @@
   
   .service { margin-bottom: 35px; }
   
-  .service-title { margin-bottom: 20px; }
+  .service-title { margin-top: 18px; margin-bottom: 20px; }
   
   .service-list {
     display: grid;

@@ -22,7 +22,7 @@ header {
 }
 
 .api-key button {
-    margin-left: 20px;
+    margin-left: 0px;
 }
 
 #apiCheckmark,
@@ -32,19 +32,31 @@ header {
 }
 
 #apiCheckmark {
-    margin-left: 20px;
+    margin-left: 5px;
     color: green;
 }
 
 #apiCrossmark {
-    margin-right: 190px;
+    margin-right: 5px;
     color: red;
 }
 
 .container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-around;
-    margin: .1rem 15rem;
+    margin: .1rem 2%;
+    gap: 1rem;
+}
+
+.input-fields-container {
+    flex: 1;
+    max-width: calc(50% - 0.5rem);
+}
+
+.rego-output {
+    flex: 1;
+    max-width: calc(50% - 0.5rem);
 }
 
 .json-input,
@@ -55,10 +67,12 @@ header {
 }
 
 .json-input textarea,
-.user-query input[type="text"] {
+.user-query input[type="text"],
+.rego-output textarea {
     resize: vertical;
     border-radius: 5px;
     width: 100%;
+    max-width: 100%;
 }
 
 .follow-up {
