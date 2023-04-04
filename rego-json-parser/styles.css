@@ -44,10 +44,14 @@ header {
 .container {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    margin: .1rem 2%;
+    justify-content: center;
+    margin: 1rem auto;
     gap: 1rem;
+    max-width: 1300px;
+    min-height: calc(10vh - 2rem); /* Adjust for the header height */
+    align-items: center;
 }
+
 
 .input-fields-container {
     flex: 1;
