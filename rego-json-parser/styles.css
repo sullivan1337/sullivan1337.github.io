@@ -144,3 +144,24 @@ button:hover {
         transform: rotate(360deg);
     }
 }
+
+.follow-up-cards-container {
+    display: flex;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.follow-up-card {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    min-width: 200px;
+    flex-shrink: 0;
+}
+
+.follow-up-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
