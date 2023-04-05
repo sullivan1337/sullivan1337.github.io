@@ -144,3 +144,24 @@ button:hover {
         transform: rotate(360deg);
     }
 }
+
+
+footer {
+    background-color: #0254EC;
+    color: white;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 47px;
+  }
+  
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .container {
+    flex-grow: 1;
+  }
+  
