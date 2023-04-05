@@ -242,23 +242,9 @@ async function sendFollowUp() {
     const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
     const response = await fetchChatGPT(prompt, apiKey, model, false); // Pass 'false' to omit conversation history
     const updatedPolicy = response.choices[0].text.trim();
-
-    // Create and append a new follow-up card
-    const followUpCardsContainer = document.getElementById('followUpCardsContainer');
-    const card = document.createElement('div');
-    card.className = 'follow-up-card';
-
-    const cardTitle = document.createElement('h3');
-    cardTitle.textContent = `Follow-up ${followUpCardsContainer.childElementCount + 1}`;
-    card.appendChild(cardTitle);
-
-    const cardContent = document.createElement('pre');
-    cardContent.textContent = updatedPolicy;
-    card.appendChild(cardContent);
-
-    followUpCardsContainer.appendChild(card);
+    const regoOutput = document.getElementById('regoOutput');
+    regoOutput.value += `\n\────────────────────────────────────────\n\n${updatedPolicy}`; // Append the updated policy below the separator line
 }
-
 
 document.getElementById('generateRego').addEventListener('click', async function() {
     document.getElementById('loading').style.display = 'flex';
