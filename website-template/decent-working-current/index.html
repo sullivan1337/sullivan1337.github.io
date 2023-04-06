@@ -5,13 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="./assets/css/style.css">
 
-        <title>Webhook Generator</title>
+        <title>Website Template</title>
       </head>
       
 <body>
 
 <header>
-    <h1>Webhook Generator</h1>
+    <h1>Website Template</h1>
 </header>
 
     <div class="container">
@@ -22,22 +22,22 @@
                 <div class="col-md-6">
                     <br>
                     <div class="form-group">
-                        <label for="url">Webhook URL:</label>
-                        <input type="text" class="form-control" id="url" placeholder="Enter webhook URL">
+                        <label for="url">Input Box:</label>
+                        <input type="text" class="form-control" id="url" placeholder="Input Number 1">
                     </div>
                     <div class="form-group">
                         <label for="content">Content:</label>
-                        <textarea class="form-control" id="content" rows="10" placeholder="Enter content (usually formatted JSON)"></textarea>
+                        <textarea class="form-control" id="content" rows="10" placeholder="Content Box 1"></textarea>
                     </div>
                     <div class="form-group form-check">
                         <input type="checkbox" id="validate-json" checked>
-                        <label for="validate-json">Validate JSON</label>    
+                        <label for="validate-json">Checkbox 1</label>    
                     </div>
 
                 </div>
                 <div class="col-md-6">
                     <br>
-                    <h4>Authentication:</h4>
+                    <h4>Radial Options:</h4>
                     <div class="form-check">
                         <input class="form-check-input" type="radio" name="authentication" id="auth-none" value="none" checked>
                         <label class="form-check-label" for="auth-none">None</label>
@@ -61,10 +61,10 @@
                         <input type="text" class="form-control" id="token" placeholder="Enter token">
                     </div>
                     <hr>
-                    <h4>Headers:</h4>
+                    <h4>Entry List:</h4>
                     <div id="headers-container">
                     </div>
-                    <button type="button" class="btn btn-primary mb-2" id="add-header">Add Header</button>
+                    <button type="button" class="btn btn-primary mb-2" id="add-header">Add Item</button>
                     <hr>
                 </div>
             </div>
@@ -72,20 +72,20 @@
 
         <div class="col-md-12">
             <form id="generated-form">
-            <button type="submit" class="btn btn-success btn-block">Generate Webhook</button>
+            <button type="submit" class="btn btn-success btn-block">Submit Button</button>
         
-            <h3>curl Command to POST Webhook:</h3>
+            <h3>Output field 1 w/ Copy</h3>
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <button type="button" class="btn btn-primary" id="copy-curl">Copy</button>
             </div>
             <pre id="curl-output"></pre>
             <hr>
-            <h4>Full Webhook JSON:</h4>
+            <h4>Output field 2</h4>
             <pre id="output"></pre>
         </div> 
 
 <footer>
-    <p>Made by sullivan1337 ✦  Work-in-progress, PLEASE feel free to submit a PR: <a href="https://github.com/sullivan1337/sullivan1337.github.io/tree/master/webhook-generator" target="_blank">webhook-generator</a> repo</p>
+    <p>Made by sullivan1337 ✦  Please feel free to submit a PR: <a href="https://github.com/sullivan1337/sullivan1337.github.io/tree/master/website-template" target="_blank">website-template</a> repo</p>
 </footer>
 
 <script src="./assets/script.js"></script>
