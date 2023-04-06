@@ -120,6 +120,14 @@ button:hover {
     background-color: #f700ad;
 }
 
+#generateRego {
+    background-color: green;
+}#generateRego:hover {
+    background-color: #f700ad;
+}
+
+
+
 .loading-overlay {
     display: none;
     position: fixed;
