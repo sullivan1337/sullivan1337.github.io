@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (authMethod === 'token') {
             return {
                 method: 'token',
-                token: document.getElementById('token-input').value
+                token: document.getElementById('token').value
+
             };
         } else {
             return {
