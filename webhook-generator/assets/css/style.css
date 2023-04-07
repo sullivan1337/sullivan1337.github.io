@@ -157,6 +157,13 @@ button:hover {
     padding-left: 15px;
 }
 
+@media (max-width: 767px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
 /* Add this rule to adjust the gap between form sections */
 .form-group {
     margin-bottom: 1.5rem;

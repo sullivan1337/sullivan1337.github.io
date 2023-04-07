@@ -226,3 +226,10 @@ main {
     margin-right: auto;
     margin-left: auto;
 }
+
+@media (max-width: 767px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
