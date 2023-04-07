@@ -21,6 +21,11 @@ header {
     padding: .1rem;
 }
 
+h1, h2, h3, h4 {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .api-key-input {
     display: flex;
     align-items: center;
