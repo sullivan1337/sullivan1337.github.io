@@ -187,3 +187,19 @@ footer {
     flex-grow: 1;
   }
   
+  @media only screen and (max-width: 768px) {
+    footer {
+      height: 62px; /* 47px + 15px */
+    }
+    
+    .container {
+      flex-direction: column;
+      padding-bottom: 52px;
+    }
+    
+    .input-fields-container,
+    .rego-output {
+      max-width: 100%;
+    }
+  }
+  
