@@ -157,12 +157,6 @@ button:hover {
     padding-left: 15px;
 }
 
-@media (max-width: 767px) {
-    .col-md-6 {
-        flex: 0 0 100%;
-        max-width: 100%;
-    }
-}
 
 /* Add this rule to adjust the gap between form sections */
 .form-group {
@@ -234,9 +228,21 @@ main {
     margin-left: auto;
 }
 
-
-
 #output {
     overflow-y: auto;
     margin-bottom: 80px; /* Add this line to push up the section */
+}
+
+@media (max-width: 767px) {
+    .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    footer {
+        height: 66px; /* 47px + 15px */
+      }
+      .container {
+        flex-direction: column;
+        padding-bottom: 65px;
+      }
 }

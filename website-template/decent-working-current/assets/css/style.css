@@ -232,4 +232,11 @@ main {
         flex: 0 0 100%;
         max-width: 100%;
     }
+    footer {
+        height: 66px; /* 47px + 15px */
+      }
+      .container {
+        flex-direction: column;
+        padding-bottom: 65px;
+      }
 }
