@@ -4,147 +4,100 @@
     <meta charset="utf-8">
     <title>sullivan1337.github.io</title>
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
-    <style>
-      body {
-        font-family: 'Montserrat', Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-      }
-      
-      header {
-        background-color: #333;
-        color: #fff;
-        padding: 20px;
-        text-align: center;
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100%;
-        z-index: 1;
-      }
-      
-      h1 {
-        margin: 0;
-      }
-
-      /* Change the hyperlink color here */
-      a {
-        color: #336699; /* Your desired shade of blue */
-      }
-
-      a:hover {
-        color: #4477aa; /* Your desired shade of blue for the hover state */
-      }
-
-      
-      nav {
-        background-color: #333;
-        height: 100vh;
-        position: fixed;
-        left: 0;
-        top: 79px;
-        width: 225px;
-        text-align: center;
-      }
-      
-      nav a {
-        display: block;
-        color: #fff;
-        text-decoration: none;
-        padding: 10px;
-      }
-      
-      nav a:hover {
-        background-color: #444;
-        color: #fff;
-      }
-      
-      main {
-        margin: 20px;
-        margin-left: 240px;
-        margin-top: 100px;
-      }
-    </style>
+    <link rel="stylesheet" href="styles.css">  
   </head>
   
   <body>
     <header>
-      <h1><a href="https://github.com/sullivan1337/sullivan1337.github.io">sullivan1337.github.io</a></h1>
+      <h1 class="header-left"><a href="https://github.com/sullivan1337/sullivan1337.github.io">sullivan1337.github.io</a></h1>
+      <div class="header-right">
+        <div class="header-info">
+          <h4>Latest Commits:</h4>
+          <ul id="lastCommits" style="list-style: none; padding: 0; margin: 0;"></ul>
+        </div>
+        <div class="header-info">
+          <h4>Latest GitHub Actions Runs:</h4>
+          <ul id="githubActions" style="list-style: none; padding: 0; margin: 0;"></ul>
+        </div>
+      </div>
     </header>
     
     <nav>
-      <a href="./g-toolbox/apps/har_analyzer/index.htm">G-toolbox (HAR Analyzer)</a>
-      <a href="./countdowns/index.html">Event Countdown Timer</a>
-      <a href="./Invoice-generator/index.html">Invoice Generator</a>
-      <a href="./gcal-mapit/index.html">Gcal-mapit</a>
-      <a href="./terminal-tools/">Terminal Tools (IP, DVD, etc)</a>
-      <a href="./recipes/index.html">Cooking/Baking Recipes</a>
-      <a href="./CyberChefv10.4/CyberChef_v10.4.0.html">CyberChef</a>
-      <a href="./webhook-generator/index.html">Webhook Generator</a>
+      <h3 style="color: #fff;">Tech Tools</h3>
+
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/g-toolbox/apps/har_analyzer/index.htm';">G-toolbox (HAR Analyzer)</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/countdowns/index.html';">Event Countdown Timer</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/terminal-tools/';">Terminal Tools & Scripts</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html';">CyberChef</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/webhook-generator/index.html';">Webhook Generator</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/jwt-coder/index.html';">JWT Encoder/Decoder</a>
+
+      <br>
+      <hr>
+      
+      <h3 style="color: #fff;">Home Tools</h3>
+      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/recipes/index.html';">Cooking/Baking Recipes</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/gcal-mapit/index.html';">Gcal-mapit</a>
+      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/Invoice-generator/index.html';">Invoice Generator</a>
+
     </nav>
     
     <main>
-      <p>Gathering & backup of useful tools, tricks, and home projects</p>
-      
-<h3>Latest Commits:</h3>
-<ul id="lastCommits"></ul>
-<script>
-  // Set the GitHub API URL to fetch the last 3 commits
-  var apiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/commits?per_page=3";
-
-  // Use an AJAX request to get the last 3 commits from the GitHub API
-  var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      // Parse the JSON response and output the last 3 commit messages and dates
-      var response = JSON.parse(this.responseText);
-      var lastCommitElem = document.getElementById("lastCommits");
-      var commitList = "";
-
-      response.forEach(function(commit) {
-        var commitDate = new Date(commit.commit.author.date);
-        var estDate = new Date(commitDate.toLocaleString("en-US", { timeZone: "America/New_York" }));
-        var commitUrl = commit.html_url;
-        var commitId = commit.sha;
-
-        commitList += "<li>" + commit.commit.message + " (" + estDate.toLocaleString() + " EST) <br> <a href='" + commitUrl + "' target='_blank'>" + commitId + "</a></li>";
-      });
-
-      lastCommitElem.innerHTML = commitList;
-    }
-  };
-  xhttp.open("GET", apiUrl, true);
-  xhttp.send();
-</script>
-
-
-<h3>Latest GitHub Actions Runs:</h3>
-<ul id="githubActions"></ul>
-<script>
-  // set the GitHub API URL for the GitHub Actions workflow runs
-  var actionsApiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/actions/runs?per_page=3";
-
-  // use an AJAX request to get the last 3 GitHub Actions workflow runs
-  var actionsXhttp = new XMLHttpRequest();
-  actionsXhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      // parse the JSON response and generate the GitHub Actions runs list
-      var actionsResponse = JSON.parse(this.responseText);
-      var runs = actionsResponse.workflow_runs;
-      var actionsElem = document.getElementById("githubActions");
-      var actionsContent = "";
-
-      runs.forEach(function(run) {
-        actionsContent += "<li><a href='" + run.html_url + "' target='_blank'>" + run.name + " #" + run.run_number + "</a> - " + run.status + " (" + run.conclusion + ")</li>";
-      });
-
-      actionsElem.innerHTML = actionsContent;
-    }
-  };
-  actionsXhttp.open("GET", actionsApiUrl, true);
-  actionsXhttp.send();
-</script>
-
+      <iframe id="content-frame" src=""></iframe>
     </main>
+
+    <script>
+      // Set the GitHub API URL to fetch the last X commits
+      var apiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/commits?per_page=1";
+
+      // Use an AJAX request to get the last X commits from the GitHub API
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          // Parse the JSON response and output the last X commit messages and dates
+          var response = JSON.parse(this.responseText);
+          var lastCommitElem = document.getElementById("lastCommits");
+          var commitList = "";
+
+          response.forEach(function(commit) {
+            var commitDate = new Date(commit.commit.author.date);
+            var estDate = new Date(commitDate.toLocaleString("en-US", { timeZone: "America/New_York" }));
+            var commitUrl = commit.html_url;
+            var commitId = commit.sha;
+
+            commitList += "<li>" + commit.commit.message + " (" + estDate.toLocaleString() + " EST) <br> <a href='" + commitUrl + "' target='_blank'>" + commitId + "</a></li>";
+          });
+
+          lastCommitElem.innerHTML = commitList;
+        }
+      };
+      xhttp.open("GET", apiUrl, true);
+      xhttp.send();
+    </script>
+    <script>
+      // set the GitHub API URL for the GitHub Actions workflow runs
+      var actionsApiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/actions/runs?per_page=1";
+    
+      // use an AJAX request to get the last 3 GitHub Actions workflow runs
+      var actionsXhttp = new XMLHttpRequest();
+      actionsXhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          // parse the JSON response and generate the GitHub Actions runs list
+          var actionsResponse = JSON.parse(this.responseText);
+          var runs = actionsResponse.workflow_runs;
+          var actionsElem = document.getElementById("githubActions");
+          var actionsContent = "";
+    
+          runs.forEach(function(run) {
+            actionsContent += "<li><a href='" + run.html_url + "' target='_blank'>" + run.name + " #" + run.run_number + "</a><br>" + run.status + " (" + run.conclusion + ")</li>";
+          });
+    
+          actionsElem.innerHTML = actionsContent;
+        }
+      };
+      actionsXhttp.open("GET", actionsApiUrl, true);
+      actionsXhttp.send();
+    </script>
+
   </body>
 </html>
