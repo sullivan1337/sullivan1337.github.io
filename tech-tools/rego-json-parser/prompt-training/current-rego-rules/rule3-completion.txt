@@ -1,0 +1,11 @@
+"package wiz
+
+default result = "pass"
+
+result = "fail" {
+	count(input.NetworkWatchers) > 0
+}
+
+currentConfiguration := "This region has network watcher enabled"
+expectedConfiguration := ""
+###"

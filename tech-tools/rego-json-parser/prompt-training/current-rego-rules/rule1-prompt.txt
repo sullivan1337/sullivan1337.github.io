@@ -1,0 +1,198 @@
+""name" Subnets should not allow automatic public IP assignment "description" This rule checks whether VPC subnets are allowing automatic public IP assignment.
+ 
+ VPC subnet is a part of the VPC having its own rules for traffic. Assigning the Public IP to the subnet automatically (on launch) can accidentally expose the instances within this subnet to the internet and should be edited to 'No' post creation of the subnet. "exampleResourceJson" ``` {
+  "data": {
+  "graphSearch": {
+  "nodes": [
+  {
+  "entities": [
+  {
+  "id": "4ed8695a-ace3-53a2-a6a9-268d9aed4912",
+  "providerData": {
+  "AssignIpv6AddressOnCreation": false,
+  "AvailabilityZone": "us-east-1f",
+  "AvailabilityZoneId": "use1-az5",
+  "AvailableIpAddressCount": 4091,
+  "CidrBlock": "172.31.64.0/20",
+  "CustomerOwnedIpv4Pool": null,
+  "DefaultForAz": true,
+  "EnableDns64": false,
+  "EnableLniAtDeviceIndex": null,
+  "Ipv6CidrBlockAssociationSet": null,
+  "Ipv6Native": false,
+  "MapCustomerOwnedIpOnLaunch": false,
+  "MapPublicIpOnLaunch": true,
+  "OutpostArn": null,
+  "OwnerId": "186300416549",
+  "PrivateDnsNameOptionsOnLaunch": {
+  "EnableResourceNameDnsAAAARecord": false,
+  "EnableResourceNameDnsARecord": false,
+  "HostnameType": "ip-name"
+  },
+  "State": "available",
+  "SubnetArn": "arn:aws:ec2:us-east-1:186300416549:subnet/subnet-03bf56db874d820a9",
+  "SubnetId": "subnet-03bf56db874d820a9",
+  "Tags": null,
+  "VpcId": "vpc-03b62677b84ade81e",
+  "WizMetadata": {
+  "region": "us-east-1"
+  }
+  }
+  }
+  ]
+  },
+  {
+  "entities": [
+  {
+  "id": "e902e910-d028-546a-a562-3f24eac293a7",
+  "providerData": {
+  "AssignIpv6AddressOnCreation": false,
+  "AvailabilityZone": "eu-west-2b",
+  "AvailabilityZoneId": "euw2-az3",
+  "AvailableIpAddressCount": 4091,
+  "CidrBlock": "172.31.32.0/20",
+  "CustomerOwnedIpv4Pool": null,
+  "DefaultForAz": true,
+  "EnableDns64": false,
+  "EnableLniAtDeviceIndex": null,
+  "Ipv6CidrBlockAssociationSet": null,
+  "Ipv6Native": false,
+  "MapCustomerOwnedIpOnLaunch": false,
+  "MapPublicIpOnLaunch": true,
+  "OutpostArn": null,
+  "OwnerId": "186300416549",
+  "PrivateDnsNameOptionsOnLaunch": {
+  "EnableResourceNameDnsAAAARecord": false,
+  "EnableResourceNameDnsARecord": false,
+  "HostnameType": "ip-name"
+  },
+  "State": "available",
+  "SubnetArn": "arn:aws:ec2:eu-west-2:186300416549:subnet/subnet-058ef09bd0ee9395c",
+  "SubnetId": "subnet-058ef09bd0ee9395c",
+  "Tags": null,
+  "VpcId": "vpc-023df4f18c5bfab1d",
+  "WizMetadata": {
+  "region": "eu-west-2"
+  }
+  }
+  }
+  ]
+  },
+  {
+  "entities": [
+  {
+  "id": "40aa9693-e583-5410-82ab-4b45bbbe8f60",
+  "providerData": {
+  "AssignIpv6AddressOnCreation": false,
+  "AvailabilityZone": "ap-northeast-3b",
+  "AvailabilityZoneId": "apne3-az1",
+  "AvailableIpAddressCount": 4091,
+  "CidrBlock": "172.31.16.0/20",
+  "CustomerOwnedIpv4Pool": null,
+  "DefaultForAz": true,
+  "EnableDns64": false,
+  "EnableLniAtDeviceIndex": null,
+  "Ipv6CidrBlockAssociationSet": null,
+  "Ipv6Native": false,
+  "MapCustomerOwnedIpOnLaunch": null,
+  "MapPublicIpOnLaunch": true,
+  "OutpostArn": null,
+  "OwnerId": "186300416549",
+  "PrivateDnsNameOptionsOnLaunch": {
+  "EnableResourceNameDnsAAAARecord": false,
+  "EnableResourceNameDnsARecord": false,
+  "HostnameType": "ip-name"
+  },
+  "State": "available",
+  "SubnetArn": "arn:aws:ec2:ap-northeast-3:186300416549:subnet/subnet-02ba1f71f03ecf3b4",
+  "SubnetId": "subnet-02ba1f71f03ecf3b4",
+  "Tags": null,
+  "VpcId": "vpc-07ad5fe292396fccf",
+  "WizMetadata": {
+  "region": "ap-northeast-3"
+  }
+  }
+  }
+  ]
+  },
+  {
+  "entities": [
+  {
+  "id": "e400f6a9-44b4-522d-8c77-4c10679a0d65",
+  "providerData": {
+  "AssignIpv6AddressOnCreation": false,
+  "AvailabilityZone": "us-east-2b",
+  "AvailabilityZoneId": "use2-az2",
+  "AvailableIpAddressCount": 4090,
+  "CidrBlock": "172.31.16.0/20",
+  "CustomerOwnedIpv4Pool": null,
+  "DefaultForAz": true,
+  "EnableDns64": false,
+  "EnableLniAtDeviceIndex": null,
+  "Ipv6CidrBlockAssociationSet": null,
+  "Ipv6Native": false,
+  "MapCustomerOwnedIpOnLaunch": false,
+  "MapPublicIpOnLaunch": true,
+  "OutpostArn": null,
+  "OwnerId": "186300416549",
+  "PrivateDnsNameOptionsOnLaunch": {
+  "EnableResourceNameDnsAAAARecord": false,
+  "EnableResourceNameDnsARecord": false,
+  "HostnameType": "ip-name"
+  },
+  "State": "available",
+  "SubnetArn": "arn:aws:ec2:us-east-2:186300416549:subnet/subnet-f2c8ae88",
+  "SubnetId": "subnet-f2c8ae88",
+  "Tags": null,
+  "VpcId": "vpc-cad7d7a2",
+  "WizMetadata": {
+  "region": "us-east-2"
+  }
+  }
+  }
+  ]
+  },
+  {
+  "entities": [
+  {
+  "id": "d661ca5b-adbe-52a5-af68-22ca8bd43b70",
+  "providerData": {
+  "AssignIpv6AddressOnCreation": false,
+  "AvailabilityZone": "ca-central-1b",
+  "AvailabilityZoneId": "cac1-az2",
+  "AvailableIpAddressCount": 4091,
+  "CidrBlock": "172.31.0.0/20",
+  "CustomerOwnedIpv4Pool": null,
+  "DefaultForAz": true,
+  "EnableDns64": false,
+  "EnableLniAtDeviceIndex": null,
+  "Ipv6CidrBlockAssociationSet": null,
+  "Ipv6Native": false,
+  "MapCustomerOwnedIpOnLaunch": false,
+  "MapPublicIpOnLaunch": true,
+  "OutpostArn": null,
+  "OwnerId": "186300416549",
+  "PrivateDnsNameOptionsOnLaunch": {
+  "EnableResourceNameDnsAAAARecord": false,
+  "EnableResourceNameDnsARecord": false,
+  "HostnameType": "ip-name"
+  },
+  "State": "available",
+  "SubnetArn": "arn:aws:ec2:ca-central-1:186300416549:subnet/subnet-074d340db6d7df67b",
+  "SubnetId": "subnet-074d340db6d7df67b",
+  "Tags": null,
+  "VpcId": "vpc-09c7695f7ea919ad3",
+  "WizMetadata": {
+  "region": "ca-central-1"
+  }
+  }
+  }
+  ]
+  }
+  ]
+  }
+  }
+ }``` "remediationInstructions" Perform the following command in order to disable automatic public IP assignment via AWS CLI: 
+ ``` 
+ aws ec2 modify-subnet-attribute --subnet-id {{subnetID}} --no-map-public-ip-on-launch 
+ ``` ###""

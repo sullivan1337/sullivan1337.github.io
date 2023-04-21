@@ -1,0 +1,31 @@
+" "name" VPC subnet should have Private Google Access enabled "description" This rule checks whether the subnet has Private Google Access enabled, which allows access to Google APIs and services from an internal IP.  
+This rule fails if it finds the field 'privateIpGoogleAccess = false'.
+When disabled, VM instances without an external IP can not reach Goggle APIs and services, and can only send traffic within the VPC network. Private Google Access should be enabled to allow access to Google APIs without exposing an external IP. "exampleResourceJson" ```  {
+  "creationTimestamp": "2022-06-09T07:54:22.980-07:00",
+  "description": "",
+  "enableFlowLogs": false,
+  "externalIpv6Prefix": "",
+  "fingerprint": "83-ctFg6Ras=",
+  "gatewayAddress": "10.168.0.1",
+  "internalIpv6Prefix": "",
+  "ipCidrRange": "10.168.0.0/20",
+  "ipv6AccessType": "",
+  "ipv6CidrRange": "",
+  "kind": "compute#subnetwork",
+  "name": "default",
+  "network": "https://www.googleapis.com/compute/v1/projects/eamon-wiz-test/global/networks/default",
+  "privateIpGoogleAccess": false,
+  "privateIpv6GoogleAccess": "DISABLE_GOOGLE_ACCESS",
+  "purpose": "PRIVATE",
+  "region": "https://www.googleapis.com/compute/v1/projects/eamon-wiz-test/regions/us-west2",
+  "role": "",
+  "selfLink": "https://www.googleapis.com/compute/v1/projects/eamon-wiz-test/regions/us-west2/subnetworks/default",
+  "stackType": "IPV4_ONLY",
+  "state": "",
+  "WizMetadata": {
+    "region": "us-west2"
+  }
+}```remediationInstructionsPerform the following command in order to enable Private Google Access via GCP CLI:  
+```  
+gcloud compute networks subnets update {{subnetName}} --region={{region}} --enable-private-ip-google-access  
+```###""

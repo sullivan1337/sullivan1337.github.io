@@ -1,0 +1,11 @@
+"package wiz
+
+default result = "pass"
+
+result = "fail" {
+	input.privateIpGoogleAccess == false
+    input.creationTimestamp
+}
+
+currentConfiguration := "privateIpGoogleAccess is set to False"
+expectedConfiguration := "privateIpGoogleAccess should be set to True"###"

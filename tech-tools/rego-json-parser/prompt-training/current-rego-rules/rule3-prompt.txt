@@ -1,0 +1,28 @@
+" "name" Network Watcher is enabled "description" This rule checks whether Azure Network Watcher is enabled.  
+This rule fails if Network Watcher is enabled.
+>**Note**  
+This rule is informational. It is used for the control `wc-id-1131`, and does not indicate a misconfiguration. "exampleResourceJson" ```  {
+  "NetworkWatchers": null,
+  "displayName": "Norway East",
+  "id": "/subscriptions/4ed8b4e8-a487-47e8-bc4a-fed262716d39/locations/norwayeast",
+  "metadata": {
+    "geographyGroup": "Europe",
+    "latitude": "59.913868",
+    "longitude": "10.752245",
+    "pairedRegion": [
+      {
+        "id": "/subscriptions/4ed8b4e8-a487-47e8-bc4a-fed262716d39/locations/norwaywest",
+        "name": "norwaywest"
+      }
+    ],
+    "physicalLocation": "Norway",
+    "regionCategory": "Recommended",
+    "regionType": "Physical"
+  },
+  "name": "norwayeast",
+  "regionalDisplayName": "(Europe) Norway East",
+  "type": "Region",
+  "WizMetadata": {
+    "region": null
+  }
+}```remediationInstructions###""
