@@ -199,19 +199,35 @@ function updateFollowUpInputState() {
 updateFollowUpInputState();
 
 async function fetchChatGPT(prompt, apiKey, model, includeConversationHistory = true) {
-    const url = "https://api.openai.com/v1/completions";
+    let useCustomModel = document.getElementById("useCustomModel").checked;
+    let url;
+    let data;
+
+    if (useCustomModel) {
+        url = "https://api.openai.com/v1/completions";
+        data = {
+            "prompt": prompt,
+            "model": model,
+            "max_tokens": 200,
+            "n": 1,
+            "stop": null,
+            "temperature": 0.5
+        };
+    } else {
+        url = "https://api.openai.com/v1/completions";
+        data = {
+            "prompt": prompt,
+            "model": model,
+            "max_tokens": 200,
+            "n": 1,
+            "stop": null,
+            "temperature": 0.5
+        };
+    }
+
     const headers = {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${apiKey}`
-    };
-
-    const data = {
-        "prompt": prompt,
-        "model": model,
-        "max_tokens": 200,
-        "n": 1,
-        "stop": null,
-        "temperature": 0.5
     };
 
     const response = await fetch(url, {
@@ -226,6 +242,7 @@ async function fetchChatGPT(prompt, apiKey, model, includeConversationHistory = 
         throw new Error(`Error: ${response.status}`);
     }
 }
+
 
 
 async function sendFollowUp() {

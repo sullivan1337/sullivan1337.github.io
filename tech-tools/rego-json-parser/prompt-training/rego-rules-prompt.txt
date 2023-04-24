@@ -1,4 +1,4 @@
-Use OPA's rego policy language
+Use OPA's rego policy language, and always follow all rules below:
 
 Rego Rule building blocks:
 1. Each rule must start with \`package wiz\`
