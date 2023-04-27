@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <title>GraphQL Query Generator</title>
+</head>
+
+<body>
+
+<header>
+    <h1>GraphQL Query Generator</h1>
+</header>
+
+    <div class="container">
+
+        <form id="graphql-form">
+            <div class="row">
+
+                <div class="col-md-6">
+                    <br>
+                    <div class="form-group">
+                        <label for="CLIENT_ID"><strong>CLIENT_ID:</strong></label>
+                        <input type="text" class="form-control" id="CLIENT_ID" placeholder="Enter CLIENT_ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="CLIENT_SECRET"><strong>CLIENT_SECRET:</strong></label>
+                        <input type="text" class="form-control" id="CLIENT_SECRET" placeholder="Enter CLIENT_SECRET">
+                    </div>
+                    <div class="form-group">
+                        <label for="endpoint_url"><strong>Endpoint URL:</strong></label>
+                        <input type="text" class="form-control" id="endpoint_url" placeholder="Enter endpoint URL">
+                    </div>
+                    <div class="form-group">
+                        <label for="auth_url"><strong>Auth URL:</strong></label>
+                        <input type="text" class="form-control" id="auth_url" placeholder="Enter auth URL">
+                    </div>
+                    <div class="form-group">
+                        <label for="audience"><strong>Audience:</strong></label>
+                        <input type="text" class="form-control" id="audience" placeholder="Enter audience">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="graphql_query"><strong>GraphQL Query:</strong></label>
+                        <textarea class="form-control" id="graphql_query" rows="5" placeholder="Enter GraphQL query"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="graphql_variables"><strong>GraphQL Variables (JSON):</strong></label>
+                        <textarea class="form-control" id="graphql_variables" rows="5" placeholder="Enter GraphQL variables as JSON"></textarea>
+                    </div>
+                </div>
+                  
+            </div>
+        </form>
+
+        <div class="col-md-12">
+            <form id="generated-form">
+            <button type="submit" class="btn btn-success btn-block">Generate Python Script</button>
+        
+            <h3>Generated Python Script:</h3>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <button type="button" class="btn btn-primary" id="copy-python">Copy</button>
+            </div>
+            <pre id="python-output"></pre>
+        </div> 
+
+<script src="./assets/script.js"></script>
+</body>
+
+<footer>
+  <p>Made by YourName ✦ Please feel free to submit a PR: <a href="https://github.com/YourGitHubUsername/YourRepositoryName" target="_blank">YourRepositoryName</a> repo</p>
+</footer>
+
+</html>
