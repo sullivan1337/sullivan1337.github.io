@@ -126,7 +126,7 @@
       const updateList = (data, filter = '') => {
         let htmlString = '';
         for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
-          const fileName = file.path.replace('.md', '').replace('recipes/', '');
+          const fileName = file.path.replace('.md', '').replace('home-tools/recipes/', '');
           const fileDisplayName = fileName.split('-').join(' ');
           htmlString += `<li><a href="${fileName}">${fileDisplayName}</a></li>`;
         }
