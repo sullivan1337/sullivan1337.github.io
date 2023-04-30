@@ -154,6 +154,15 @@
         }
       }
 
+      document.addEventListener('click', (event) => {
+        if (event.target.tagName === 'A' && event.target.textContent === 'sullivan1337.github.io') {
+          event.preventDefault();
+          document.getElementById('content').innerHTML = '';
+          search_input.value = '';
+          updateList(data);
+        }
+      });
+
       (async () => {
         // Get GitHub repository file info
         const response = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes');
