@@ -142,6 +142,15 @@
           const mdContent = await response.text();
           const htmlContent = marked(mdContent);
           document.getElementById('content').innerHTML = htmlContent;
+
+          // Update the behavior of the "sullivan1337" link
+          const homeLink = document.querySelector('h1 > a');
+          homeLink.setAttribute('href', 'javascript:void(0)');
+          homeLink.onclick = () => {
+            document.getElementById('content').innerHTML = '';
+            search_input.value = '';
+            updateList(data);
+          };
         }
       }
 
