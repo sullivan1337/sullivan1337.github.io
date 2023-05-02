@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Signature Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="form-container">
+        <input id="name" type="text" placeholder="Your Name">
+        <input id="title" type="text" placeholder="Your Title">
+        <input id="phone" type="text" placeholder="Phone Number">
+        <input id="email" type="text" placeholder="Email Address">
+        <input id="logo-upload" type="file" accept="image/*">
+        <div id="logo-preview" class="logo-preview"></div>
+        <button id="generate">Generate Signature</button>
+    </div>
+    <div class="signature" style="display: none;">
+        <div class="logo-container">
+            <img id="logo" class="logo" src="" alt="Logo">
+        </div>
+        <div class="info">
+            <p class="name"></p>
+            <p class="title"></p>
+            <p class="contact phone"></p>
+            <p class="contact email"></p>
+        </div>
+    </div>
+</body>
+</html>
