@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>JSON to Rego Policy Generator</title>
+    <title>OVAL Policy Generator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>JSON to Rego Policy Generator</h1>
+        <h1>OVAL Policy Generator</h1>
     </header>
     <main>
         <div id="loading" class="loading-overlay">
@@ -20,9 +20,9 @@
                 <div class="user-query">
                     <h2>User Query</h2> 
                     <p>Already includes the prompt is:<br> 
-                        "<strong>Write a Rego policy based on the user query and JSON input</strong>"
+                        "<strong>Write an OVAL policy based on the user query</strong>"
                     </p>
-                    <textarea id="userQuery" rows="2" placeholder="Example: Subnets should not allow automatic public IP assignment"></textarea>
+                    <textarea id="userQuery" rows="2" placeholder="Example: Windows VM should not have a pending reboot"></textarea>
                 </div>
                 <div class="api-key">
                     <h2>ChatGPT <a href="https://platform.openai.com/account/api-keys" target="_blank">API Key</a></h2>
@@ -44,16 +44,15 @@
                 </div>
                 
 
-                <div class="json-input">
-                    <h2>JSON Input</h2>
-                    <textarea id="jsonInput" rows="19" cols="80" placeholder="Paste your input resource's JSON data here"></textarea>
-                    <button id="generateRego">Generate Rego Policy</button>
+                <div class="oval-button">
+                    <br>
+                    <button id="generateOvalPolicy">Generate Oval Policy</button>
                 </div>
                 
             </div>
-            <div class="rego-output">
-                <h2>Generated Rego Policy</h2>
-                <textarea id="regoOutput" rows="31" cols="80" readonly></textarea>
+            <div class="oval-output">
+                <h2>Generated OVAL Policy</h2>
+                <textarea id="ovalOutput" rows="20" cols="80" readonly></textarea>
                 <button id="copyButton">Copy</button>
                 <div class="follow-up">
                     <h2>Follow-up Request</h2>
@@ -69,7 +68,7 @@
     <script src="./all.min.js" crossorigin="anonymous"></script>
 
     <footer>
-        <p>Made by sullivan1337 ✦  Please feel free to submit a PR: <a href="https://github.com/sullivan1337/sullivan1337.github.io/tree/master/tech-tools/rego-json-parser" target="_blank">rego-json-parser</a> repo</p>
+        <p>Made by sullivan1337 ✦  Please feel free to submit a PR: <a href="https://github.com/sullivan1337/sullivan1337.github.io/tree/master/tech-tools/oval-policy-generator" target="_blank">oval-policy-generator</a> repo</p>
     </footer>
     
 </body>
