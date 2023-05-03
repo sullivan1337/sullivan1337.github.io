@@ -92,6 +92,22 @@ async function generateOVALPolicy() {
 
  - registry_object info NEEDS to contain either name or name_variable
 
+- registry_state NEEDS to be: One of the following is expected:
+- hive
+- hive_variable
+- key
+- key_variable
+- name
+- name_variable
+- last_write_time
+- last_write_time_variable
+- type
+- type_variable
+- value
+- value_variable
+- windows_view
+- windows_view_variable
+
  - value_type:
  One of the following is expected:
  - hive
