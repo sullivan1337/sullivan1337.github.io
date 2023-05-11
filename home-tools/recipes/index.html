@@ -132,7 +132,6 @@
         }
         document.getElementById('list').innerHTML = htmlString;
       }
-      // Quick navigate to file if perfect match
       const navigateToFile = async (data, filter = '') => {
         files = data.filter(filterFiles(filter));
         if (files.length === 1) {
@@ -150,9 +149,18 @@
             document.getElementById('content').innerHTML = '';
             search_input.value = '';
             updateList(data);
+            return false;
           };
+
+          // Update the behavior of links in the rendered markdown
+          const markdownLinks = document.querySelectorAll('.markdown-body a');
+          for (const link of markdownLinks) {
+            if (link.href.includes('sullivan1337.github.io')) {
+              link.setAttribute('href', 'https://sullivan1337.github.io/home-tools/recipes/index.html');
+            }
+          }
         }
-      }
+      };
 
       document.addEventListener('click', (event) => {
         if (event.target.tagName === 'A' && event.target.textContent === 'https://sullivan1337.github.io/home-tools/recipes/index.html') {
