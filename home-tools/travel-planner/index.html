@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Travel Planner</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+<!-- FullCalendar CSS -->
+<link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css' rel='stylesheet' />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.print.min.css' rel='stylesheet' media='print' />
+</head>
+<body>
+    <h1>Travel Planner</h1>
+
+    <h2>Trip Dates</h2>
+    <form id="dateForm">
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate">
+
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate">
+
+        <button type="submit">Save Dates</button>
+    </form>
+
+    <h2>Flights</h2>
+    <form id="flightForm">
+        <!-- Input fields for flight information -->
+        <!-- This could include flight number, departure and arrival times, and connection info -->
+
+        <button type="submit">Add Flight</button>
+    </form>
+
+    <!-- Similar forms would be needed for rental car, hotel, meals, and activities -->
+
+    <h2>Import/Export</h2>
+    <button id="importButton">Import JSON</button>
+    <input type="file" id="fileInput" style="display: none;">
+    <button id="exportButton">Export JSON</button>
+    <br>
+    <br>
+    <!-- Calendar container -->
+    <div id="calendar"></div>
+
+    <div class="ui container">
+
+        <div class="ui menu">
+          <div class="header item">Brand</div>
+          <a class="active item">Link</a>
+          <a class="item">Link</a>
+          <div class="ui dropdown item">
+            Dropdown
+            <i class="dropdown icon"></i>
+            <div class="menu">
+              <div class="item">Action</div>
+              <div class="item">Another Action</div>
+              <div class="item">Something else here</div>
+              <div class="divider"></div>
+              <div class="item">Separated Link</div>
+              <div class="divider"></div>
+              <div class="item">One more separated link</div>
+            </div>
+          </div>
+          <div class="right menu">
+            <div class="item">
+              <div class="ui action left icon input">
+                <i class="search icon"></i>
+                <input type="text" placeholder="Search">
+                <button class="ui button">Submit</button>
+              </div>
+            </div>
+            <a class="item">Link</a>
+          </div>
+        </div>
+      </div>
+      
+      <br/>
+      <div class="ui container">
+        <div class="ui grid">
+          <div class="ui sixteen column">
+            <div id="calendar"></div>
+          </div>
+        </div>
+      </div>
+      
+      </div>
+
+<!-- jQuery and Moment.js -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment.min.js'></script>
+
+<!-- FullCalendar JavaScript -->
+<script src='https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js'></script>
+    <script src="app.js"></script>
+</body>
+</html>
