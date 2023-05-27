@@ -1,9 +1,9 @@
-Crust Ingredients:
+**Crust Ingredients**:
 - 2 cups flour
 - 1 cup butter
 - 1/2 cup powdered sugar
 
-Crust Instructions:
+**Crust Instructions**:
 1. Melt butter in 9x13 pan over low heat on stove
 1. Mix flour and powdered sugar
 1. Mix flour and sugar into melted butter in pan
@@ -12,7 +12,7 @@ Crust Instructions:
 
 - While dough is baking make filling
 
-Filling Ingredients:
+**Filling Ingredients**:
 - 4 eggs
 - 6 tablespoons lemon juice
 - 2 cups sugar
@@ -20,14 +20,14 @@ Filling Ingredients:
 - 1/2 teaspoon salt
 - 1 teaspoon baking powder
 
-Filling Instructions:
+**Filling Instructions**:
 1. Beat eggs and lemon juice in mixing bowl
 1. Mix sugar, flour, salt and baking powder in separate bowl
 1. Mix dry and wet bowls together
 1. Pour over crust while hot
 1. Bake at 350°F for 25 minutes. 
 
-Notes:
+**Notes**:
 - Sprinkle with powdered sugar when cool.
 
 - Cut and serve!
