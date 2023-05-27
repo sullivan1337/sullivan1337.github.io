@@ -26,6 +26,7 @@
 1. Mix dry and wet bowls together
 1. Pour over crust while hot
 1. Bake at 350°F for 25 minutes. 
+1. Let cool for ~10 minutes
 
 **Notes**:
 - Sprinkle with powdered sugar when cool.
