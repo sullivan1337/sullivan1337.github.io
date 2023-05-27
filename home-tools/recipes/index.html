@@ -68,11 +68,6 @@
   .markdown-body table td {
     border-color: #4e4e4e;
   }
-  .markdown-body li input[type="checkbox"] {
-  margin-right: 0.5em;
-  vertical-align: middle;
-}
-
 </style>
 
   </head>
@@ -92,26 +87,6 @@
 
     <script src="./assets/marked.min.js"></script>
     <script>
-      // Modify marked.js options
-      marked.setOptions({
-          renderer: new marked.Renderer(),
-      });
-    
-      // Create a new renderer
-      let renderer = new marked.Renderer();
-    
-      // Store the original listitem render function
-      let originalListitemRenderer = renderer.listitem;
-    
-      // Override the listitem function
-      renderer.listitem = function(text) {
-          // Call the original renderer, but add a checkbox before it
-          return `<li><input type="checkbox">${originalListitemRenderer.call(this, text)}</li>`;
-      };
-    
-      // Use the modified renderer
-      marked.setOptions({ renderer });
-
       // Filter files by search term match and clean out non recipe files
       const filterFiles = (filter) => {
         filter = filter.toLowerCase()
