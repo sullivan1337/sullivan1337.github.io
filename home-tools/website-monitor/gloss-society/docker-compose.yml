@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  website-monitor:
+    build: .
+    environment:
+      - USERNAME=username
+      - PASSWORD=password
+      - WEBHOOK_URL=https://webhook.site/fc646478-b997-4473-9b9c-4eee9a1a552e
