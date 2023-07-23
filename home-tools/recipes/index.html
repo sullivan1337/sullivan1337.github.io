@@ -79,10 +79,14 @@
           <input id="search_input">
         </form>
       </h1>
-      <ul id="list">
+      <h2>Markdown Recipes</h2>
+      <ul id="md_list">
+      </ul>
+      <h2>PDF Recipes</h2>
+      <ul id="pdf_list">
       </ul>
     </div>
-
+  
     <div id="content"></div>
 
     <script src="./assets/marked.min.js"></script>
@@ -123,13 +127,15 @@
           return matchScore(fileA, filter) < matchScore(fileB, filter) ? -1 : 1;
         }
       }
+
       // Render search result list
       const updateList = (data, filter = '') => {
         let htmlString = '';
         for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
-          const fileName = file.path.replace('.md', '').replace('home-tools/recipes/', '');
+          const fileName = file.path.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/', '');
           const fileDisplayName = fileName.split('-').join(' ');
-          htmlString += `<li><a href="${fileName}">${fileDisplayName}</a></li>`;
+          const fileLink = file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName;
+          htmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
         }
         document.getElementById('list').innerHTML = htmlString;
       }
