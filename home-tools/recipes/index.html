@@ -89,17 +89,18 @@
     <script>
       // Filter files by search term match and clean out non recipe files
       const filterFiles = (filter) => {
-        filter = filter.toLowerCase()
-        return (file) => {
-          const filePath = file.path;
-          const fileName = filePath.replace('.md', '').toLowerCase().replace(/-/g, '');
-          const isMarkdown = (/.md$/).test(filePath);
-          const isNotLicense = filePath !== 'LICENSE.md';
-          const isInFilter = filter.split(' ')
-            .every((token) => fileName.indexOf(token.toLowerCase()) !== -1)
-          return isMarkdown && isNotLicense && isInFilter;
-        }
-      }
+  filter = filter.toLowerCase()
+  return (file) => {
+    const filePath = file.path;
+    const fileName = filePath.replace('.md', '').replace('.pdf', '').toLowerCase().replace(/-/g, '');
+    const isMarkdownOrPdf = (/.md$/).test(filePath) || (/.pdf$/).test(filePath);
+    const isNotLicense = filePath !== 'LICENSE.md';
+    const isInFilter = filter.split(' ')
+      .every((token) => fileName.indexOf(token.toLowerCase()) !== -1)
+    return isMarkdownOrPdf && isNotLicense && isInFilter;
+  }
+}
+
       // Match by closest to start of word then earliest word
       const matchScore = (file, filter) => {
         const fileWords = file.name.replace('.md', '').toLowerCase().split('-');
@@ -132,25 +133,34 @@
         }
         document.getElementById('list').innerHTML = htmlString;
       }
+
       const navigateToFile = async (data, filter = '') => {
   files = data.filter(filterFiles(filter));
   if (files.length === 1) {
     const fileName = files[0].path.replace('.md', '.md');
-    const markdownUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
-    const response = await fetch(markdownUrl);
-    const mdContent = await response.text();
-    const htmlContent = marked(mdContent);
-    document.getElementById('content').innerHTML = htmlContent;
+    if (fileName.endsWith('.pdf')) {
+      // If it's a PDF, embed it in an iframe
+      const pdfUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
+      document.getElementById('content').innerHTML = `<iframe src="${pdfUrl}" width="100%" height="500px"></iframe>`;
+    } else {
+      // If it's a Markdown file, fetch and render it as before
+      const markdownUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
+      const response = await fetch(markdownUrl);
+      const mdContent = await response.text();
+      const htmlContent = marked(mdContent);
+      document.getElementById('content').innerHTML = htmlContent;
 
-    // Update the behavior of links in the rendered markdown
-    const markdownLinks = document.querySelectorAll('#content a');
-    for (const link of markdownLinks) {
-      if (link.href.includes('https://sullivan1337.github.io/')) {
-        link.setAttribute('href', 'https://sullivan1337.github.io/home-tools/recipes/index.html');
+      // Update the behavior of links in the rendered markdown
+      const markdownLinks = document.querySelectorAll('#content a');
+      for (const link of markdownLinks) {
+        if (link.href.includes('https://sullivan1337.github.io/')) {
+          link.setAttribute('href', 'https://sullivan1337.github.io/home-tools/recipes/index.html');
+        }
       }
     }
   }
 };
+
 
 
       document.addEventListener('click', (event) => {
