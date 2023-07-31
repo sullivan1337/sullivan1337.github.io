@@ -79,13 +79,13 @@
           <input id="search_input">
         </form>
       </h1>
-      <h2>Family Recipes</h2>
+      <h2 onclick="toggleVisibility('md_list')">Family Recipes</h2>
       <ul id="md_list">
       </ul>
-      <h2>Favorited Meals</h2>
+      <h2 onclick="toggleVisibility('fav_pdf_list')">Favorited Meals</h2>
       <ul id="fav_pdf_list">
       </ul>
-      <h2>Meal Plan Recipes</h2>
+      <h2 onclick="toggleVisibility('pdf_list')">Meal Plan Recipes</h2>
       <ul id="pdf_list">
       </ul>
     </div>
@@ -107,6 +107,15 @@
     return isMarkdownOrPdf && isNotLicense && isInFilter;
   }
 }
+
+  function toggleVisibility(id) {
+    const element = document.getElementById(id);
+    if (element.style.display === "none") {
+      element.style.display = "block";
+    } else {
+      element.style.display = "none";
+    }
+  }
 
       // Match by closest to start of word then earliest word
       const matchScore = (file, filter) => {
