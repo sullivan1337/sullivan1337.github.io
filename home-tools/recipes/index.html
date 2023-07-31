@@ -82,6 +82,9 @@
       <h2>Family Recipes</h2>
       <ul id="md_list">
       </ul>
+      <h2>Favorited Meals</h2>
+      <ul id="fav_pdf_list">
+      </ul>
       <h2>Meal Plan Recipes</h2>
       <ul id="pdf_list">
       </ul>
@@ -132,11 +135,14 @@
       const updateList = (data, filter = '') => {
         let mdHtmlString = '';
         let pdfHtmlString = '';
+        let favPdfHtmlString = '';
         for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
-          const fileName = file.path.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/', '');
+          const fileName = file.path.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/', '').replace('home-tools/recipes/PDF/', '').replace('home-tools/recipes/favoriteMeals/', '');
           const fileDisplayName = fileName.split('-').join(' ');
           const fileLink = file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName;
-          if (file.path.endsWith('.pdf')) {
+          if (file.path.includes('favoriteMeals')) {
+            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
+          } else if (file.path.endsWith('.pdf')) {
             pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           } else {
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
@@ -144,6 +150,7 @@
         }
         document.getElementById('md_list').innerHTML = mdHtmlString;
         document.getElementById('pdf_list').innerHTML = pdfHtmlString;
+        document.getElementById('fav_pdf_list').innerHTML = favPdfHtmlString;
       }
 
 
@@ -184,32 +191,35 @@
       });
 
       (async () => {
-        // Get GitHub repository file info
-        const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes');
-        const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
-        const mdData = await mdResponse.json();
-        const pdfData = await pdfResponse.json();
-        const data = [...mdData, ...pdfData];
+      // Get GitHub repository file info
+      const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes');
+      const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
+      const favPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/favoriteMeals');
+      const mdData = await mdResponse.json();
+      const pdfData = await pdfResponse.json();
+      const favPdfData = await favPdfResponse.json();
+      const data = [...mdData, ...pdfData, ...favPdfData];
 
-        // Initialize search fields and results
-        const search_form = document.getElementById('search_form');
-        const search_input = document.getElementById('search_input');
-        const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
-        search_input.value = search_value;
-        navigateToFile(data, search_value);
-        updateList(data, search_value);
-        // Configure search box events
-        search_form.addEventListener('submit', (event) => {
-          event.preventDefault();
-          navigateToFile(data, search_input.value);
-        })
-        search_input.addEventListener('input', (event) => {
-          updateList(data, event.target.value);
-        })
-        document.addEventListener('keypress', (event) => {
-          search_input.focus()
-        })
-      })()
+      // Initialize search fields and results
+      const search_form = document.getElementById('search_form');
+      const search_input = document.getElementById('search_input');
+      const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
+      search_input.value = search_value;
+      navigateToFile(data, search_value);
+      updateList(data, search_value);
+      // Configure search box events
+      search_form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        navigateToFile(data, search_input.value);
+      })
+      search_input.addEventListener('input', (event) => {
+        updateList(data, event.target.value);
+      })
+      document.addEventListener('keypress', (event) => {
+        search_input.focus()
+      })
+    })()
+
       // Register service worker
       if (navigator.serviceWorker && !navigator.serviceWorker.controller) {
         navigator.serviceWorker.register('./serviceworker.js');
