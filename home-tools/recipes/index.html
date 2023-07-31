@@ -139,12 +139,15 @@
         for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
           const fileName = file.path.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/markdownRecipes/', '').replace('home-tools/recipes/PDFs/', '').replace('home-tools/recipes/favoriteMeals/', '');
           const fileDisplayName = fileName.split('-').join(' ');
-          const fileLink = file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName;
+          let fileLink;
           if (file.path.includes('favoriteMeals')) {
+            fileLink = 'home-tools/recipes/favoriteMeals/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           } else if (file.path.includes('PDFs')) {
+            fileLink = 'home-tools/recipes/PDFs/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           } else {
+            fileLink = 'home-tools/recipes/markdownRecipes/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           }
         }
