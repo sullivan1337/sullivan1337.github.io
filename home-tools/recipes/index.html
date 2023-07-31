@@ -132,11 +132,18 @@
         }
         return wordIndex + letterPosition * 100;
       }
-      // Sort files by best match
-      const sortFiles = (filter) => {
-        filter = filter.toLowerCase()
+      // Sort files alphabetically
+      const sortFiles = () => {
         return (fileA, fileB) => {
-          return matchScore(fileA, filter) < matchScore(fileB, filter) ? -1 : 1;
+          const fileNameA = fileA.path.toLowerCase();
+          const fileNameB = fileB.path.toLowerCase();
+          if (fileNameA < fileNameB) {
+            return -1;
+          }
+          if (fileNameA > fileNameB) {
+            return 1;
+          }
+          return 0;
         }
       }
 
