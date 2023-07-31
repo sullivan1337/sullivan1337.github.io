@@ -150,13 +150,13 @@
           const fileDisplayName = fileName.split('-').join(' ');
           let fileLink;
           if (file.path.includes('favoriteMeals')) {
-            fileLink = 'home-tools/recipes/favoriteMeals/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            fileLink = 'favoriteMeals/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           } else if (file.path.includes('PDFs')) {
-            fileLink = 'home-tools/recipes/PDFs/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            fileLink = 'PDFs/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           } else {
-            fileLink = 'home-tools/recipes/markdownRecipes/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            fileLink = 'markdownRecipes/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           }
         }
