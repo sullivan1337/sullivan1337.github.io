@@ -68,6 +68,18 @@
   .markdown-body table td {
     border-color: #4e4e4e;
   }
+  .tags {
+    display: inline-block;
+    margin-left: 5px;
+  }
+  .tag-badge {
+    background-color: #555;
+    border-radius: 3px;
+    color: white;
+    padding: 2px 8px;
+    font-size: 0.8em;
+    text-decoration: none;
+  }
 </style>
 
   </head>
@@ -216,8 +228,8 @@
         })
       })()
 
-      // Render search result list
-      const updateList = (data, filter = '') => {
+    // Render search result list
+    const updateList = (data, filter = '') => {
     let mdHtmlString = '';
     let pdfHtmlString = '';
     let favPdfHtmlString = '';
@@ -227,14 +239,15 @@
         const fileDisplayName = fileName.split('-').join(' ');
         let fileLink;
 
+        const tags = metadata[fileName + '.pdf'] || []; // Fetch tags from metadata or default to an empty array
+        const tagsHtml = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
+
         if (file.path.includes('favoriteMeals')) {
             fileLink = 'favoriteMeals/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            const tags = metadata[fileName + '.pdf'] || []; // Fetch tags from metadata or default to an empty array
-            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> <span class="tags">${tags.join(', ')}</span></li>`;
+            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsHtml}</li>`;
         } else if (file.path.includes('PDFs')) {
             fileLink = 'PDFs/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            const tags = metadata[fileName + '.pdf'] || []; // Fetch tags from metadata or default to an empty array
-            pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> <span class="tags">${tags.join(', ')}</span></li>`;
+            pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsHtml}</li>`;
         } else {
             fileLink = 'markdownRecipes/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
