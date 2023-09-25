@@ -167,6 +167,13 @@
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
           }
         }
+        for (let file of pdfFiles) {
+          const fileName = file.path.replace('.pdf', '').replace('home-tools/recipes/PDFs/', '');
+          const fileDisplayName = fileName.split('-').join(' ');
+          const tags = metadata[fileName + '.pdf'] || []; // Fetch tags from metadata or default to an empty array
+          const fileLink = 'PDFs/' + fileName + '.pdf';
+          pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> <span class="tags">${tags.join(', ')}</span></li>`;
+        }
         document.getElementById('md_list').innerHTML = mdHtmlString;
         document.getElementById('pdf_list').innerHTML = pdfHtmlString;
         document.getElementById('fav_pdf_list').innerHTML = favPdfHtmlString;
@@ -217,6 +224,8 @@
         const pdfData = await pdfResponse.json();
         const favPdfData = await favPdfResponse.json();
         const data = [...mdData, ...pdfData, ...favPdfData];
+        const metadataResponse = await fetch('https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/home-tools/recipes/metadata.json');
+        metadata = await metadataResponse.json();
 
         // Initialize search fields and results
         const search_form = document.getElementById('search_form');
