@@ -13,86 +13,7 @@
     <link rel="icon" href="./favicon.png" type="image/png" />
     <link rel="apple-touch-icon" sizes="180x180" href="favicon-180.png">
     <link type="application/opensearchdescription+xml" rel="search" href="./search.xml"/>
-<style>
-  body {
-    overflow-y: scroll;
-    background-color: #282c34;
-    color: #ffffff;
-  }
-  .markdown-body h1 {
-    display: flex;
-  }
-  .markdown-body form {
-    margin-left: 10px;
-  }
-  .markdown-body input {
-    color: #ffffff;
-    font-weight: 400;
-    margin: 0;
-    padding: 0 10px;
-    border: 1px solid #eaecef;
-    border-radius: 3px;
-    width: 100%;
-    flex: 1 1;
-    background-color: #3c414a;
-  }
-  a {
-    color: #61dafb;
-  }
-  a:hover {
-    color: #51b4c4;
-  }
-  .markdown-body h2,
-  .markdown-body h3,
-  .markdown-body h4,
-  .markdown-body h5,
-  .markdown-body h6 {
-    color: #d4d4d4;
-  }
-  .markdown-body pre,
-  .markdown-body code {
-    background-color: #2e2e2e;
-    color: #c7c7c7;
-  }
-  .markdown-body blockquote {
-    color: #868686;
-    border-left-color: #4e4e4e;
-  }
-  .markdown-body table tr {
-    background-color: #2c323b;
-  }
-  .markdown-body table tr:nth-child(2n) {
-    background-color: #3c414a;
-  }
-  .markdown-body table th,
-  .markdown-body table td {
-    border-color: #4e4e4e;
-  }
-  .tag {
-      display: inline-block;
-      margin: 5px;
-      padding: 5px 10px;
-      background-color: #3c414a;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-  }
-  .tag:hover {
-      background-color: #4e4e4e;
-  }
-  .tags {
-    display: inline-block;
-    margin-left: 5px;
-  }
-  .tag-badge {
-    background-color: #555;
-    border-radius: 3px;
-    color: white;
-    padding: 2px 8px;
-    font-size: 0.8em;
-    text-decoration: none;
-  }
-</style>
+    <link rel="stylesheet" href="./styles.css">
 
   </head>
   <body>
@@ -239,11 +160,22 @@
           search_input.focus()
         })
         document.addEventListener('click', (event) => {
-        if (event.target.classList.contains('tag')) {
-            const clickedTag = event.target.textContent;
+    if (event.target.classList.contains('tag')) {
+        const clickedTag = event.target.textContent;
+
+        // If the clicked tag is already selected, remove the filter
+        if (event.target.classList.contains('selected-tag')) {
+            updateList(data, ''); // Update the list without any filter
+            document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('selected-tag')); // Remove selected class from all tags
+        } else {
+            // Otherwise, apply the filter
             updateList(data, clickedTag); // Update the list based on the clicked tag
+            document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('selected-tag')); // Remove selected class from all tags
+            event.target.classList.add('selected-tag'); // Add selected class to the clicked tag
         }
-        });
+    }
+});
+
       })()
 
     // Filter files by search term match and clean out non recipe files
