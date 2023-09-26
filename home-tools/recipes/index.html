@@ -68,6 +68,18 @@
   .markdown-body table td {
     border-color: #4e4e4e;
   }
+  .tag {
+      display: inline-block;
+      margin: 5px;
+      padding: 5px 10px;
+      background-color: #3c414a;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+  }
+  .tag:hover {
+      background-color: #4e4e4e;
+  }
   .tags {
     display: inline-block;
     margin-left: 5px;
@@ -91,6 +103,7 @@
           <input id="search_input">
         </form>
       </h1>
+      <div id="tag_filters">Filters:</div>
       <h2 onclick="toggleVisibility('md_list')">Other Favorite Recipes</h2>
       <ul id="md_list">
       </ul>
@@ -195,6 +208,18 @@
         const data = [...mdData, ...pdfData, ...favPdfData];
         metadata = await metadataResponse.json();
 
+        // Extract all unique tags from the metadata
+        const allTags = [...new Set(Object.values(metadata).flat())];
+
+        // Display the tags below the search bar
+        const tagContainer = document.getElementById('tag_filters');
+        allTags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.classList.add('tag');
+            tagElement.textContent = tag;
+            tagContainer.appendChild(tagElement);
+        });
+
         // Initialize search fields and results
         const search_form = document.getElementById('search_form');
         const search_input = document.getElementById('search_input');
@@ -213,6 +238,12 @@
         document.addEventListener('keypress', (event) => {
           search_input.focus()
         })
+        document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('tag')) {
+            const clickedTag = event.target.textContent;
+            updateList(data, clickedTag); // Update the list based on the clicked tag
+        }
+        });
       })()
 
     // Filter files by search term match and clean out non recipe files
@@ -229,13 +260,14 @@
         const tags = metadata[key] || [];
         const tagsString = tags.join(' ').toLowerCase();
 
-        // Check if filter matches filename or any of the tags
+        // Check if all tokens in the filter match the filename or any of the tags
         const isInFilter = filter.split(' ')
-            .some((token) => fileName.indexOf(token) !== -1 || tagsString.indexOf(token) !== -1);
+            .every((token) => fileName.indexOf(token) !== -1 || tagsString.indexOf(token) !== -1);
 
         return isMarkdownOrPdf && isNotLicense && isInFilter;
     }
 }
+
 
     // Render search result list
     const updateList = (data, filter = '') => {
