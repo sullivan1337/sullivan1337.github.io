@@ -275,23 +275,25 @@
     let pdfHtmlString = '';
     let favPdfHtmlString = '';
 
-    for (let file of data.filter(filterFiles(filter)).sort(sortFiles())) {
-        const fileName = file.path.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/markdownRecipes/', '').replace('home-tools/recipes/PDFs/', '').replace('home-tools/recipes/favoriteMeals/', '');
+    for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
+        const filePath = file.path;
+        const fileName = filePath.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/markdownRecipes/', '').replace('home-tools/recipes/PDFs/', '').replace('home-tools/recipes/favoriteMeals/', '');
         const fileDisplayName = fileName.split('-').join(' ');
+
+        // Fetch tags for the file from metadata
+        const tags = metadata[filePath.split('/').pop()] || [];
+        const tagsBadge = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
+
         let fileLink;
-
-        const tags = metadata[fileName + '.pdf'] || []; // Fetch tags from metadata or default to an empty array
-        const tagsHtml = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
-
-        if (file.path.includes('favoriteMeals')) {
-            fileLink = 'favoriteMeals/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsHtml}</li>`;
-        } else if (file.path.includes('PDFs')) {
-            fileLink = 'PDFs/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsHtml}</li>`;
+        if (filePath.includes('favoriteMeals')) {
+            fileLink = 'favoriteMeals/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+        } else if (filePath.includes('PDFs')) {
+            fileLink = 'PDFs/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
         } else {
-            fileLink = 'markdownRecipes/' + (file.path.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a></li>`;
+            fileLink = 'markdownRecipes/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
         }
     }
 
@@ -299,6 +301,7 @@
     document.getElementById('pdf_list').innerHTML = pdfHtmlString;
     document.getElementById('fav_pdf_list').innerHTML = favPdfHtmlString;
 }
+
       
       // Register service worker
       if (navigator.serviceWorker && !navigator.serviceWorker.controller) {
