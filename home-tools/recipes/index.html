@@ -106,19 +106,6 @@
 
     <script src="./assets/marked.min.js"></script>
     <script>
-      // Filter files by search term match and clean out non recipe files
-      const filterFiles = (filter) => {
-  filter = filter.toLowerCase()
-  return (file) => {
-    const filePath = file.path;
-    const fileName = filePath.replace('.md', '').replace('.pdf', '').toLowerCase().replace(/-/g, '');
-    const isMarkdownOrPdf = (/.md$/).test(filePath) || (/.pdf$/).test(filePath);
-    const isNotLicense = filePath !== 'LICENSE.md';
-    const isInFilter = filter.split(' ')
-      .every((token) => fileName.indexOf(token.toLowerCase()) !== -1)
-    return isMarkdownOrPdf && isNotLicense && isInFilter;
-  }
-}
 
   function toggleVisibility(id) {
     const element = document.getElementById(id);
@@ -227,6 +214,28 @@
           search_input.focus()
         })
       })()
+
+    // Filter files by search term match and clean out non recipe files
+    const filterFiles = (filter) => {
+    filter = filter.toLowerCase();
+    return (file) => {
+        const filePath = file.path;
+        const fileName = filePath.replace('.md', '').replace('.pdf', '').toLowerCase().replace(/-/g, '');
+        const isMarkdownOrPdf = (/.md$/).test(filePath) || (/.pdf$/).test(filePath);
+        const isNotLicense = filePath !== 'LICENSE.md';
+
+        // Construct the key to fetch tags from metadata
+        const key = filePath.split('/').pop(); // This gets the filename from the path.
+        const tags = metadata[key] || [];
+        const tagsString = tags.join(' ').toLowerCase();
+
+        // Check if filter matches filename or any of the tags
+        const isInFilter = filter.split(' ')
+            .some((token) => fileName.indexOf(token) !== -1 || tagsString.indexOf(token) !== -1);
+
+        return isMarkdownOrPdf && isNotLicense && isInFilter;
+    }
+}
 
     // Render search result list
     const updateList = (data, filter = '') => {
