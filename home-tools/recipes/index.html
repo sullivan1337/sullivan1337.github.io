@@ -25,16 +25,20 @@
         </form>
       </h1>
       <div id="tag_filters">Filters:</div>
-      <h2>Family Recipes <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
+      <h2>Other Favorite Recipes<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
       <ul id="md_list">
       </ul>
       
-      <h2>Meal Plan Recipes <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
-      <ul id="pdf_list">
-      </ul>
-      
-      <h2>Favorited Meals <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
+      <h2>Favorited Meal Plan Recipes<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
       <ul id="fav_pdf_list">
+      </ul>
+
+      <h2>Drinks<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
+      <ul id="drink_list">
+      </ul>
+
+      <h2>All Meal Plan Recipes<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
+      <ul id="pdf_list">
       </ul>
       
     </div>
@@ -125,11 +129,13 @@
         const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/markdownRecipes');
         const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
         const favPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/favoriteMeals');
+        const drinkPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/drinks');
         const metadataResponse = await fetch('https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/master/home-tools/recipes/metadata.json');
         const mdData = await mdResponse.json();
         const pdfData = await pdfResponse.json();
         const favPdfData = await favPdfResponse.json();
-        const data = [...mdData, ...pdfData, ...favPdfData];
+        const drinkData = await drinkPdfResponse.json();
+        const data = [...mdData, ...pdfData, ...favPdfData, ...drinkData];
         metadata = await metadataResponse.json();
 
         // Extract all unique tags from the metadata
@@ -233,10 +239,16 @@ document.addEventListener('click', (event) => {
     let mdHtmlString = '';
     let pdfHtmlString = '';
     let favPdfHtmlString = '';
+    let drinkHtmlString = '';
 
     for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
         const filePath = file.path;
-        const fileName = filePath.replace('.md', '').replace('.pdf', '').replace('home-tools/recipes/markdownRecipes/', '').replace('home-tools/recipes/PDFs/', '').replace('home-tools/recipes/favoriteMeals/', '');
+        const fileName = filePath.replace('.md', '')
+                         .replace('.pdf', '')
+                         .replace('home-tools/recipes/markdownRecipes/', '')
+                         .replace('home-tools/recipes/PDFs/', '')
+                         .replace('home-tools/recipes/favoriteMeals/', '')
+                         .replace('home-tools/recipes/drinks/', '');  // <-- Add this line
         const fileDisplayName = fileName.split('-').join(' ');
 
         // Fetch tags for the file from metadata
@@ -250,7 +262,10 @@ document.addEventListener('click', (event) => {
         } else if (filePath.includes('PDFs')) {
             fileLink = 'PDFs/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-        } else {
+          } else if (filePath.includes('drinks')) {
+            fileLink = 'drinks/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
+            drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+          } else {
             fileLink = 'markdownRecipes/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
             mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
         }
@@ -259,6 +274,7 @@ document.addEventListener('click', (event) => {
     document.getElementById('md_list').innerHTML = mdHtmlString;
     document.getElementById('pdf_list').innerHTML = pdfHtmlString;
     document.getElementById('fav_pdf_list').innerHTML = favPdfHtmlString;
+    document.getElementById('drink_list').innerHTML = drinkHtmlString;
 }
 
       
