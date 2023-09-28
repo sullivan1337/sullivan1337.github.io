@@ -25,15 +25,18 @@
         </form>
       </h1>
       <div id="tag_filters">Filters:</div>
-      <h2 onclick="toggleVisibility('md_list')">Other Favorite Recipes</h2>
+      <h2>Family Recipes <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
       <ul id="md_list">
       </ul>
-      <h2 onclick="toggleVisibility('fav_pdf_list')">Favorited Meal Plan Recipes</h2>
-      <ul id="fav_pdf_list">
-      </ul>
-      <h2 onclick="toggleVisibility('pdf_list')">All Meal Plan Recipes</h2>
+      
+      <h2>Meal Plan Recipes <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
       <ul id="pdf_list">
       </ul>
+      
+      <h2>Favorited Meals <span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
+      <ul id="fav_pdf_list">
+      </ul>
+      
     </div>
   
     <div id="content"></div>
@@ -200,6 +203,30 @@
     }
 }
 
+document.addEventListener('click', (event) => {
+    console.log("Element clicked:", event.target);
+
+    if (event.target.classList.contains('expand-collapse-btn')) {
+        console.log("Expand/Collapse button clicked.");
+
+        // Get the parent <h2> element, then get its next sibling (which should be the <ul> list)
+        const list = event.target.parentElement.nextElementSibling;
+
+        // Check the current state
+        const isCollapsed = event.target.getAttribute('data-collapsed') === 'true';
+
+        // Toggle the visibility of the list based on the current state
+        if (isCollapsed) {
+            list.style.display = 'block';
+            event.target.textContent = '↓';
+            event.target.setAttribute('data-collapsed', 'false');
+        } else {
+            list.style.display = 'none';
+            event.target.textContent = '→';
+            event.target.setAttribute('data-collapsed', 'true');
+        }
+    }
+});
 
     // Render search result list
     const updateList = (data, filter = '') => {

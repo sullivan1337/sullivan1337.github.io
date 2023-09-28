@@ -52,7 +52,7 @@ body {
   .markdown-body table td {
     border-color: #4e4e4e;
   }
-  .tag {
+  .tag, .expand-collapse-btn {
       display: inline-block;
       margin: 5px;
       padding: 5px 10px;
@@ -76,7 +76,7 @@ body {
     font-size: 0.8em;
     text-decoration: none;
   }
-  .selected-tag {
+  .selected-tag, .expand-collapse-btn:hover {
     background-color: #007BFF; /* Change to your desired color */
     color: #ffffff;
   }
