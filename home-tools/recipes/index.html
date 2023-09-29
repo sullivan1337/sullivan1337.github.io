@@ -57,6 +57,16 @@
     }
   }
 
+    function expandAllSections() {
+      const expandCollapseButtons = document.querySelectorAll('.expand-collapse-btn');
+      for (let btn of expandCollapseButtons) {
+          const list = btn.parentElement.nextElementSibling;
+          list.style.display = 'block';
+          btn.textContent = '↓';
+          btn.setAttribute('data-collapsed', 'false');
+      }
+  }
+
       // Match by closest to start of word then earliest word
       const matchScore = (file, filter) => {
         const fileWords = file.name.replace('.md', '').toLowerCase().split('-');
@@ -145,8 +155,12 @@
         const tagContainer = document.getElementById('tag_filters');
         allTags.forEach(tag => {
             const tagElement = document.createElement('span');
-            tagElement.classList.add('tag');
+            tagElement.classList.add('tag'); // Use 'tag-badge' to match the style of other tags
             tagElement.textContent = tag;
+            tagElement.addEventListener('click', function() {
+                updateList(data, tag); // Update the list based on the clicked tag
+                expandAllSections(); // Expand all sections
+            });
             tagContainer.appendChild(tagElement);
         });
 
@@ -164,7 +178,8 @@
         })
         search_input.addEventListener('input', (event) => {
           updateList(data, event.target.value);
-        })
+          expandAllSections();
+        });
         document.addEventListener('keypress', (event) => {
           search_input.focus()
         })
