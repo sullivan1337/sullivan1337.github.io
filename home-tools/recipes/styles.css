@@ -29,16 +29,16 @@ body {
 /* Style for the clear button */
 #clear_search {
   position: absolute;
-  right: -40px; /* Adjust as needed */
+  right: 0px; /* Adjust as needed */
   top: 50%;
-  transform: translateY(-62%);
+  transform: translateY(-67%);
   display: none; /* Initially hidden */
   cursor: pointer;
   /* Add styles to make it look like the filter buttons */
   background-color: #ff0000;
   border-radius: 4px;
   padding: 2px 6px;
-  font-size: 0.9em;
+  font-size: .7em;
   transition: background-color 0.3s;
 }
 #clear_search:hover {
