@@ -33,8 +33,8 @@
       <ul id="fav_pdf_list">
       </ul>
 
-      <h2>Drinks<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
-      <ul id="drink_list">
+      <h2>Drinks<span class="expand-collapse-btn" data-collapsed="true">→</span></h2>
+      <ul id="drink_list"  style="display: none;">
       </ul>
 
       <h2>All Meal Plan Recipes<span class="expand-collapse-btn" data-collapsed="true">→</span></h2>
@@ -202,13 +202,13 @@
 
       })()
 
-    // Filter files by search term match and clean out non recipe files
-    const filterFiles = (filter) => {
+      const filterFiles = (filter) => {
     filter = filter.toLowerCase();
     return (file) => {
         const filePath = file.path;
-        const fileName = filePath.replace('.md', '').replace('.pdf', '').toLowerCase().replace(/-/g, '');
-        const isMarkdownOrPdf = (/.md$/).test(filePath) || (/.pdf$/).test(filePath);
+        const isMarkdown = (/.md$/).test(filePath);
+        const isPdf = (/.pdf$/).test(filePath);
+        const isImage = (/.(jpg|jpeg|png|gif)$/).test(filePath);
         const isNotLicense = filePath !== 'LICENSE.md';
 
         // Construct the key to fetch tags from metadata
@@ -216,13 +216,20 @@
         const tags = metadata[key] || [];
         const tagsString = tags.join(' ').toLowerCase();
 
+        // Clean the filename for matching
+        let fileName = filePath.toLowerCase().replace(/-/g, '');
+        if (isMarkdown) fileName = fileName.replace('.md', '');
+        if (isPdf) fileName = fileName.replace('.pdf', '');
+        if (isImage) fileName = fileName.replace(/.(jpg|jpeg|png|gif)$/, '');
+
         // Check if all tokens in the filter match the filename or any of the tags
         const isInFilter = filter.split(' ')
             .every((token) => fileName.indexOf(token) !== -1 || tagsString.indexOf(token) !== -1);
 
-        return isMarkdownOrPdf && isNotLicense && isInFilter;
+        return (isMarkdown || isPdf || isImage) && isNotLicense && isInFilter;
     }
 }
+
 
 document.addEventListener('click', (event) => {
     console.log("Element clicked:", event.target);
@@ -260,6 +267,10 @@ document.addEventListener('click', (event) => {
         const filePath = file.path;
         const fileName = filePath.replace('.md', '')
                          .replace('.pdf', '')
+                         .replace('.jpg', '')
+                         .replace('.jpeg', '')
+                         .replace('.png', '')
+                         .replace('.gif', '')
                          .replace('home-tools/recipes/markdownRecipes/', '')
                          .replace('home-tools/recipes/PDFs/', '')
                          .replace('home-tools/recipes/favoriteMeals/', '')
