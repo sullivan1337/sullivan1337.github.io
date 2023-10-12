@@ -264,38 +264,30 @@ document.addEventListener('click', (event) => {
     let drinkHtmlString = '';
 
     for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
-        const filePath = file.path;
-        const fileName = filePath.replace('.md', '')
-                         .replace('.pdf', '')
-                         .replace('.jpg', '')
-                         .replace('.jpeg', '')
-                         .replace('.png', '')
-                         .replace('.gif', '')
-                         .replace('home-tools/recipes/markdownRecipes/', '')
-                         .replace('home-tools/recipes/PDFs/', '')
-                         .replace('home-tools/recipes/favoriteMeals/', '')
-                         .replace('home-tools/recipes/drinks/', '');  // <-- Add this line
-        const fileDisplayName = fileName.split('-').join(' ');
+    const filePath = file.path;
+    const fileExtension = filePath.split('.').pop();
+    const fileNameWithoutExtension = filePath.replace('.md', '').replace('.pdf', '').replace('.jpg', '').replace('home-tools/recipes/markdownRecipes/', '').replace('home-tools/recipes/PDFs/', '').replace('home-tools/recipes/favoriteMeals/', '').replace('home-tools/recipes/drinks/', '');
+    const fileDisplayName = fileNameWithoutExtension.split('-').join(' ');
 
-        // Fetch tags for the file from metadata
-        const tags = metadata[filePath.split('/').pop()] || [];
-        const tagsBadge = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
+    // Fetch tags for the file from metadata
+    const tags = metadata[filePath.split('/').pop()] || [];
+    const tagsBadge = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
 
-        let fileLink;
-        if (filePath.includes('favoriteMeals')) {
-            fileLink = 'favoriteMeals/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-        } else if (filePath.includes('PDFs')) {
-            fileLink = 'PDFs/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-          } else if (filePath.includes('drinks')) {
-            fileLink = 'drinks/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-          } else {
-            fileLink = 'markdownRecipes/' + (filePath.endsWith('.pdf') ? fileName + '.pdf' : fileName);
-            mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-        }
+    let fileLink;
+    if (filePath.includes('favoriteMeals')) {
+        fileLink = 'favoriteMeals/' + fileNameWithoutExtension + '.' + fileExtension;
+        favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+    } else if (filePath.includes('PDFs')) {
+        fileLink = 'PDFs/' + fileNameWithoutExtension + '.' + fileExtension;
+        pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+    } else if (filePath.includes('drinks')) {
+        fileLink = 'drinks/' + fileNameWithoutExtension + '.' + fileExtension;
+        drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+    } else {
+        fileLink = 'markdownRecipes/' + fileNameWithoutExtension + '.' + fileExtension;
+        mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
     }
+}
 
     document.getElementById('md_list').innerHTML = mdHtmlString;
     document.getElementById('pdf_list').innerHTML = pdfHtmlString;
