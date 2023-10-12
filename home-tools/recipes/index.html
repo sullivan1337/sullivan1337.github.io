@@ -139,7 +139,14 @@
       });
 
       (async () => {
-        // Get GitHub repository file info
+        const params = new URLSearchParams(window.location.search);
+const searchTerm = params.get('q');
+if (searchTerm) {
+    search_input.value = searchTerm;
+    navigateToFile(data, searchTerm);
+    updateList(data, searchTerm);
+}
+// Get GitHub repository file info
         const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/markdownRecipes');
         const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
         const favPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/favoriteMeals');
@@ -178,9 +185,9 @@
         updateList(data, search_value);
         // Configure search box events
         search_form.addEventListener('submit', (event) => {
-          event.preventDefault();
-          navigateToFile(data, search_input.value);
-        })
+    event.preventDefault();
+    navigateToFile(data, search_input.value);
+    window.history.pushState({}, '', '?q=' + encodeURIComponent(search_input.value));
         search_input.addEventListener('input', (event) => {
           updateList(data, event.target.value);
           expandAllSections();
