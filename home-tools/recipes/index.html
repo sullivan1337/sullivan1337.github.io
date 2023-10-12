@@ -21,8 +21,12 @@
       <h1>
         <a href="https://sullivan1337.github.io/home-tools/recipes/index.html">recipes</a>
         <form id="search_form" autocomplete="off">
-          <input id="search_input">
-        </form>
+          <div class="search-wrapper">
+            <input id="search_input">
+            <span id="clear_search" class="tag">X</span>
+        </div>
+        
+      </form>      
       </h1>
       <div id="tag_filters">Filters:</div>
       <h2>Other Favorite Recipes<span class="expand-collapse-btn" data-collapsed="false">↓</span></h2>
@@ -167,6 +171,7 @@
         // Initialize search fields and results
         const search_form = document.getElementById('search_form');
         const search_input = document.getElementById('search_input');
+        const clear_search = document.getElementById('clear_search');
         const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
         search_input.value = search_value;
         navigateToFile(data, search_value);
@@ -179,12 +184,24 @@
         search_input.addEventListener('input', (event) => {
           updateList(data, event.target.value);
           expandAllSections();
-        });
+          // Clear button logic
+          if (search_input.value) {
+              clear_search.style.display = 'inline';
+          } else {
+              clear_search.style.display = 'none';
+          }
+      });
+      clear_search.addEventListener('click', () => {
+    search_input.value = '';
+    clear_search.style.display = 'none';
+    // Optionally, update the list based on the cleared search input
+    updateList(data);
+});
         document.addEventListener('keypress', (event) => {
           search_input.focus()
         })
         document.addEventListener('click', (event) => {
-    if (event.target.classList.contains('tag')) {
+    if (event.target.classList.contains('tag') && event.target.id !== 'clear_search') {
         const clickedTag = event.target.textContent;
 
         // If the clicked tag is already selected, remove the filter
@@ -199,6 +216,7 @@
         }
     }
 });
+
 
       })()
 
@@ -275,16 +293,16 @@ document.addEventListener('click', (event) => {
 
     let fileLink;
     if (filePath.includes('favoriteMeals')) {
-        fileLink = 'favoriteMeals/' + fileNameWithoutExtension + '.' + fileExtension;
+        fileLink = 'favoriteMeals/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
         favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
     } else if (filePath.includes('PDFs')) {
-        fileLink = 'PDFs/' + fileNameWithoutExtension + '.' + fileExtension;
+        fileLink = 'PDFs/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
         pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
     } else if (filePath.includes('drinks')) {
-        fileLink = 'drinks/' + fileNameWithoutExtension + '.' + fileExtension;
+        fileLink = 'drinks/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
         drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
     } else {
-        fileLink = 'markdownRecipes/' + fileNameWithoutExtension + '.' + fileExtension;
+        fileLink = 'markdownRecipes/' + fileNameWithoutExtension; // No extension for markdown files
         mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
     }
 }

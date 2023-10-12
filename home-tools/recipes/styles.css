@@ -20,6 +20,30 @@ body {
     flex: 1 1;
     background-color: #3c414a;
   }
+/* Wrapper around search input and clear button */
+.search-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Style for the clear button */
+#clear_search {
+  position: absolute;
+  right: -40px; /* Adjust as needed */
+  top: 50%;
+  transform: translateY(-62%);
+  display: none; /* Initially hidden */
+  cursor: pointer;
+  /* Add styles to make it look like the filter buttons */
+  background-color: #ff0000;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+  transition: background-color 0.3s;
+}
+#clear_search:hover {
+  background-color: #990000;
+}
   a {
     color: #61dafb;
   }
