@@ -232,9 +232,7 @@ clear_search.addEventListener('click', () => {
     updateList(data);
 });
 
-})();
-
-        document.addEventListener('keypress', (event) => {
+document.addEventListener('keypress', (event) => {
           search_input.focus()
         })
         document.addEventListener('click', (event) => {
@@ -253,6 +251,8 @@ clear_search.addEventListener('click', () => {
         }
     }
 });
+
+})();
 
       const filterFiles = (filter) => {
     filter = filter.toLowerCase();
