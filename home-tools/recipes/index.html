@@ -71,6 +71,11 @@
       }
   }
 
+  function getQueryParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
       // Match by closest to start of word then earliest word
       const matchScore = (file, filter) => {
         const fileWords = file.name.replace('.md', '').toLowerCase().split('-');
@@ -139,64 +144,96 @@
       });
 
       (async () => {
-        // Get GitHub repository file info
-        const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/markdownRecipes');
-        const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
-        const favPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/favoriteMeals');
-        const drinkPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/drinks');
-        const metadataResponse = await fetch('https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/master/home-tools/recipes/metadata.json');
-        const mdData = await mdResponse.json();
-        const pdfData = await pdfResponse.json();
-        const favPdfData = await favPdfResponse.json();
-        const drinkData = await drinkPdfResponse.json();
-        const data = [...mdData, ...pdfData, ...favPdfData, ...drinkData];
-        metadata = await metadataResponse.json();
+    // Get GitHub repository file info
+    const mdResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/markdownRecipes');
+    const pdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/PDFs');
+    const favPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/favoriteMeals');
+    const drinkPdfResponse = await fetch('https://api.github.com/repos/sullivan1337/sullivan1337.github.io/contents/home-tools/recipes/drinks');
+    const metadataResponse = await fetch('https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/master/home-tools/recipes/metadata.json');
+    const mdData = await mdResponse.json();
+    const pdfData = await pdfResponse.json();
+    const favPdfData = await favPdfResponse.json();
+    const drinkData = await drinkPdfResponse.json();
+    const data = [...mdData, ...pdfData, ...favPdfData, ...drinkData];
+    metadata = await metadataResponse.json();
 
-        // Extract all unique tags from the metadata
-        const allTags = [...new Set(Object.values(metadata).flat())];
+    // Extract all unique tags from the metadata
+    const allTags = [...new Set(Object.values(metadata).flat())];
 
-        // Display the tags below the search bar
-        const tagContainer = document.getElementById('tag_filters');
-        allTags.forEach(tag => {
-            const tagElement = document.createElement('span');
-            tagElement.classList.add('tag'); // Use 'tag-badge' to match the style of other tags
-            tagElement.textContent = tag;
-            tagElement.addEventListener('click', function() {
-                updateList(data, tag); // Update the list based on the clicked tag
-                expandAllSections(); // Expand all sections
-            });
-            tagContainer.appendChild(tagElement);
+    // Display the tags below the search bar
+    const tagContainer = document.getElementById('tag_filters');
+    allTags.forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.classList.add('tag'); // Use 'tag-badge' to match the style of other tags
+        tagElement.textContent = tag;
+        tagElement.addEventListener('click', function() {
+            updateList(data, tag); // Update the list based on the clicked tag
+            expandAllSections(); // Expand all sections
         });
+        tagContainer.appendChild(tagElement);
+    });
 
-        // Initialize search fields and results
-        const search_form = document.getElementById('search_form');
-        const search_input = document.getElementById('search_input');
-        const clear_search = document.getElementById('clear_search');
-        const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
-        search_input.value = search_value;
-        navigateToFile(data, search_value);
-        updateList(data, search_value);
-        // Configure search box events
-        search_form.addEventListener('submit', (event) => {
-          event.preventDefault();
-          navigateToFile(data, search_input.value);
-        })
-        search_input.addEventListener('input', (event) => {
-          updateList(data, event.target.value);
-          expandAllSections();
-          // Clear button logic
-          if (search_input.value) {
-              clear_search.style.display = 'inline';
-          } else {
-              clear_search.style.display = 'none';
-          }
-      });
-      clear_search.addEventListener('click', () => {
+    // Initialize search fields and results
+    const search_form = document.getElementById('search_form');
+    const search_input = document.getElementById('search_input');
+    const clear_search = document.getElementById('clear_search');
+    const search_value = decodeURIComponent(document.location.search.replace('?', '').replace(/\+/g, ' '));
+    search_input.value = search_value;
+    navigateToFile(data, search_value);
+    updateList(data, search_value);
+
+// Check for query parameter and update search input
+const params = new URLSearchParams(window.location.search);
+const searchTerm = params.get('q');
+if (searchTerm) {
+    search_input.value = searchTerm;
+    navigateToFile(data, searchTerm);
+    updateList(data, searchTerm);
+    expandAllSections(); // Ensure sections are expanded
+
+    // Show the clear button if there's a search term
+    if (search_input.value) {
+        clear_search.style.display = 'inline';
+    } else {
+        clear_search.style.display = 'none';
+    }
+}
+
+
+    // Configure search box events
+    search_form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        navigateToFile(data, search_input.value);
+        window.history.pushState({}, '', '?q=' + encodeURIComponent(search_input.value));
+    });
+    search_input.addEventListener('input', (event) => {
+    updateList(data, event.target.value);
+    expandAllSections();
+
+    // Check if the search input is empty
+    if (search_input.value) {
+        // Update the URL with the current search value
+        window.history.replaceState({}, '', '?q=' + encodeURIComponent(search_input.value));
+        clear_search.style.display = 'inline';
+    } else {
+        // Remove the 'q' parameter from the URL if the search input is empty
+        window.history.replaceState({}, '', window.location.pathname);
+        clear_search.style.display = 'none';
+    }
+});
+
+
+clear_search.addEventListener('click', () => {
     search_input.value = '';
     clear_search.style.display = 'none';
+    // Remove the 'q' parameter from the URL when the clear button is clicked
+    window.history.replaceState({}, '', window.location.pathname);
     // Optionally, update the list based on the cleared search input
     updateList(data);
 });
+
+})();
+
         document.addEventListener('keypress', (event) => {
           search_input.focus()
         })
@@ -216,9 +253,6 @@
         }
     }
 });
-
-
-      })()
 
       const filterFiles = (filter) => {
     filter = filter.toLowerCase();
@@ -313,11 +347,11 @@ document.addEventListener('click', (event) => {
     document.getElementById('drink_list').innerHTML = drinkHtmlString;
 }
 
-      
-      // Register service worker
-      if (navigator.serviceWorker && !navigator.serviceWorker.controller) {
-        navigator.serviceWorker.register('./serviceworker.js');
-      }
+// Remove this??
+// Register service worker
+//      if (navigator.serviceWorker && !navigator.serviceWorker.controller) {
+//        navigator.serviceWorker.register('./serviceworker.js');
+//      }
 
     </script>
   <body>
