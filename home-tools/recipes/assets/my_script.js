@@ -132,42 +132,43 @@ function toggleVisibility(id) {
 // Check for query parameter and update search input
 const params = new URLSearchParams(window.location.search);
 const searchTerm = params.get('q');
-if (searchTerm) {
+
+if (searchTerm && searchTerm !== '') {
     search_input.value = searchTerm;
     navigateToFile(data, searchTerm);
     updateList(data, searchTerm);
     expandAllSections(); // Ensure sections are expanded
 
     // Show the clear button if there's a search term
-    if (search_input.value) {
-        clear_search.style.display = 'inline';
-    } else {
-        clear_search.style.display = 'none';
-    }
+    clear_search.style.display = 'inline';
+} else {
+    // If there's no search term, ensure the URL is clean
+    window.history.replaceState({}, '', window.location.pathname);
+    clear_search.style.display = 'none';
 }
 
 
-    // Configure search box events
-    search_form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        navigateToFile(data, search_input.value);
-        window.history.pushState({}, '', '?q=' + encodeURIComponent(search_input.value));
-    });
-    search_input.addEventListener('input', (event) => {
-    updateList(data, event.target.value);
-    expandAllSections();
 
-    // Check if the search input is empty
-    if (search_input.value) {
-        // Update the URL with the current search value
-        window.history.replaceState({}, '', '?q=' + encodeURIComponent(search_input.value));
-        clear_search.style.display = 'inline';
-    } else {
-        // Remove the 'q' parameter from the URL if the search input is empty
-        window.history.replaceState({}, '', window.location.pathname);
-        clear_search.style.display = 'none';
-    }
+search_input.addEventListener('input', (event) => {
+  updateList(data, event.target.value);
+  expandAllSections();
+
+  const currentParams = new URLSearchParams(window.location.search);
+  if (event.target.value && event.target.value !== '') {
+      currentParams.set('q', event.target.value);
+      window.history.replaceState({}, '', '?' + currentParams.toString());
+  } else {
+      window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  // Show the clear button if there's a search term
+  if (search_input.value) {
+      clear_search.style.display = 'inline';
+  } else {
+      clear_search.style.display = 'none';
+  }
 });
+
 
 
 clear_search.addEventListener('click', () => {
