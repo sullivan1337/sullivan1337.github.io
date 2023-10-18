@@ -53,7 +53,6 @@ function toggleVisibility(id) {
         }
       }
 
-
       const navigateToFile = async (data, filter = '') => {
   files = data.filter(filterFiles(filter));
   if (files.length === 1) {
@@ -147,8 +146,6 @@ if (searchTerm && searchTerm !== '') {
     clear_search.style.display = 'none';
 }
 
-
-
 search_input.addEventListener('input', (event) => {
   updateList(data, event.target.value);
   expandAllSections();
@@ -168,8 +165,6 @@ search_input.addEventListener('input', (event) => {
       clear_search.style.display = 'none';
   }
 });
-
-
 
 clear_search.addEventListener('click', () => {
     search_input.value = '';
@@ -230,7 +225,6 @@ document.addEventListener('keypress', (event) => {
     }
 }
 
-
 document.addEventListener('click', (event) => {
     console.log("Element clicked:", event.target);
 
@@ -258,9 +252,8 @@ document.addEventListener('click', (event) => {
 
     // Render search result list
     const updateList = (data, filter = '') => {
-    let mdHtmlString = '';
+    let combinedHtmlString = '';
     let pdfHtmlString = '';
-    let favPdfHtmlString = '';
     let drinkHtmlString = '';
 
     for (let file of data.filter(filterFiles(filter)).sort(sortFiles(filter))) {
@@ -274,23 +267,20 @@ document.addEventListener('click', (event) => {
     const tagsBadge = tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
 
     let fileLink;
-    if (filePath.includes('favoriteMeals')) {
-        fileLink = 'favoriteMeals/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
-        favPdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-    } else if (filePath.includes('PDFs')) {
-        fileLink = 'PDFs/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
-        pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-    } else if (filePath.includes('drinks')) {
-        fileLink = 'drinks/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
-        drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-    } else {
-        fileLink = 'markdownRecipes/' + fileNameWithoutExtension; // No extension for markdown files
-        mdHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
-    }
+    if (filePath.includes('favoriteMeals') || filePath.includes('markdownRecipes')) {
+      fileLink = (filePath.includes('favoriteMeals') ? 'favoriteMeals/' : 'markdownRecipes/') + 
+                 fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
+      combinedHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+  } else if (filePath.includes('PDFs')) {
+      fileLink = 'PDFs/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
+      pdfHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+  } else if (filePath.includes('drinks')) {
+      fileLink = 'drinks/' + fileNameWithoutExtension + (fileExtension !== 'md' ? '.' + fileExtension : '');
+      drinkHtmlString += `<li><a href="${fileLink}">${fileDisplayName}</a> ${tagsBadge}</li>`;
+  }
 }
 
-    document.getElementById('md_list').innerHTML = mdHtmlString;
+    document.getElementById('combined_list').innerHTML = combinedHtmlString;
     document.getElementById('pdf_list').innerHTML = pdfHtmlString;
-    document.getElementById('fav_pdf_list').innerHTML = favPdfHtmlString;
     document.getElementById('drink_list').innerHTML = drinkHtmlString;
 }

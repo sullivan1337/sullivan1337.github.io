@@ -2,7 +2,8 @@
     "Taverna Chicken Sausage Penne with Feta.pdf": ["Quick"],
     "Veggie Loaded Tacos.pdf": ["Vegetarian"],
     "Asparagus and Tomato Linguine.pdf": ["Vegetarian"],
-    "Lemon-Bars.md": ["Dessert"],
-    "Pecan-Pie.md": ["Dessert"]
+    "Lemon-Bars.md": ["Dessert", "Markdown"],
+    "Pecan-Pie.md": ["Dessert", "Markdown"],
+    "Honey-Garlic-Pork-Chops.md": ["Markdown"]
   }
   
