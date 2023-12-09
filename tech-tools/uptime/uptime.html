@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiz System Status Page</title>
+    <script src="./tailwind.css"></script>
+    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' http://uptime.elysiuma.com:3001/api/badge/19/status;">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'wiz-blue': '#2B6CB0',
+                        'wiz-green': '#68D391',
+                        'wiz-gray': '#2D3748',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .status-bar {
+            background: repeating-linear-gradient(
+                to right,
+                #68D391,
+                #68D391 10px,
+                #2D3748 10px,
+                #2D3748 12px
+            );
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-xl font-bold text-wiz-blue">Wiz System Status Page</h1>
+            <div>
+                <button class="bg-wiz-blue text-white px-4 py-2 rounded mr-2">Edit Status Page</button>
+                <button class="bg-wiz-blue text-white px-4 py-2 rounded">Go to Dashboard</button>
+            </div>
+        </div>
+        <div class="mb-6">
+            <div class="flex items-center text-wiz-green mb-2">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span class="font-semibold">All Systems Operational</span>
+            </div>
+        </div>
+        <div class="mb-4">
+            <h2 class="text-lg font-semibold text-wiz-gray mb-2">Wiz - Product</h2>
+            <div class="bg-wiz-gray p-4 rounded-lg mb-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-wiz-green font-bold">100% Wiz.io</span>
+                    <span class="text-sm text-gray-400">22m ago</span>
+                    <img src="http://uptime.elysiuma.com:3001/api/badge/19/status" alt="Badge Alt Text">
+
+                </div>
+                <div class="w-full h-2 rounded-full status-bar"></div>
+            </div>
+            <div class="bg-wiz-gray p-4 rounded-lg">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-wiz-green font-bold">100% Wiz.io - Gov</span>
+                    <span class="text-sm text-gray-400">21m ago</span>
+                </div>
+                <div class="w-full h-2 rounded-full status-bar"></div>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-lg font-semibold text-wiz-gray mb-2">Wiz - Docs</h2>
+            <div class="bg-wiz-gray p-4 rounded-lg">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-wiz-green font-bold">99.79% Wiz Docs</span>
+                    <span class="text-sm text-gray-400">15m ago</span>
+                </div>
+                <div class="w-full h-2 rounded-full status-bar"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
