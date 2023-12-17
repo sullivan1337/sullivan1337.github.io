@@ -59,8 +59,8 @@ function toggleVisibility(id) {
     const fileName = files[0].path.replace('.md', '.md');
     if (fileName.endsWith('.pdf')) {
       // If it's a PDF, embed it in an iframe
-      const pdfUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
-      document.getElementById('content').innerHTML = `<iframe src="${pdfUrl}" width="100%" height="500px"></iframe>`;
+      // const pdfUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
+      // document.getElementById('content').innerHTML = `<iframe src="${pdfUrl}" width="100%" height="500px"></iframe>`;
     } else {
       // If it's a Markdown file, fetch and render it as before
       const markdownUrl = `https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/main/${files[0].path}`;
