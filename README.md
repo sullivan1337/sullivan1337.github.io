@@ -17,3 +17,6 @@ UI Stuff:
 * https://github.com/etler/seascapesporthorses.github.com
 * https://www.sliderrevolution.com/resources/html-calendar/
 * https://codepen.io/nijin39/pen/JbQBXM
+
+Self-hosted JIRA alternative:
+* https://vikunja.io/docs/docker-walkthrough/

@@ -24,7 +24,7 @@ async function checkApiKey() {
     const url = "https://api.openai.com/v1/completions";
     const data = {
         "prompt": "Test API key",
-        "model": "text-davinci-003",
+        "model": "gpt-3.5-turbo-instruct",
         "max_tokens": 1,
         "n": 1,
         "stop": null,
@@ -185,7 +185,7 @@ assistant: [Sounds good! I'll follow those guidelines.]
 `;
 
     const prompt = `${trainingPrompt}\nWrite a Rego policy using the user-q and JSON input "user-q":${userQuery}\n"JSON":${formattedJson}\nReturn only the rego rule code starting with "package wiz"`;
-    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
+    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'gpt-3.5-turbo-instruct';
     const response = await fetchChatGPT(prompt, apiKey, model);
     regoOutput.value = response.choices[0].text.trim();
     generatedRegoPolicy = true;
@@ -272,7 +272,7 @@ async function sendFollowUp() {
 
     const initialPolicy = document.getElementById('regoOutput').value.trim();
     const prompt = `Initial Rego policy:\n${initialPolicy}\n\nFollow-up request: ${followUpInput}\nPlease provide an updated Rego policy based on the follow-up request.\n`;
-    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'text-davinci-003';
+    const model = useCustomModel ? document.getElementById('customModel').value.trim() : 'gpt-3.5-turbo-instruct';
     const response = await fetchChatGPT(prompt, apiKey, model, false); // Pass 'false' to omit conversation history
     const updatedPolicy = response.choices[0].text.trim();
     const regoOutput = document.getElementById('regoOutput');
