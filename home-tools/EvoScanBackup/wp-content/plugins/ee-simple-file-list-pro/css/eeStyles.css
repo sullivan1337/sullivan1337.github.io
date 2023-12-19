@@ -1,0 +1,457 @@
+/* Simple File List Script: eeStyle.css | Author: Mitchell Bennis | support@simplefilelist.com */
+
+
+.eeSFL h1, .eeSFL p {
+	text-align: left;
+}
+.eeSFLContactInfo {
+	clear: both;
+	padding: 20px;
+	width: 100%;
+}
+.eeSFL_Spacer {
+	width: 100%;
+	height: 1em;
+	clear: both;
+}
+
+#eeSFL_DownloadFolderForm {
+	padding: 0;
+	margin: 0;
+	height: 0;
+	border: none;
+	background-color: transparent;
+}
+
+.eeSFL {
+	padding: 1em;
+}
+.eeSFL form {
+	border: 2px solid #DDD;
+	padding: 1.5em;
+	padding-top: .5em;
+	margin: 1em auto;
+}
+.eeSFL table.eeFiles {
+	width: 100%;
+	border-collapse: collapse;
+	border: 1px solid #999;
+	text-align: center;
+}
+/* .eeSFL .eeFiles tr:hover {
+	background: #FFF;
+} */
+.eeSFL .eeFiles th {
+	text-align: center;
+	background: #555;
+	color: #EEE; 
+/* 	cursor: pointer; */
+}
+.eeSFL .eeFiles td {
+	padding: .25em 0;
+	border-bottom: 1px solid #999;
+	text-overflow: clip;
+	overflow: hidden;
+	vertical-align: middle;
+	text-align: center;
+}
+.eeSFL th,
+.eeSFL td {
+	word-break: normal;
+	width: auto;
+}
+.eeSFL th.eeSFL_BulkEdit,
+.eeSFL td.eeSFL_BulkEdit {
+	width: 30px;
+}
+.eeSFL td.eeSFL_Thumbnail {
+	width: 64px;
+}
+.eeSFL td.eeSFL_Thumbnail img {
+	display: block;
+	margin: 0 auto;
+}
+.eeSFL td.eeSFL_FileName {
+	text-align: left;
+	padding-left: 3px;
+}
+.eeSFL p.eeSFL_FileLink,
+.eeSFL p.eeSFL_FileDesc,
+.eeSFL p.eeSFL_FileSubmitter {
+	margin: 0;
+	padding: 0;
+}
+.eeSFL p.eeSFL_FileDesc,
+.eeSFL p.eeSFL_FileSubmitter {
+	font-size: 80%;
+}
+.eeSFL .eeFiles th.eeSFL_FileName,
+.eeSFL .eeFiles td.eeSFL_FileName {
+	text-align: left;
+	padding-left: 10px;
+}
+.eeSFL .eeFiles td a {
+	text-decoration: none;
+}
+.eeSFL label {
+	float: left;
+}
+.eeSFL input[type=file] {
+	float: left;
+	margin-bottom: 1em;
+	font-size: 120%;
+}
+
+/* Bulk Editing */
+.eeSFL .eeFiles td.eeSFL_BulkEditInput {
+	padding-left: 10px;
+	text-align: left;
+}
+.eeSFL .eeFiles td.eeSFL_BulkEditInput input[type=submit] {
+	margin: 0;
+}
+
+
+#eeMessageDisplay ul {
+	list-style: none;
+}
+#eeMessageDisplay ul li:before {
+	content: '✓ ';
+}
+
+
+#eeSFL_FileDropZone {
+	padding: 10px;
+	border: 5px dashed #c7c7c7;
+}
+#eeSFL_FilesDrug {
+	margin-left: 20px;
+	margin-bottom: 1em;
+	font-size: 120%;
+}
+#eeSFL_UploadGo {
+	float: left;
+	margin-left: 20px;
+}
+#eeSFL_UploadProgress {
+	
+	display: none; /* Show with javascript */
+	overflow: hidden;
+	width: 1%;
+	height: 2em;
+	line-height: 2em;
+	background-color: #23e100;
+	color: #FFF;
+	font-size: 1em;
+	text-align: center;
+	vertical-align: text-top;
+}
+#eeSFL_UploadProgress em {
+	display: none; /* Show with javascript */
+}
+
+
+#eeUploadInfoForm {
+	margin-bottom: 20px;
+}
+#eeUploadInfoForm p {
+	margin: 0;
+	font-size: 80%;
+}
+#eeUploadInfoForm label,
+#eeUploadInfoForm input[type=text],
+#eeUploadInfoForm input[type=email] {
+	width: 100%;
+	float: left;
+	margin-bottom: 5px;
+	max-width: 100%;
+
+}
+#eeUploadInfoForm label {
+	width: 100%;
+	clear: left;
+	margin: 0;
+}
+#eeUploadInfoForm textarea {
+	width: 100%;
+	margin: 0;
+	height: 4em;
+}
+
+
+.eeSFL_UploadingImg,
+.entry-content .eeSFL_UploadingImg {
+	margin-right: 1em;
+	box-shadow: none !important;
+	border-radius: 32px;
+}
+
+
+.eeSFL table.eeFiles td a.eeSFL_FileListAction {
+	padding: 1px 0 1px 0;
+	margin-right: 4px;
+}
+/*
+.page .eeSFL table.eeFiles td a.eeSFL_FileListAction:after,
+.post .eeSFL table.eeFiles td a.eeSFL_FileListAction:after {
+   content: " |";
+}
+*/
+
+
+.eeSFL .eeSFL_EditFileWrap {
+	display: none;
+	width: auto;
+	margin: 5px 0;
+	padding: 5px 1.5%;
+	border: 1px solid #6b6b6b;
+	border-radius: 3px;
+	background-color: #f6f6f6;
+}
+.eeSFL .eeSFL_EditFileWrap h4 {
+	margin: 0;
+}
+.eeSFL .eeSFL_EditFileWrap p {
+	margin: 10px 0;
+}
+.eeSFL .eeSFL_EditFileWrap label {
+/* 	float: left; */
+	display: inline-block;
+	width: 20%;
+	margin-right: 6px;
+	text-align: right;
+}
+.page .eeSFL .eeSFL_EditFileWrap label,
+.post .eeSFL .eeSFL_EditFileWrap label {
+	float: left;
+	clear: left;
+	text-align: right;
+	margin-right: .5em;
+	padding: 4px;
+	margin-bottom: .25em;
+	background: #e9e9e9;
+	font-size: 70%;
+}
+.eeSFL .eeSFL_EditFileWrap input[type=text] {
+/* 	float: left; */
+	display: inline-block;
+	width: 55%;
+	margin: 0; 
+}
+.eeSFL .eeSFL_EditFileWrap input.eeSFL_FileDateInput {
+	width: 12.5%;
+	padding-left: 2px;
+	padding-right: 0;
+}
+.eeSFL .eeSFL_EditFileWrap .eeSFL_FileDateInputBlock label.eeInlineLabel {
+	width: auto;
+	float: none;
+	clear: none;
+}
+
+
+
+
+
+
+/* File Operations Bar  */
+.eeSFL_ListOpsBar, .eeSFL_BreadCrumb {
+	padding: 10px;
+	background-color: #E5E5E5;
+	border-top: 1px solid #d6d6d6;
+	border-left: 1px solid #d6d6d6;
+	border-right: 1px solid #d6d6d6;
+}
+.eeSFL_ListOpsBar {
+	text-align: center;
+}
+.eeSFL_Admin .eeSFL_ListOpsBar {
+	font-size: 110%;
+}
+.eeSFL .eeSFL_ListOpsBar form {
+	margin: 0;
+	padding: 0;
+	border: none;
+}
+.eeSFL .eeSFL_ListOpsBar select,
+.eeSFL .eeSFL_ListOpsBar input[type=text],
+.eeSFL .eeSFL_ListOpsBar input[type="submit"] {
+	float: none;
+	display: inline-block;
+	margin: 0;
+	padding: 6px 10px;
+	vertical-align: baseline;
+	font-size: 1em;
+	font-family: sans-serif;
+}
+.eeSFL .eeSFL_ListOpsBar select {
+	width: 24%;
+	margin-right: 5px;
+	padding-left: 0;
+}
+.eeSFL .eeSFL_ListOpsBar input[type=text],
+#eeSFL_FileOpsActionSelect {
+	width: 55%;
+	margin-right: 5px;
+}
+.eeSFL .eeSFL_ListOpsBar input[type="submit"] {
+	padding: 5px 2%;
+}
+.page .eeSFL .eeSFL_ListOpsBar input[type=text],
+.post .eeSFL .eeSFL_ListOpsBar input[type=text] {
+	line-height: 1;
+}
+
+
+
+/* Move Select - For Ops bar and per row */
+#eeSFL_FileOpsActionSelect,
+.eeSFLF_moveFileDisplay {
+	display: none;
+}
+
+
+
+
+
+#eeSFL_SendPop {
+	
+	position: fixed; /* Sit on top of the page content */
+	display: none; /* Show with JS */
+	width: 60%;
+	height: 80%;
+	top: 10%; 
+	left: 20%;
+	right: 20%;
+	bottom: 10%;
+	background-color: rgba(245, 245, 245, 1);
+	border: 1px solid #666;
+	z-index: 100;
+	overflow: auto;
+	-webkit-overflow-scroll: touch;
+	
+}
+#eeSFL_SendPop h2,
+#eeSFL_SendPop h3,
+#eeSFL_SendPop p {
+	margin: 0 0 10px 0;
+}
+#eeSFL_SendTheseFilesList {
+	margin-left: 4%;
+}
+#eeSFL_SendPop article {
+	margin: 3%;
+	padding-right: 2%;
+	height: 100%;
+/* 	overflow-y: scroll; */
+}
+#eeSFL_SendPop article p {
+	
+}
+#eeSFL_SendPop #eeSFL_Send_AddFiles {
+	display: block;
+	float: right;
+}
+#eeSFL_SendPop form {
+	border: none;
+	padding: 0;
+}
+#eeSFL_SendPop label {
+	float: left;
+	clear: both;
+	width: 30%;
+	height: 2em;
+	line-height: 2em;
+	margin: 15px 2% 0 0;
+	padding-right: 5px;
+	text-align: right;
+	background-color: #787878;
+	color: #FFF;
+}
+#eeSFL_SendPop note {
+	float: left;
+	clear: both;
+	margin: 0;
+}
+#eeSFL_SendPop input[type=text],
+#eeSFL_SendPop input[type=email],
+#eeSFL_SendPop textarea {
+	float: left;
+	clear: none;
+	width: 60%;
+	height: 2em;
+	margin: 15px 0 0 0;
+	background-color: #FFF;
+}
+#eeSFL_SendPop textarea {
+	height: 5em;
+}
+
+#eeSFL_SendPop p.eeSFL_SendButtons {
+	text-align: center;
+	margin-top: 1em;
+}
+
+#eeSFL_SendPop input[type="submit"],
+#eeSFL_SendPop button {
+	float: none;
+}
+#eeSFL_SendMoreFiles {
+	display: none;
+}
+
+
+.eeNote {
+/* 	float: left; */
+	clear: both;
+	margin-bottom: 30px;
+	margin-left: 4%;
+	padding-top: 5px;
+	font-style: italic;
+}
+
+.eeWarning {
+	color: #333;
+	background-color: #f4f888;
+}
+
+
+.eeSFL p.sfl_instuctions {
+	font-size: 70%;
+	font-style: italic;
+	text-align: right;
+	margin-bottom: 0;
+}
+
+.eeValign {
+	position: relative;
+	top: 50%;
+	-webkit-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+
+.eeCenter {
+	text-align: center !important;
+}
+
+.eeAlignRight {
+	text-align: right;
+}
+
+.eeClearFix {
+	clear: both;
+	height: 1px;
+}
+
+
+.eeHide,
+.eeSFL_FileRenameEntry, 
+.eeOldFileName,
+.eeSFL_SavedDesc {
+	display: none;
+}
+
+
+
+
