@@ -83,7 +83,7 @@ popupClose.addEventListener('click', () => {
 });
 
 popup.addEventListener('click', (e) => {
-    if (e.target === popup) {
+    if (e.target === popup || e.target === popupImg) { 
         popup.style.display = 'none';
     }
 });
