@@ -32,10 +32,10 @@ function showPrevCar() {
 function togglePause() {
     if (isPaused) {
         startCarousel();
-        pauseButton.textContent = '||';
+        pauseButton.textContent = 'Pause';
     } else {
         clearInterval(intervalId);
-        pauseButton.textContent = '▶';
+        pauseButton.textContent = 'Play';
     }
     isPaused = !isPaused;
 }
@@ -68,13 +68,13 @@ startCarousel();
 // Popup functionality
 const popup = document.getElementById('popup');
 const popupImg = document.getElementById('popup-img');
-const carouselImages = document.querySelectorAll('.carousel-img');
+const popupTriggers = document.querySelectorAll('.popup-trigger');
 const popupClose = document.querySelector('.popup-close');
 
-carouselImages.forEach(image => {
-    image.addEventListener('click', () => {
+popupTriggers.forEach(trigger => {
+    trigger.addEventListener('click', () => {
         popup.style.display = 'flex';
-        popupImg.src = image.src;
+        popupImg.src = trigger.src;
     });
 });
 
