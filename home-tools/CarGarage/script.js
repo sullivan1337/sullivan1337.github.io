@@ -32,10 +32,10 @@ function showPrevCar() {
 function togglePause() {
     if (isPaused) {
         startCarousel();
-        pauseButton.textContent = 'Pause';
+        pauseButton.textContent = '||';
     } else {
         clearInterval(intervalId);
-        pauseButton.textContent = 'Play';
+        pauseButton.textContent = '▶';
     }
     isPaused = !isPaused;
 }
