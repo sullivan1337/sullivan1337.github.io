@@ -275,6 +275,7 @@ main {
     
     .car-list {
         padding: 0.5rem;
+        justify-content: right; /* Centering carousel content on mobile */
     }
 
     .nav {
