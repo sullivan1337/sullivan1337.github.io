@@ -175,12 +175,10 @@ main {
 
 .nav.prev {
     left: 10px; /* Slight padding from the edge */
-    top: 195px;
 }
 
 .nav.next {
     right: 10px; /* Slight padding from the edge */
-    top: 195px;
 }
 
 .nav.pause {
@@ -193,8 +191,8 @@ main {
     align-items: center;
     justify-content: center;
     position: absolute;
-    right: 3px; /* Padding from the edge */
-    top: 241px; /* Padding from the top */
+    top: 24px;
+    right: 5px;
 }
 
 .thumbnails {
@@ -221,16 +219,18 @@ main {
 
 .past-cars {
     margin-top: 2rem;
-    display: grid;
-    gap: 1rem;
     width: 100%;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Grid columns */
 }
 
 .past-cars h2 {
     text-align: center;
     margin-bottom: 1rem;
-    grid-column: span 2;
+}
+
+.past-cars-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Grid columns */
 }
 
 .blog-post {
@@ -272,7 +272,7 @@ main {
 
 /* Popup styles */
 .popup {
-    display: none;
+    display: none; /* Ensure the popup is hidden by default */
     position: fixed;
     z-index: 1001;
     left: 0;
@@ -293,7 +293,6 @@ main {
     max-height: 90vh; /* Add max-height to ensure it fits within the viewport */
 }
 
-
 .popup-close {
     position: absolute;
     top: 15px;
@@ -312,9 +311,10 @@ main {
     cursor: pointer;
 }
 
+
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .past-cars {
+    .past-cars-grid {
         grid-template-columns: 1fr 1fr;
     }
 }
