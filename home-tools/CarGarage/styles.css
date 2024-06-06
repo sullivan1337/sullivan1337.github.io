@@ -285,11 +285,14 @@ main {
 }
 
 .popup-content {
-    margin: auto;
     display: block;
-    height: 75%;
+    width: 100%; /* Make image take full width */
+    height: auto; /* Maintain aspect ratio */
     border-radius: 15px;
+    max-width: 90vw; /* Add max-width to prevent overflow on very large screens */
+    max-height: 90vh; /* Add max-height to ensure it fits within the viewport */
 }
+
 
 .popup-close {
     position: absolute;
