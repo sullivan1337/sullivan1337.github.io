@@ -136,13 +136,14 @@ main {
     border-radius: 15px; /* Rounded corners */
 }
 
-.car-item h3 {
+h3 {
     background: #333;
     color: #ffffff;
-    padding: 0.5rem 0;
+    padding: 0.5rem 1rem; /* Add left and right padding */
     border-radius: 0 0 15px 15px; /* Rounded corners at the bottom */
     display: inline-block;
 }
+
 
 .car-item p {
     padding: 0.5rem;
@@ -235,7 +236,7 @@ main {
 
 .blog-post {
     background: #1e1e1e;
-    padding: 1rem;
+    padding: 0 0.5rem 0.5rem 0.5rem; /* Top padding set to 0, others remain 1rem */
     border-radius: 15px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     display: flex;
@@ -244,6 +245,7 @@ main {
     text-align: center;
     width: 100%;
 }
+
 
 .post-content {
     width: 100%;
