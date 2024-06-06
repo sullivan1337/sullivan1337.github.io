@@ -11,6 +11,7 @@ html, body {
     line-height: 1.6;
     background-color: #121212;
     color: #ffffff;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 body {
@@ -27,6 +28,7 @@ header {
     position: sticky;
     top: 0;
     z-index: 1000;
+    width: 100%;
 }
 
 header h1 {
@@ -44,6 +46,7 @@ main {
     margin: 0 auto;
     display: flex;
     flex-direction: column;
+    width: 100%;
 }
 
 .current-cars {
@@ -61,6 +64,7 @@ main {
     justify-content: center;
     align-items: center;
     width: 100%;
+    overflow: hidden; /* Prevent overflow */
 }
 
 .carousel {
@@ -186,6 +190,7 @@ main {
     margin-top: 2rem;
     display: grid;
     gap: 1rem;
+    width: 100%;
 }
 
 .past-cars h2 {
@@ -203,6 +208,7 @@ main {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    width: 100%;
 }
 
 .post-content {
@@ -214,6 +220,7 @@ main {
 
 .text-content {
     margin-bottom: 1rem;
+    width: 100%;
 }
 
 .image-content img {
