@@ -1,0 +1,26 @@
+HTTrack3.49-2+htsswf+htsjava launched on Wed, 12 Jun 2024 23:15:53 at https://datalogviewer.com +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar -*vimeo*
+(winhttrack -qw%e2C2%Pns0u1%s%u0N0%I0p7DaK0H0%kf2A250000%f0#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" https://datalogviewer.com -O1 "C:\My Web Sites\datalogviewer" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar -*vimeo* )
+
+Information, Warnings and Errors reported for this mirror:
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+	such as username/password authentication for websites mirrored in this project
+	do not share these files/folders if you want these information to remain private
+
+23:16:05	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js
+23:17:01	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://fonts.googleapis.com/css?family=Montserrat:400,700
+23:17:01	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://www.googletagmanager.com/gtag/js?id=UA-173953809-1
+23:17:22	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_favicon.ico?v=2.0.0
+23:17:22	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/deps/polyfill@7.v2_0_0m1639694345.12.1.min.js
+23:17:23	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/deps/react@16.v2_0_0m1639694345.14.0.min.js
+23:17:23	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/deps/react-dom@16.v2_0_0m1639694345.14.0.min.js
+23:17:23	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/deps/prop-types@15.v2_0_0m1639694345.7.2.min.js
+23:17:24	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_0_0m1639694345.min.js
+23:17:24	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v0_13_1m1639694345.min.js
+23:17:25	Warning: 	HTML file (1067 bytes) retransferred due to lack of cache: https://datalogviewer.com/footer.html
+23:17:26	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/dcc/dash_core_components.v2_0_0m1639694345.js
+23:17:26	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/dcc/dash_core_components-shared.v2_0_0m1639694345.js
+23:17:27	Warning: 	File seems complete (same size), but there was a cache read error (4294967295): https://data.datalogviewer.com/_dash-component-suites/dash/html/dash_html_components.v2_0_0m1639694345.min.js
+23:17:27	Warning: 	HTML file (5733 bytes) retransferred due to lack of cache: https://datalogviewer.com/about.html
+
+HTTrack Website Copier/3.49-2 mirror complete in 1 minutes 35 seconds : 35 links scanned, 48 files written (6089956 bytes overall) [2722183 bytes received at 28654 bytes/sec], 4767481 bytes transferred using HTTP compression in 37 files, ratio 27%, 1.6 requests per connection
+(No errors, 15 warnings, 0 messages)
