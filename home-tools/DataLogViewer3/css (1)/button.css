@@ -1,0 +1,36 @@
+.vid div {
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: normal !important;
+  font-size: 14px;
+  line-height: 17px;
+  /* color: #6A6C77; */
+  border: none;
+  padding: 0;
+  margin: 0;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.video-display-wrapper {
+  visibility: visible !important;
+}
+.vid .video-btn[data-position="horizontal"] {
+  bottom: 0;
+}
+.vid a:hover {
+  color: blue !important;
+  text-decoration: none !important;
+}
+.vid .video-btn {
+  position: fixed;
+  padding: 15px 20px;
+  background-color: #f89406 !important;
+  text-transform: uppercase;
+  opacity: 0.7;
+  color: red;
+  text-decoration: none;
+}
+.vid_button_text {
+  color: red;
+  font-weight: bold;
+}
