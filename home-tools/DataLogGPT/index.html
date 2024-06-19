@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Tuning Data Log Viewer</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12 data-upload">
+                <div class="form-group">
+                    <label for="fileInput">Upload CSV File</label>
+                    <input type="file" class="form-control-file" id="fileInput">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 data-selection">
+                <h3>Data Selection</h3>
+                <div class="form-group">
+                    <label for="chart1Title">Chart 1 Title:</label>
+                    <input type="text" id="chart1Title" class="form-control" placeholder="Enter title">
+                    <label for="chart1Select1">Select Data for Chart 1 - Line 1:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart1Select1" class="form-control mr-2"></select>
+                        <input type="color" id="chart1Color1" value="#1f77b4">
+                    </div>
+                    <label for="chart1Select2">Select Data for Chart 1 - Line 2:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart1Select2" class="form-control mr-2"></select>
+                        <input type="color" id="chart1Color2" value="#ff7f0e">
+                    </div>
+                    <label for="chart1Select3">Select Data for Chart 1 - Line 3:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart1Select3" class="form-control mr-2"></select>
+                        <input type="color" id="chart1Color3" value="#2ca02c">
+                    </div>
+                    <label for="chart1Select4">Select Data for Chart 1 - Line 4:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart1Select4" class="form-control mr-2"></select>
+                        <input type="color" id="chart1Color4" value="#d62728">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9 chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="chart1"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 data-selection">
+                <div class="form-group">
+                    <label for="chart2Title">Chart 2 Title:</label>
+                    <input type="text" id="chart2Title" class="form-control" placeholder="Enter title">
+                    <label for="chart2Select1">Select Data for Chart 2 - Line 1:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart2Select1" class="form-control mr-2"></select>
+                        <input type="color" id="chart2Color1" value="#9467bd">
+                    </div>
+                    <label for="chart2Select2">Select Data for Chart 2 - Line 2:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart2Select2" class="form-control mr-2"></select>
+                        <input type="color" id="chart2Color2" value="#8c564b">
+                    </div>
+                    <label for="chart2Select3">Select Data for Chart 2 - Line 3:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart2Select3" class="form-control mr-2"></select>
+                        <input type="color" id="chart2Color3" value="#e377c2">
+                    </div>
+                    <label for="chart2Select4">Select Data for Chart 2 - Line 4:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart2Select4" class="form-control mr-2"></select>
+                        <input type="color" id="chart2Color4" value="#7f7f7f">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9 chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="chart2"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 data-selection">
+                <div class="form-group">
+                    <label for="chart3Title">Chart 3 Title:</label>
+                    <input type="text" id="chart3Title" class="form-control" placeholder="Enter title">
+                    <label for="chart3Select1">Select Data for Chart 3 - Line 1:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart3Select1" class="form-control mr-2"></select>
+                        <input type="color" id="chart3Color1" value="#bcbd22">
+                    </div>
+                    <label for="chart3Select2">Select Data for Chart 3 - Line 2:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart3Select2" class="form-control mr-2"></select>
+                        <input type="color" id="chart3Color2" value="#17becf">
+                    </div>
+                    <label for="chart3Select3">Select Data for Chart 3 - Line 3:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart3Select3" class="form-control mr-2"></select>
+                        <input type="color" id="chart3Color3" value="#1f77b4">
+                    </div>
+                    <label for="chart3Select4">Select Data for Chart 3 - Line 4:</label>
+                    <div class="d-flex align-items-center">
+                        <select id="chart3Select4" class="form-control mr-2"></select>
+                        <input type="color" id="chart3Color4" value="#ff7f0e">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9 chart-container">
+                <div class="chart-wrapper">
+                    <canvas id="chart3"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-striped mt-5" id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th>Channel</th>
+                            <th>Units</th>
+                            <th>Value</th>
+                            <th>Min</th>
+                            <th>Max</th>
+                            <th>Avg</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="js/scripts.js"></script>
+</body>
+</html>
