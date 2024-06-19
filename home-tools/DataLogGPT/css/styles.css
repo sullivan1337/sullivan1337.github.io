@@ -14,17 +14,17 @@ body {
     background-color: #1e1e1e;
     color: #e0e0e0;
     padding: 20px;
-    height: 100vh;
+    height: 470px;
     overflow-y: auto;
 }
 .chart-container {
-    padding: 20px;
+    padding: 10px;
 }
 .chart-wrapper {
     position: relative;
     width: 100%;
-    height: 500px; /* Adjust height to remove extra space */
-    margin-bottom: 200px; /* Reduce space between charts */
+    height: 450px; /* Adjust height to desired size */
+    margin: 0; /* Remove extra margins */
 }
 .form-group {
     margin-bottom: 20px;
@@ -36,6 +36,15 @@ body {
 }
 .form-control::placeholder {
     color: #888;
+}
+.d-flex {
+    display: flex;
+}
+.align-items-center {
+    align-items: center;
+}
+.mr-2 {
+    margin-right: 0.5rem;
 }
 .btn-primary {
     background-color: #6200ea;
