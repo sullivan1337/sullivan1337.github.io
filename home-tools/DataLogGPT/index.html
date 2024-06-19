@@ -12,14 +12,20 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-12 data-upload">
-                <div class="form-group">
-                    <label for="fileInput">Upload CSV File</label>
-                    <input type="file" class="form-control-file" id="fileInput">
+                <div class="form-group d-flex align-items-center">
+                    <label for="fileInput" class="mr-2">Upload CSV File</label>
+                    <input type="file" class="form-control-file mr-2" id="fileInput">
+                    <label for="timeColumnPicker" class="mr-2">Select TIME Column:</label>
+                    <select id="timeColumnPicker" class="form-control mr-2"></select>
+                    <label for="globalStartTime" class="mr-2">Start Time:</label>
+                    <input type="range" id="globalStartTime" class="form-control-range mr-2" min="0" max="100" value="0" style="width: 25%;">
+                    <label for="globalEndTime" class="mr-2">End Time:</label>
+                    <input type="range" id="globalEndTime" class="form-control-range" min="0" max="100" value="100" style="width: 25%;">
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3 data-selection">
+            <div class="col-md-3 data-selection resizable">
                 <div class="form-group">
                     <label for="chart1Title">Chart 1 Title:</label>
                     <input type="text" id="chart1Title" class="form-control" placeholder="Enter title">
@@ -43,6 +49,8 @@
                         <select id="chart1Select4" class="form-control mr-2"></select>
                         <input type="color" id="chart1Color4" value="#d62728">
                     </div>
+                    <label for="chart1XAxis">Select X Axis for Chart 1:</label>
+                    <select id="chart1XAxis" class="form-control"></select>
                 </div>
             </div>
             <div class="col-md-9 chart-container">
@@ -51,8 +59,9 @@
                 </div>
             </div>
         </div>
+        <!-- Repeat the above row for Chart 2 and Chart 3 -->
         <div class="row">
-            <div class="col-md-3 data-selection">
+            <div class="col-md-3 data-selection resizable">
                 <div class="form-group">
                     <label for="chart2Title">Chart 2 Title:</label>
                     <input type="text" id="chart2Title" class="form-control" placeholder="Enter title">
@@ -76,6 +85,8 @@
                         <select id="chart2Select4" class="form-control mr-2"></select>
                         <input type="color" id="chart2Color4" value="#7f7f7f">
                     </div>
+                    <label for="chart2XAxis">Select X Axis for Chart 2:</label>
+                    <select id="chart2XAxis" class="form-control"></select>
                 </div>
             </div>
             <div class="col-md-9 chart-container">
@@ -85,7 +96,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-3 data-selection">
+            <div class="col-md-3 data-selection resizable">
                 <div class="form-group">
                     <label for="chart3Title">Chart 3 Title:</label>
                     <input type="text" id="chart3Title" class="form-control" placeholder="Enter title">
@@ -109,6 +120,8 @@
                         <select id="chart3Select4" class="form-control mr-2"></select>
                         <input type="color" id="chart3Color4" value="#ff7f0e">
                     </div>
+                    <label for="chart3XAxis">Select X Axis for Chart 3:</label>
+                    <select id="chart3XAxis" class="form-control"></select>
                 </div>
             </div>
             <div class="col-md-9 chart-container">
