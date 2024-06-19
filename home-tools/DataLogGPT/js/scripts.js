@@ -5,14 +5,15 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             header: true,
             dynamicTyping: true,
             complete: function(results) {
-                console.log("Parsed Data: ", results.data);  // Debugging line
+                console.log("Parsed Data: ", results.data);
                 const data = results.data;
                 populateSelectOptions(data);
+                populateTimeColumnSelect(data);
                 setupChartUpdate(data);
                 displayTable(data);
             },
             error: function(error) {
-                console.error("Parsing Error: ", error);  // Debugging line
+                console.error("Parsing Error: ", error);
             }
         });
     }
@@ -21,6 +22,22 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 let chart1 = null;
 let chart2 = null;
 let chart3 = null;
+
+let chart1Instance = null;
+let chart2Instance = null;
+let chart3Instance = null;
+
+function populateTimeColumnSelect(data) {
+    const timeColumnSelect = document.getElementById('timeColumnSelect');
+    const keys = Object.keys(data[0]);
+
+    keys.forEach((key, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.text = `Column ${index + 1}: ${key}`;
+        timeColumnSelect.appendChild(option);
+    });
+}
 
 function populateSelectOptions(data) {
     const keys = ["null"].concat(Object.keys(data[0]));
@@ -66,7 +83,9 @@ function populateSelectOptions(data) {
 }
 
 function setupChartUpdate(data) {
-    const time = data.map(row => row.TIME).filter(isValidNumber);
+    const timeColumnSelect = document.getElementById('timeColumnSelect');
+    let timeColumnIndex = timeColumnSelect.value;
+    let time = data.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber);
 
     const chart1Selects = [
         document.getElementById('chart1Select1'),
@@ -110,52 +129,59 @@ function setupChartUpdate(data) {
     const chart2Title = document.getElementById('chart2Title');
     const chart3Title = document.getElementById('chart3Title');
 
-    const updateChart1 = () => {
-        const datasets = chart1Selects.map((select, index) => ({
+    const updateCharts = () => {
+        const chart1Datasets = chart1Selects.map((select, index) => ({
             label: select.value,
             data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart1Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
-        updateChart(chart1, chart1Title.value || 'Chart 1', time, datasets);
-    };
 
-    const updateChart2 = () => {
-        const datasets = chart2Selects.map((select, index) => ({
+        const chart2Datasets = chart2Selects.map((select, index) => ({
             label: select.value,
             data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart2Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
-        updateChart(chart2, chart2Title.value || 'Chart 2', time, datasets);
-    };
 
-    const updateChart3 = () => {
-        const datasets = chart3Selects.map((select, index) => ({
+        const chart3Datasets = chart3Selects.map((select, index) => ({
             label: select.value,
             data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart3Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
-        updateChart(chart3, chart3Title.value || 'Chart 3', time, datasets);
+
+        updateChart(chart1Instance, chart1Title.value || 'Chart 1', time, chart1Datasets);
+        updateChart(chart2Instance, chart2Title.value || 'Chart 2', time, chart2Datasets);
+        updateChart(chart3Instance, chart3Title.value || 'Chart 3', time, chart3Datasets);
     };
 
-    chart1Selects.forEach(select => select.addEventListener('change', updateChart1));
-    chart2Selects.forEach(select => select.addEventListener('change', updateChart2));
-    chart3Selects.forEach(select => select.addEventListener('change', updateChart3));
+    chart1Selects.forEach(select => select.addEventListener('change', updateCharts));
+    chart2Selects.forEach(select => select.addEventListener('change', updateCharts));
+    chart3Selects.forEach(select => select.addEventListener('change', updateCharts));
 
-    chart1Colors.forEach(color => color.addEventListener('input', updateChart1));
-    chart2Colors.forEach(color => color.addEventListener('input', updateChart2));
-    chart3Colors.forEach(color => color.addEventListener('input', updateChart3));
+    chart1Colors.forEach(color => color.addEventListener('input', updateCharts));
+    chart2Colors.forEach(color => color.addEventListener('input', updateCharts));
+    chart3Colors.forEach(color => color.addEventListener('input', updateCharts));
 
-    chart1Title.addEventListener('input', updateChart1);
-    chart2Title.addEventListener('input', updateChart2);
-    chart3Title.addEventListener('input', updateChart3);
+    chart1Title.addEventListener('input', updateCharts);
+    chart2Title.addEventListener('input', updateCharts);
+    chart3Title.addEventListener('input', updateCharts);
 
-    // Initial chart setup without default data selection
-    chart1 = createChart('chart1', 'Chart 1', time, []);
-    chart2 = createChart('chart2', 'Chart 2', time, []);
-    chart3 = createChart('chart3', 'Chart 3', time, []);
+    // Create new chart instances
+    chart1Instance = createChart('chart1', 'Chart 1', time, []);
+    chart2Instance = createChart('chart2', 'Chart 2', time, []);
+    chart3Instance = createChart('chart3', 'Chart 3', time, []);
+
+    // Add event listener to update charts when "TIME" column selection changes
+    timeColumnSelect.addEventListener('change', () => {
+        timeColumnIndex = timeColumnSelect.value;
+        time = data.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber);
+        updateCharts();
+    });
+    
+    // Initial chart update
+    updateCharts();
 }
 
 function isValidNumber(value) {
