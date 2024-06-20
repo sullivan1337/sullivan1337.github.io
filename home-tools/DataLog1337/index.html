@@ -16,14 +16,18 @@
                     <label for="fileInput">Upload CSV File</label>
                     <input type="file" class="form-control-file" id="fileInput">
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-3 data-selection">
                 <div class="form-group">
                     <label for="timeColumnSelect">Global "TIME" Column:</label>
                     <select class="form-control" id="timeColumnSelect"></select>
                 </div>
+                <div class="form-group">
+                    <label for="dataStartRow">Data Start Row:</label>
+                    <input type="number" class="form-control" id="dataStartRow" min="0" value="0">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 data-selection">
                 <div class="form-group">
                     <label for="chart1Title">Chart 1 Title:</label>
                     <input type="text" id="chart1Title" class="form-control" placeholder="Enter title">
