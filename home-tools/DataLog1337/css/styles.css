@@ -67,3 +67,6 @@ body {
 .table tbody tr:nth-child(even) {
     background-color: #252525;
 }
+.top-row {
+    background-color: #1e1e1e;
+}
