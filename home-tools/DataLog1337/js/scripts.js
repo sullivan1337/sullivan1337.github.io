@@ -130,30 +130,34 @@ function setupChartUpdate(data) {
     const chart3Title = document.getElementById('chart3Title');
 
     const updateCharts = () => {
+        const startRow = parseInt(document.getElementById('dataStartRow').value);
+        const endRow = parseInt(document.getElementById('dataEndRow').value) || data.length;
+        const filteredData = data.slice(startRow, endRow);
+
         const chart1Datasets = chart1Selects.map((select, index) => ({
             label: select.value,
-            data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
+            data: select.value === "null" ? [] : filteredData.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart1Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
 
         const chart2Datasets = chart2Selects.map((select, index) => ({
             label: select.value,
-            data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
+            data: select.value === "null" ? [] : filteredData.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart2Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
 
         const chart3Datasets = chart3Selects.map((select, index) => ({
             label: select.value,
-            data: select.value === "null" ? [] : data.map(row => row[select.value]).filter(isValidNumber),
+            data: select.value === "null" ? [] : filteredData.map(row => row[select.value]).filter(isValidNumber),
             borderColor: chart3Colors[index].value,
             fill: false
         })).filter(dataset => dataset.data.length > 0);
 
-        updateChart(chart1Instance, chart1Title.value || 'Chart 1', time, chart1Datasets);
-        updateChart(chart2Instance, chart2Title.value || 'Chart 2', time, chart2Datasets);
-        updateChart(chart3Instance, chart3Title.value || 'Chart 3', time, chart3Datasets);
+        updateChart(chart1Instance, chart1Title.value || 'Chart 1', filteredData.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber), chart1Datasets);
+        updateChart(chart2Instance, chart2Title.value || 'Chart 2', filteredData.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber), chart2Datasets);
+        updateChart(chart3Instance, chart3Title.value || 'Chart 3', filteredData.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber), chart3Datasets);
     };
 
     chart1Selects.forEach(select => select.addEventListener('change', updateCharts));
@@ -176,9 +180,12 @@ function setupChartUpdate(data) {
     // Add event listener to update charts when "TIME" column selection changes
     timeColumnSelect.addEventListener('change', () => {
         timeColumnIndex = timeColumnSelect.value;
-        time = data.map(row => row[Object.keys(row)[timeColumnIndex]]).filter(isValidNumber);
         updateCharts();
     });
+    
+    // Add event listeners for start and end row inputs
+    document.getElementById('dataStartRow').addEventListener('input', updateCharts);
+    document.getElementById('dataEndRow').addEventListener('input', updateCharts);
     
     // Initial chart update
     updateCharts();

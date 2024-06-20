@@ -27,7 +27,7 @@ body {
     margin: 0; /* Remove extra margins */
 }
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 .form-control {
     background-color: #333;
