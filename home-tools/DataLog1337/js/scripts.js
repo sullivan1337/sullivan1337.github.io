@@ -76,7 +76,9 @@ function populateSelectOptions(data) {
         document.getElementById('chart3Select1'),
         document.getElementById('chart3Select2'),
         document.getElementById('chart3Select3'),
-        document.getElementById('chart3Select4')
+        document.getElementById('chart3Select4'),
+        document.getElementById('chart3Select5'),
+        document.getElementById('chart3Select6')
     ];
 
     keys.forEach(key => {
@@ -122,7 +124,9 @@ function setupChartUpdate(data) {
         document.getElementById('chart3Select1'),
         document.getElementById('chart3Select2'),
         document.getElementById('chart3Select3'),
-        document.getElementById('chart3Select4')
+        document.getElementById('chart3Select4'),
+        document.getElementById('chart3Select5'),
+        document.getElementById('chart3Select6')
     ];
 
     const chart1Colors = [
@@ -141,7 +145,9 @@ function setupChartUpdate(data) {
         document.getElementById('chart3Color1'),
         document.getElementById('chart3Color2'),
         document.getElementById('chart3Color3'),
-        document.getElementById('chart3Color4')
+        document.getElementById('chart3Color4'),
+        document.getElementById('chart3Color5'),
+        document.getElementById('chart3Color6')
     ];
 
     const chart1Title = document.getElementById('chart1Title');
