@@ -1,23 +1,42 @@
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
-        Papa.parse(file, {
-            header: true,
-            dynamicTyping: true,
-            complete: function(results) {
-                console.log("Parsed Data: ", results.data);
-                const data = results.data;
-                populateSelectOptions(data);
-                populateTimeColumnSelect(data);
-                setupChartUpdate(data);
-                displayTable(data);
-            },
-            error: function(error) {
-                console.error("Parsing Error: ", error);
-            }
-        });
+        // Step to normalize the file content before parsing
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const fileContent = event.target.result;
+            const normalizedContent = fileContent.replace(/\r\n|\r/g, "\n");  // Normalize line endings to LF (\n)
+
+            Papa.parse(normalizedContent, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                transformHeader: header => header.trim(),
+                complete: function(results) {
+                    console.log("Parsed Data: ", results.data);
+                    console.log("Errors: ", results.errors);
+                    if (results.errors.length > 0) {
+                        console.error("Parsing errors detected:", results.errors);
+                    }
+                    const data = results.data;
+                    if (data.length > 0 && Object.keys(data[0]).length !== results.meta.fields.length) {
+                        console.error("Column mismatch detected.");
+                        return;
+                    }
+                    populateSelectOptions(data);
+                    populateTimeColumnSelect(data);
+                    setupChartUpdate(data);
+                    displayTable(data);
+                },
+                error: function(error) {
+                    console.error("Parsing Error: ", error);
+                }
+            });
+        };
+        reader.readAsText(file);
     }
 });
+
 
 let chart1 = null;
 let chart2 = null;
