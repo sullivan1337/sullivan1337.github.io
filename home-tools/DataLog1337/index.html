@@ -11,11 +11,11 @@
 <body>
     <div class="container-fluid">
         <div class="row justify-content-between align-items-center top-row">
-            <div class="col-auto data-upload">
-                <div class="form-group mr-2">
-                    <label for="fileInput">Upload CSV File</label>
-                    <input type="file" class="form-control-file" id="fileInput">
-                </div>
+            <div class="upload-form-group">
+                <label for="fileInput">Upload CSV File</label>
+                <input type="file" id="fileInput" class="form-control-file" style="display: none;">
+                <label for="fileInput" class="btn btn-primary" id="fileInputLabel">Choose File</label>
+                <span id="fileName"></span>
             </div>
             <div class="col-auto text-center">
                 <div class="form-group">
