@@ -249,9 +249,22 @@ function updateChart(chart, label, labels, datasets) {
 }
 
 function displayTable(data) {
+    const tableHeader = document.querySelector('#summaryTable thead tr');
     const tableBody = document.querySelector('#summaryTable tbody');
+
+    // Clear existing content
+    tableHeader.innerHTML = '';
     tableBody.innerHTML = '';
 
+    // Populate header
+    const headers = Object.keys(data[0]);
+    headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        tableHeader.appendChild(th);
+    });
+
+    // Populate rows
     data.forEach(row => {
         const tr = document.createElement('tr');
         Object.values(row).forEach(value => {
