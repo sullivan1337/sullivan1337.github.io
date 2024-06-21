@@ -11,10 +11,9 @@
 <body>
     <div class="container-fluid">
         <div class="row justify-content-between align-items-center top-row">
-            <div class="upload-form-group">
-                <label for="fileInput">Upload CSV File</label>
+            <div class="col-auto upload-form-group text-center">
                 <input type="file" id="fileInput" class="form-control-file" style="display: none;">
-                <label for="fileInput" class="btn btn-primary" id="fileInputLabel">Choose File</label>
+                <label for="fileInput" class="btn btn-primary" id="fileInputLabel">Choose CSV File</label>
                 <span id="fileName"></span>
             </div>
             <div class="col-auto text-center">
@@ -23,7 +22,7 @@
                     <select class="form-control" id="timeColumnSelect"></select>
                 </div>
             </div>
-            <div class="col-auto d-flex align-items-center">
+            <div class="col-auto d-flex text-center">
                 <div class="form-group mr-2">
                     <label for="dataStartRow">Data Start Row:</label>
                     <input type="number" class="form-control" id="dataStartRow" min="1" value="1">

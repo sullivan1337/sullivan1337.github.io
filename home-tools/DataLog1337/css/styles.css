@@ -41,6 +41,7 @@ select:focus, input[type="file"]:focus {
     margin-top: 10px;
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 .form-group {
     margin-bottom: 10px;  /* Existing rule */

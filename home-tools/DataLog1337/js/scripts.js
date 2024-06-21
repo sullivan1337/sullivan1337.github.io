@@ -1,5 +1,14 @@
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
+    const fileNameDisplay = document.getElementById('fileName');
+
+    // Update the file name display
+    if (file) {
+        fileNameDisplay.textContent = file.name;
+    } else {
+        fileNameDisplay.textContent = "";
+    }
+
     if (file) {
         // Step to normalize the file content before parsing
         const reader = new FileReader();
@@ -36,6 +45,7 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
         reader.readAsText(file);
     }
 });
+
 
 
 let chart1 = null;
