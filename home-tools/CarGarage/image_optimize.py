@@ -1,3 +1,12 @@
+# Optimizes image quality and size to be space efficient using these 2 toggles:
+# quality=quality, optimize=True
+
+# requires pillow, install with:
+# pip install pillow
+
+# run script with:
+# python image_optimize.py
+
 import os
 from PIL import Image
 
@@ -15,5 +24,6 @@ def optimize_images(folder_path, quality=92):
 
 if __name__ == "__main__":
     folder_path = input("Enter the path to the folder containing images: ")
+    # you can use ./ if in the current folder the script is in
     optimize_images(folder_path)
     print("Image optimization completed.")
