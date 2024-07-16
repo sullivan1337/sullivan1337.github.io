@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>jq parser</title>
+    <title>jqplay Clone</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Self-hosted `jq` parser</h1>
+    <h1>jqplay Clone</h1>
     <div class="container">
         <textarea id="jsonInput" rows="10" cols="50" placeholder="Enter JSON here..."></textarea>
         <textarea id="jqFilter" rows="2" cols="50" placeholder="Enter jq filter here..."></textarea>
         <button onclick="processJSON()">Process JSON</button>
         <pre id="output"></pre>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jq-web/0.2.0/jq-web.min.js"></script>
-    <script src="script.js"></script>
+    <script src="./jq.wasm.js"></script>
+    <script src="./script.js"></script>
 </body>
 </html>
