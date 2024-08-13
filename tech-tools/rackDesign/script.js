@@ -2,6 +2,8 @@ const rack = document.getElementById('rack');
 const totalUnitsInput = document.getElementById('totalUnits');
 const rackItems = document.getElementById('rackItems');
 let draggedItemSize = 0;
+let draggedItem = null;
+let touchStartY = 0;
 
 function updateRack() {
     const totalUnits = parseInt(totalUnitsInput.value);
@@ -14,17 +16,98 @@ function updateRack() {
         space.addEventListener('dragover', dragOver);
         space.addEventListener('dragleave', dragLeave);
         space.addEventListener('drop', drop);
+        space.addEventListener('touchmove', touchMove);
+        space.addEventListener('touchend', touchEnd);
         rack.appendChild(space);
     }
 }
 
 totalUnitsInput.addEventListener('change', updateRack);
 
-rackItems.addEventListener('dragstart', (e) => {
-    draggedItemSize = parseInt(e.target.dataset.size);
-    e.dataTransfer.setData('text/plain', JSON.stringify({size: draggedItemSize, isNew: true}));
-});
+rackItems.addEventListener('dragstart', dragStart);
+rackItems.addEventListener('touchstart', touchStart);
 
+rack.addEventListener('dragstart', dragStart);
+rack.addEventListener('touchstart', touchStart);
+
+function dragStart(e) {
+    if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
+        draggedItem = e.target;
+        draggedItemSize = parseInt(e.target.dataset.size);
+        if (e.dataTransfer) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                size: draggedItemSize,
+                isNew: !e.target.classList.contains('rack-item-placed'),
+                oldUnit: e.target.dataset.unit ? parseInt(e.target.dataset.unit) : null
+            }));
+        }
+    }
+}
+
+function touchStart(e) {
+    if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
+        draggedItem = e.target;
+        draggedItemSize = parseInt(e.target.dataset.size);
+        touchStartY = e.touches[0].clientY;
+        e.preventDefault(); // Prevent scrolling when starting to drag
+    }
+}
+
+function dragOver(e) {
+    e.preventDefault();
+    const targetUnit = parseInt(e.target.dataset.unit);
+    highlightSpaces(targetUnit, draggedItemSize);
+}
+
+function touchMove(e) {
+    if (draggedItem) {
+        e.preventDefault(); // Prevent scrolling while dragging
+        const touch = e.touches[0];
+        const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (targetElement && targetElement.classList.contains('rack-space')) {
+            const targetUnit = parseInt(targetElement.dataset.unit);
+            highlightSpaces(targetUnit, draggedItemSize);
+        }
+    }
+}
+
+function dragLeave(e) {
+    clearHighlights();
+}
+
+function drop(e) {
+    e.preventDefault();
+    handleDrop(e.target);
+}
+
+function touchEnd(e) {
+    if (draggedItem) {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (targetElement && targetElement.classList.contains('rack-space')) {
+            handleDrop(targetElement);
+        }
+        draggedItem = null;
+    }
+}
+
+function handleDrop(target) {
+    clearHighlights();
+    const targetUnit = parseInt(target.closest('.rack-space').dataset.unit);
+    
+    if (canPlaceItem(targetUnit, draggedItemSize)) {
+        if (draggedItem.classList.contains('rack-item')) {
+            placeItem(targetUnit, draggedItemSize, `${draggedItemSize}U Item`);
+        } else {
+            moveItem(parseInt(draggedItem.dataset.unit), targetUnit, draggedItemSize);
+        }
+    } else {
+        alert('Not enough space to place this item here.');
+    }
+    draggedItemSize = 0;
+    draggedItem = null;
+}
 rack.addEventListener('dragstart', (e) => {
     if (e.target.classList.contains('rack-item-placed')) {
         draggedItemSize = parseInt(e.target.dataset.size);

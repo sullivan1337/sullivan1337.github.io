@@ -65,3 +65,12 @@ body {
 .item-name {
     cursor: pointer;
 }
+.rack-item, .rack-item-placed {
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#rack {
+    touch-action: none;
+}
