@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Rack Designer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="tools">
+            <h2>Server Rack Designer</h2>
+            <div>
+                <label for="totalUnits">Total Rack Units:</label>
+                <input type="number" id="totalUnits" min="2" max="48" value="16">
+            </div>
+            <div id="rackItems">
+                <div class="rack-item" draggable="true" data-size="1">1U Item</div>
+                <div class="rack-item" draggable="true" data-size="2">2U Item</div>
+                <div class="rack-item" draggable="true" data-size="3">3U Item</div>
+                <div class="rack-item" draggable="true" data-size="4">4U Item</div>
+            </div>
+        </div>
+        <div id="rack"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

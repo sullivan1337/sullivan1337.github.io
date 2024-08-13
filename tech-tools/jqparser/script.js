@@ -26,9 +26,9 @@ async function processJSON() {
 
 async function initJq() {
     return new Promise((resolve, reject) => {
-        jq.onRuntimeInitialized = () => {
-            console.log('jqModule initialized'); // Debugging line
-            resolve(jq);
+        Module.onRuntimeInitialized = () => {
+            console.log('Module initialized'); // Debugging line
+            resolve(Module);
         };
     });
 }

@@ -55,97 +55,8 @@ Module["onRuntimeInitialized"] = function() {
     } else {
         root.jq = factory();
     }
-}(this, function () {
-    return Module;
-}));
-
-
-// --pre-jses are emitted after the Module integration code, so that they can
-// refer to Module (if they choose; they can also define Module)
-(function (root, factory) {
-  if (typeof define === 'function' && define.amd) {
-    define(function (a) {
-      return factory()
-    })
-  } else if (typeof module === 'object' && module.exports) {
-    module.exports = factory()
-  } else {
-    root.jq = factory()
-  }
-}(this, function () {
-  var initialized = false
-  var initListeners = []
-
-  var stdin = ''
-  var inBuffer = []
-  var outBuffer = []
-  var errBuffer = []
-
-  function toByteArray (str) {
-    var byteArray = []
-    for (var i = 0; i < str.length; i++) {
-      if (str.charCodeAt(i) <= 0x7F) {
-        byteArray.push(str.charCodeAt(i))
-      } else {
-        var h = encodeURIComponent(str.charAt(i)).substr(1).split('%')
-        for (var j = 0; j < h.length; j++) {
-          byteArray.push(parseInt(h[j], 16))
-        }
-      }
-    }
-    return byteArray
-  }
-
-  function pad (n) { return n.length < 2 ? '0' + n : n }
-
-  function fromByteArray (data) {
-    var array = new Uint8Array(data)
-    var str = ''
-    for(var i = 0; i < array.length; ++i) {
-      str += ('%' + pad(array[i].toString(16)))
-    }
-    return decodeURIComponent(str)
-  }
-
-  var Module = {
-    noInitialRun: true,
-    noExitRuntime: true,
-    onRuntimeInitialized: function () {
-      initialized = true
-      initListeners.forEach(function (cb) {
-        cb()
-      })
-    },
-    preRun: function () {
-      FS.init(
-        function input () {
-          if (inBuffer.length) {
-            return inBuffer.pop()
-          }
-
-          if (!stdin) return null
- 
-          inBuffer = toByteArray(stdin)
-          stdin = ''
-          inBuffer.push(null)
-          inBuffer.reverse()
-          return inBuffer.pop()
-        },
-        function output (c) {
-          if (c) {
-            outBuffer.push(c)
-          }
-        },
-        function error (c) {
-          if (c) {
-            errBuffer.push(c)
-          }
-        }
-      )
-    }
-  }
-
-
+}
+)
 
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
@@ -6870,110 +6781,100 @@ if (Module['preInit']) {
     Module['preInit'].pop()();
   }
 }
+    // shouldRunNow refers to calling main(), not run().
+    var shouldRunNow = true;
+    if (Module['noInitialRun']) {
+        shouldRunNow = false;
+    }
 
-// shouldRunNow refers to calling main(), not run().
-var shouldRunNow = true;
-if (Module['noInitialRun']) {
-  shouldRunNow = false;
-}
+    Module["noExitRuntime"] = true;
 
-Module["noExitRuntime"] = true;
+    run();
 
-run();
+    // necessary because the default emscripten exit() logs a lot of text.
+    function exit() {}
 
-// {{POST_RUN_ADDITIONS}}
+    // takes a string as input and returns a string
+    // like `echo <jsonstring> | jq <filter>`, returning the value of STDOUT
+    function raw(jsonstring, filter, flags) {
+        if (!initialized) return '{}'
 
+        stdin = jsonstring
+        inBuffer = []
+        outBuffer = []
+        errBuffer = []
 
+        flags = flags || []
+        Module.callMain(flags.concat(filter))
 
+        // calling main closes stdout, so we reopen it here:
+        FS.streams[1] = FS.open('/dev/stdout', 577, 0)
+        FS.streams[2] = FS.open('/dev/stderr', 577, 0)
 
+        if (outBuffer.length) {
+            return fromByteArray(outBuffer).trim();
+        }
+
+        if (errBuffer.length) {
+            var errBufferContents = fromByteArray(errBuffer)
+            var errString = errBufferContents
+            if (errString.indexOf(':') > -1) {
+                var parts = errString.split(':')
+                errString = parts[parts.length - 1].trim()
+            }
+            throw new Error(errString)
+        }
+
+        return ''
+    }
+
+    // takes an object as input and tries to return objects.
+    function json(json, filter) {
+        if (!initialized) return {}
+
+        var jsonstring = JSON.stringify(json)
+        var result = raw(jsonstring, filter, ['-c']).trim()
+
+        if (result.indexOf('\n') !== -1) {
+            return result
+                .split('\n')
+                .filter(function (x) { return x })
+                .reduce(function (acc, line) { return acc.concat(JSON.parse(line)) }, [])
+        } else {
+            return JSON.parse(result)
+        }
+    }
+
+    var jq = json
+    jq.raw = raw
+
+    jq.onInitialized = {
+        addListener: function (cb) {
+            if (initialized) {
+                cb()
+            }
+            initListeners.push(cb)
+        }
+    }
+
+    jq.promised = function () {
+        if (initialized) return Promise.resolve(jq.apply(jq, arguments))
+        return new Promise(function (resolve) {
+            jq.onInitialized.addListener(function () {
+                resolve(jq.apply(jq, arguments))
+            })
+        })
+    }
+    jq.promised.raw = function () {
+        if (initialized) return Promise.resolve(jq.raw.apply(jq, arguments))
+        return new Promise(function (resolve) {
+            jq.onInitialized.addListener(function () {
+                resolve(jq.raw.apply(jq, arguments))
+            })
+        })
+    }
+
+    return jq
+};
 
 // {{MODULE_ADDITIONS}}
-
-
-
-  // necessary because the default emscriptem exit() logs a lot of text.
-  function exit () {}
-  
-  // takes a string as input and returns a string
-  // like `echo <jsonstring> | jq <filter>`, returning the value of STDOUT
-  function raw (jsonstring, filter, flags) {
-    if (!initialized) return '{}'
-
-    stdin = jsonstring
-    inBuffer = []
-    outBuffer = []
-    errBuffer = []
-  
-    flags = flags || []
-    Module.callMain(flags.concat(filter))
-  
-    // calling main closes stdout, so we reopen it here:
-    FS.streams[1] = FS.open('/dev/stdout', 577, 0)
-    FS.streams[2] = FS.open('/dev/stderr', 577, 0)
-
-    if (outBuffer.length) {
-      return fromByteArray(outBuffer).trim();
-    }
-  
-    if (errBuffer.length) {
-      var errBufferContents = fromByteArray(errBuffer)
-      var errString = errBufferContents
-      if (errString.indexOf(':') > -1) {
-        var parts = errString.split(':')
-        errString = parts[parts.length - 1].trim()
-      }
-      throw new Error(errString)
-    }
-
-    return ''
-  }
-  
-  // takes an object as input and tries to return objects.
-  function json (json, filter) {
-    if (!initialized) return {}
-
-    var jsonstring = JSON.stringify(json)
-    var result = raw(jsonstring, filter, ['-c']).trim()
-  
-    if (result.indexOf('\n') !== -1) {
-      return result
-        .split('\n')
-        .filter(function (x) { return x })
-        .reduce(function (acc, line) { return acc.concat(JSON.parse(line)) }, [])
-    } else {
-      return JSON.parse(result)
-    }
-  }
-  
-  var jq = json
-  jq.raw = raw
-
-  jq.onInitialized = {
-    addListener: function (cb) {
-      if (initialized) {
-        cb()
-      }
-      initListeners.push(cb)
-    }
-  }
-
-  jq.promised = function () {
-    if (initialized) return Promise.resolve(jq.apply(jq, arguments))
-    return new Promise(function (resolve) {
-      jq.onInitialized.addListener(function () {
-        resolve(jq.apply(jq, arguments))
-      })
-    })
-  }
-  jq.promised.raw = function () {
-    if (initialized) return Promise.resolve(jq.raw.apply(jq, arguments))
-    return new Promise(function (resolve) {
-      jq.onInitialized.addListener(function () {
-        resolve(jq.raw.apply(jq, arguments))
-      })
-    })
-  }
-
-  return jq
-}))
-
