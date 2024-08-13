@@ -3,7 +3,9 @@ const totalUnitsInput = document.getElementById('totalUnits');
 const rackItems = document.getElementById('rackItems');
 let draggedItemSize = 0;
 let draggedItem = null;
+let draggedItemClone = null;
 let touchStartY = 0;
+let touchStartX = 0;
 
 function updateRack() {
     const totalUnits = parseInt(totalUnitsInput.value);
@@ -16,8 +18,6 @@ function updateRack() {
         space.addEventListener('dragover', dragOver);
         space.addEventListener('dragleave', dragLeave);
         space.addEventListener('drop', drop);
-        space.addEventListener('touchmove', touchMove);
-        space.addEventListener('touchend', touchEnd);
         rack.appendChild(space);
     }
 }
@@ -25,31 +25,49 @@ function updateRack() {
 totalUnitsInput.addEventListener('change', updateRack);
 
 rackItems.addEventListener('dragstart', dragStart);
-rackItems.addEventListener('touchstart', touchStart);
+rackItems.addEventListener('touchstart', touchStart, { passive: false });
 
 rack.addEventListener('dragstart', dragStart);
-rack.addEventListener('touchstart', touchStart);
+rack.addEventListener('touchstart', touchStart, { passive: false });
+
+document.addEventListener('touchmove', touchMove, { passive: false });
+document.addEventListener('touchend', touchEnd);
 
 function dragStart(e) {
     if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
         draggedItem = e.target;
         draggedItemSize = parseInt(e.target.dataset.size);
-        if (e.dataTransfer) {
-            e.dataTransfer.setData('text/plain', JSON.stringify({
-                size: draggedItemSize,
-                isNew: !e.target.classList.contains('rack-item-placed'),
-                oldUnit: e.target.dataset.unit ? parseInt(e.target.dataset.unit) : null
-            }));
-        }
+        e.dataTransfer.setData('text/plain', JSON.stringify({
+            size: draggedItemSize,
+            isNew: !e.target.classList.contains('rack-item-placed'),
+            oldUnit: e.target.dataset.unit ? parseInt(e.target.dataset.unit) : null
+        }));
     }
 }
 
 function touchStart(e) {
     if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
+        e.preventDefault();
         draggedItem = e.target;
         draggedItemSize = parseInt(e.target.dataset.size);
         touchStartY = e.touches[0].clientY;
-        e.preventDefault(); // Prevent scrolling when starting to drag
+        touchStartX = e.touches[0].clientX;
+
+        // Create a clone of the dragged item for visual feedback
+        draggedItemClone = draggedItem.cloneNode(true);
+        draggedItemClone.style.position = 'fixed';
+        draggedItemClone.style.opacity = '0.8';
+        draggedItemClone.style.pointerEvents = 'none';
+        document.body.appendChild(draggedItemClone);
+
+        updateDraggedItemPosition(touchStartX, touchStartY);
+    }
+}
+
+function updateDraggedItemPosition(x, y) {
+    if (draggedItemClone) {
+        draggedItemClone.style.left = `${x - draggedItemClone.offsetWidth / 2}px`;
+        draggedItemClone.style.top = `${y - draggedItemClone.offsetHeight / 2}px`;
     }
 }
 
@@ -61,12 +79,15 @@ function dragOver(e) {
 
 function touchMove(e) {
     if (draggedItem) {
-        e.preventDefault(); // Prevent scrolling while dragging
+        e.preventDefault();
         const touch = e.touches[0];
+        updateDraggedItemPosition(touch.clientX, touch.clientY);
         const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
         if (targetElement && targetElement.classList.contains('rack-space')) {
             const targetUnit = parseInt(targetElement.dataset.unit);
             highlightSpaces(targetUnit, draggedItemSize);
+        } else {
+            clearHighlights();
         }
     }
 }
@@ -77,7 +98,7 @@ function dragLeave(e) {
 
 function drop(e) {
     e.preventDefault();
-    handleDrop(e.target);
+    handleDrop(e.target.closest('.rack-space'));
 }
 
 function touchEnd(e) {
@@ -85,16 +106,24 @@ function touchEnd(e) {
         e.preventDefault();
         const touch = e.changedTouches[0];
         const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (targetElement && targetElement.classList.contains('rack-space')) {
-            handleDrop(targetElement);
+        if (targetElement && targetElement.closest('.rack-space')) {
+            handleDrop(targetElement.closest('.rack-space'));
+        }
+        // Remove the cloned element
+        if (draggedItemClone) {
+            draggedItemClone.remove();
+            draggedItemClone = null;
         }
         draggedItem = null;
     }
+    clearHighlights();
 }
 
-function handleDrop(target) {
+function handleDrop(targetSpace) {
+    if (!targetSpace) return;
+    
     clearHighlights();
-    const targetUnit = parseInt(target.closest('.rack-space').dataset.unit);
+    const targetUnit = parseInt(targetSpace.dataset.unit);
     
     if (canPlaceItem(targetUnit, draggedItemSize)) {
         if (draggedItem.classList.contains('rack-item')) {
@@ -107,45 +136,6 @@ function handleDrop(target) {
     }
     draggedItemSize = 0;
     draggedItem = null;
-}
-rack.addEventListener('dragstart', (e) => {
-    if (e.target.classList.contains('rack-item-placed')) {
-        draggedItemSize = parseInt(e.target.dataset.size);
-        e.dataTransfer.setData('text/plain', JSON.stringify({
-            size: draggedItemSize,
-            isNew: false,
-            oldUnit: parseInt(e.target.dataset.unit)
-        }));
-    }
-});
-
-function dragOver(e) {
-    e.preventDefault();
-    const targetUnit = parseInt(e.target.dataset.unit);
-    highlightSpaces(targetUnit, draggedItemSize);
-}
-
-function dragLeave(e) {
-    clearHighlights();
-}
-
-function drop(e) {
-    e.preventDefault();
-    clearHighlights();
-    const data = JSON.parse(e.dataTransfer.getData('text'));
-    const size = parseInt(data.size);
-    const targetUnit = parseInt(e.target.closest('.rack-space').dataset.unit);
-    
-    if (canPlaceItem(targetUnit, size)) {
-        if (data.isNew) {
-            placeItem(targetUnit, size, `${size}U Item`);
-        } else {
-            moveItem(data.oldUnit, targetUnit, size);
-        }
-    } else {
-        alert('Not enough space to place this item here.');
-    }
-    draggedItemSize = 0;
 }
 
 function highlightSpaces(startUnit, size) {

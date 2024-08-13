@@ -7,6 +7,7 @@ body {
     margin: 0;
     padding: 20px;
     box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scrolling during drag */
 }
 .container {
     display: flex;
