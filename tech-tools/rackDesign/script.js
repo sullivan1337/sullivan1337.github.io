@@ -13,8 +13,8 @@ function updateRack() {
     for (let i = 0; i < totalUnits; i++) {
         const space = document.createElement('div');
         space.className = 'rack-space';
-        space.textContent = `${i + 1}U`;
-        space.dataset.unit = i + 1;
+        space.textContent = `${totalUnits - i}U`;
+        space.dataset.unit = totalUnits - i;
         space.addEventListener('dragover', dragOver);
         space.addEventListener('dragleave', dragLeave);
         space.addEventListener('drop', drop);
@@ -53,7 +53,6 @@ function touchStart(e) {
         touchStartY = e.touches[0].clientY;
         touchStartX = e.touches[0].clientX;
 
-        // Create a clone of the dragged item for visual feedback
         draggedItemClone = draggedItem.cloneNode(true);
         draggedItemClone.style.position = 'fixed';
         draggedItemClone.style.opacity = '0.8';
@@ -109,7 +108,6 @@ function touchEnd(e) {
         if (targetElement && targetElement.closest('.rack-space')) {
             handleDrop(targetElement.closest('.rack-space'));
         }
-        // Remove the cloned element
         if (draggedItemClone) {
             draggedItemClone.remove();
             draggedItemClone = null;
@@ -143,7 +141,7 @@ function highlightSpaces(startUnit, size) {
     const canPlace = canPlaceItem(startUnit, size);
     const highlightClass = canPlace ? 'highlight' : 'highlight-invalid';
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
         if (space) {
             space.classList.add(highlightClass);
         }
@@ -157,12 +155,13 @@ function clearHighlights() {
 }
 
 function canPlaceItem(targetUnit, size) {
-    if (targetUnit + size - 1 > parseInt(totalUnitsInput.value)) {
+    const totalUnits = parseInt(totalUnitsInput.value);
+    if (targetUnit - size + 1 < 1) {
         return false;
     }
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${targetUnit + i}"]`);
-        if (!space || (space.classList.contains('occupied') && space.style.display !== 'none')) {
+        const space = rack.querySelector(`.rack-space[data-unit="${targetUnit - i}"]`);
+        if (!space || space.classList.contains('occupied')) {
             return false;
         }
     }
@@ -211,7 +210,7 @@ function handleItemClick(e) {
 
 function occupySpaces(startUnit, size) {
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
         space.classList.add('occupied');
         space.style.display = 'none';
     }
@@ -219,7 +218,7 @@ function occupySpaces(startUnit, size) {
 
 function freeSpaces(startUnit, size) {
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
         space.classList.remove('occupied');
         space.style.display = 'flex';
     }
