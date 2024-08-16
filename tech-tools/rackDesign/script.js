@@ -190,12 +190,16 @@ function createRackItem(unit, size, name) {
     const item = document.createElement('div');
     item.className = 'rack-item-placed';
     item.style.height = `${size * 32}px`;
-    item.innerHTML = `<span class="item-name">${name}</span> (${size}U)`;
+    item.innerHTML = `
+        <span class="item-name">${name}</span> (${size}U)
+        <button class="remove-item">×</button>
+    `;
     item.draggable = true;
     item.dataset.unit = unit;
     item.dataset.size = size;
     item.addEventListener('dblclick', handleItemClick);
     item.querySelector('.item-name').addEventListener('click', handleItemClick);
+    item.querySelector('.remove-item').addEventListener('click', removeItem);
     return item;
 }
 
@@ -206,6 +210,15 @@ function handleItemClick(e) {
     if (newName && newName !== currentName) {
         item.querySelector('.item-name').textContent = newName;
     }
+}
+
+function removeItem(e) {
+    e.stopPropagation(); // Prevent dragging when clicking the remove button
+    const item = e.target.closest('.rack-item-placed');
+    const startUnit = parseInt(item.dataset.unit);
+    const size = parseInt(item.dataset.size);
+    freeSpaces(startUnit, size);
+    item.remove();
 }
 
 function occupySpaces(startUnit, size) {
