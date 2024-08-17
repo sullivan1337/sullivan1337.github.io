@@ -1,11 +1,30 @@
 const rack = document.getElementById('rack');
 const totalUnitsInput = document.getElementById('totalUnits');
 const rackItems = document.getElementById('rackItems');
+const darkModeToggle = document.getElementById('darkModeToggle');
 let draggedItemSize = 0;
 let draggedItem = null;
 let draggedItemClone = null;
 let touchStartY = 0;
 let touchStartX = 0;
+
+// Dark mode toggle functionality
+darkModeToggle.addEventListener('change', () => {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', darkModeToggle.checked);
+});
+
+// Check for saved dark mode preference
+const savedDarkMode = localStorage.getItem('darkMode');
+if (savedDarkMode === 'true') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.checked = true;
+} else if (savedDarkMode === null) {
+    // Enable dark mode by default if no preference is saved
+    document.body.classList.add('dark-mode');
+    darkModeToggle.checked = true;
+    localStorage.setItem('darkMode', 'true');
+}
 
 function updateRack() {
     const totalUnits = parseInt(totalUnitsInput.value);
@@ -213,7 +232,7 @@ function handleItemClick(e) {
 }
 
 function removeItem(e) {
-    e.stopPropagation(); // Prevent dragging when clicking the remove button
+    e.stopPropagation();
     const item = e.target.closest('.rack-item-placed');
     const startUnit = parseInt(item.dataset.unit);
     const size = parseInt(item.dataset.size);

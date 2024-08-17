@@ -6,13 +6,19 @@
     <title>Server Rack Designer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="dark-mode">
+    <div class="dark-mode-toggle">
+        <label class="switch">
+            <input type="checkbox" id="darkModeToggle" checked>
+            <span class="slider round"></span>
+        </label>
+    </div>
     <div class="container">
         <div class="tools">
             <h2>Server Rack Designer</h2>
             <div>
-                <label for="totalUnits">Total Rack Units:</label>
-                <input type="number" id="totalUnits" min="2" max="48" value="16">
+                Total Rack Units:
+                <input type="number" id="totalUnits" value="16" min="1" max="100">
             </div>
             <div id="rackItems">
                 <div class="rack-item" draggable="true" data-size="1">1U Item</div>
@@ -20,11 +26,10 @@
                 <div class="rack-item" draggable="true" data-size="3">3U Item</div>
                 <div class="rack-item" draggable="true" data-size="4">4U Item</div>
             </div>
-            <label>(Click to rename item after placed in rack)</label>
+            <p>(Click to rename item after placed in rack)</p>
         </div>
         <div id="rack"></div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
