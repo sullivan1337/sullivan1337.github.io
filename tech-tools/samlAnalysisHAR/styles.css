@@ -13,7 +13,7 @@ body {
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
-h1, h2 {
+h1, h2, h3 {
     color: #333;
 }
 #fileInput {
@@ -30,13 +30,72 @@ h1, h2 {
 }
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
 }
 th, td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+th:first-child, td:first-child {
+    width: 30%;
+}
+th:last-child, td:last-child {
+    width: 70%;
 }
 th {
     background-color: #f2f2f2;
+    position: relative;
+}
+.resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    cursor: col-resize;
+    user-select: none;
+    height: 100%;
+}
+.resizer:hover, .resizing {
+    border-right: 2px solid #333;
+}
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+.tooltip-text {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.tooltip-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 300px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 12px;
+    z-index: 1;
+    border-radius: 5px;
+    top: 100%;
+    left: 0;
+}
+.tooltip:hover .tooltip-content {
+    display: block;
+}
+.tooltip-content p {
+    margin: 0 0 10px 0;
+}
+.tooltip-content ol {
+    margin: 0;
+    padding-left: 20px;
 }

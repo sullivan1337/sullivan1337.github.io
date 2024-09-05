@@ -51,6 +51,9 @@ function analyzeHAR(contents) {
         
         const summary = getSAMLSummary(decodedSAML);
         document.getElementById('samlSummary').innerHTML = summary;
+        
+        // Add resizers to table headers after creating the summary
+        addTableResizers();
     } else {
         document.getElementById('decodedSAML').textContent = 'No SAMLResponse found in the HAR file.';
         document.getElementById('samlSummary').textContent = 'No SAMLResponse found in the HAR file.';
@@ -83,10 +86,8 @@ function getSAMLSummary(xml) {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xml, "text/xml");
 
-    let summary = '<table>';
-    summary += '<tr><th>Attribute</th><th>Value</th></tr>';
+    let summary = '';
 
-    // Function to get element by tag name, considering different namespaces
     function getElementByTagNames(doc, tags) {
         for (let tag of tags) {
             const elements = doc.getElementsByTagNameNS("*", tag);
@@ -95,51 +96,126 @@ function getSAMLSummary(xml) {
         return null;
     }
 
-    // Get Response or Assertion element
-    const responseOrAssertion = getElementByTagNames(xmlDoc, ['Response', 'Assertion']);
-
-    if (responseOrAssertion) {
-        // Destination
-        const destination = responseOrAssertion.getAttribute('Destination');
-        if (destination) {
-            summary += `<tr><td>Destination</td><td>${destination}</td></tr>`;
+    function createTable(title, data) {
+        let table = `<h3>${title}</h3><table>`;
+        table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
+        for (let [key, value] of Object.entries(data)) {
+            table += `<tr><td>${key}</td><td>${value}</td></tr>`;
         }
+        table += '</table>';
+        return table;
+    }
 
-        // IssueInstant
-        const issueInstant = responseOrAssertion.getAttribute('IssueInstant');
-        if (issueInstant) {
-            summary += `<tr><td>IssueInstant</td><td>${issueInstant}</td></tr>`;
-        }
+    // Response
+    const response = getElementByTagNames(xmlDoc, ['Response']);
+    if (response) {
+        const responseData = {
+            'ID': response.getAttribute('ID') || '',
+            'Version': response.getAttribute('Version') || '',
+            'IssueInstant': response.getAttribute('IssueInstant') || '',
+            'Destination': response.getAttribute('Destination') || '',
+            'InResponseTo': response.getAttribute('InResponseTo') || ''
+        };
+        summary += createTable('SAML Response', responseData);
+    }
 
-        // Issuer
-        const issuer = getElementByTagNames(responseOrAssertion, ['Issuer']);
+    // Assertion
+    const assertion = getElementByTagNames(xmlDoc, ['Assertion']);
+    if (assertion) {
+        const assertionData = {
+            'ID': assertion.getAttribute('ID') || '',
+            'Version': assertion.getAttribute('Version') || '',
+            'IssueInstant': assertion.getAttribute('IssueInstant') || ''
+        };
+
+        const issuer = getElementByTagNames(assertion, ['Issuer']);
         if (issuer) {
-            summary += `<tr><td>Issuer</td><td>${issuer.textContent}</td></tr>`;
+            assertionData['Issuer'] = issuer.textContent;
         }
 
-        // Subject
-        const subject = getElementByTagNames(responseOrAssertion, ['Subject']);
+        const subject = getElementByTagNames(assertion, ['Subject']);
         if (subject) {
             const nameID = subject.getElementsByTagNameNS("*", 'NameID')[0];
             if (nameID) {
-                summary += `<tr><td>Subject</td><td>${nameID.textContent}</td></tr>`;
+                assertionData['Subject'] = nameID.textContent;
             }
         }
+
+        summary += createTable('SAML Assertion', assertionData);
     }
 
     // AttributeStatement
     const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
     if (attributeStatement) {
         const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
+        const attributeData = {};
         for (let attr of attributes) {
             const name = attr.getAttribute('Name');
             const value = attr.getElementsByTagNameNS("*", 'AttributeValue')[0];
             if (name && value) {
-                summary += `<tr><td>${name}</td><td>${value.textContent}</td></tr>`;
+                attributeData[name] = value.textContent;
             }
         }
+        summary += createTable('Attribute Statement', attributeData);
     }
 
-    summary += '</table>';
     return summary;
+}
+
+function addTableResizers() {
+    const tables = document.querySelectorAll('table');
+    tables.forEach(table => {
+        const cols = table.querySelectorAll('th');
+        
+        // Calculate initial column widths
+        let totalWidth = table.offsetWidth;
+        let firstColMaxWidth = 0;
+        let secondColMaxWidth = 0;
+
+        table.querySelectorAll('tr').forEach(row => {
+            const cells = row.querySelectorAll('td, th');
+            if (cells.length === 2) {
+                firstColMaxWidth = Math.max(firstColMaxWidth, cells[0].scrollWidth);
+                secondColMaxWidth = Math.max(secondColMaxWidth, cells[1].scrollWidth);
+            }
+        });
+
+        let firstColWidth = Math.min(firstColMaxWidth, totalWidth * 0.4); // Max 40% of total width
+        let secondColWidth = totalWidth - firstColWidth;
+
+        // Set initial widths
+        cols[0].style.width = `${firstColWidth}px`;
+        cols[1].style.width = `${secondColWidth}px`;
+
+        cols.forEach((col, index) => {
+            const resizer = col.querySelector('.resizer');
+            let x = 0;
+            let w = 0;
+
+            const mouseDownHandler = function(e) {
+                x = e.clientX;
+                const styles = window.getComputedStyle(col);
+                w = parseInt(styles.width, 10);
+
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+
+                resizer.classList.add('resizing');
+            };
+
+            const mouseMoveHandler = function(e) {
+                const dx = e.clientX - x;
+                col.style.width = `${w + dx}px`;
+            };
+
+            const mouseUpHandler = function() {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+
+                resizer.classList.remove('resizing');
+            };
+
+            resizer.addEventListener('mousedown', mouseDownHandler);
+        });
+    });
 }
