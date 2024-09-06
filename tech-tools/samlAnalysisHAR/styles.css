@@ -99,3 +99,33 @@ th {
     margin: 0;
     padding-left: 20px;
 }
+#navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+#navigation button {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+#navigation button:hover {
+    background-color: #45a049;
+}
+#navigation button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+#currentUrl {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

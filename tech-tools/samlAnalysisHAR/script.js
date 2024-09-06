@@ -1,3 +1,6 @@
+let samlRequests = [];
+let currentRequestIndex = 0;
+
 document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -12,38 +15,57 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 
 function analyzeHAR(contents) {
     const har = JSON.parse(contents);
-    const samlRequests = har.log.entries.filter(entry => 
+    samlRequests = har.log.entries.filter(entry => 
         entry.request.method === 'POST' && 
         (entry.request.postData?.text?.includes('SAMLRequest') || 
          entry.request.postData?.text?.includes('SAMLResponse'))
     );
 
+    if (samlRequests.length > 0) {
+        document.getElementById('navigation').style.display = 'flex';
+        currentRequestIndex = 0;
+        updateNavigation();
+        displaySAMLRequest(currentRequestIndex);
+    } else {
+        document.getElementById('results').textContent = 'No SAML requests found in the HAR file.';
+    }
+}
+
+function updateNavigation() {
+    const prevButton = document.getElementById('prevRequest');
+    const nextButton = document.getElementById('nextRequest');
+    const currentUrl = document.getElementById('currentUrl');
+
+    prevButton.disabled = currentRequestIndex === 0;
+    nextButton.disabled = currentRequestIndex === samlRequests.length - 1;
+    currentUrl.textContent = samlRequests[currentRequestIndex].request.url;
+}
+
+function displaySAMLRequest(index) {
+    const entry = samlRequests[index];
     let results = '';
     let samlResponse = '';
 
-    samlRequests.forEach((entry, index) => {
-        results += `SAML Request ${index + 1}:\n`;
-        results += `URL: ${entry.request.url}\n`;
-        results += `Method: ${entry.request.method}\n`;
-        results += 'Headers:\n';
-        entry.request.headers.forEach(header => {
-            results += `  ${header.name}: ${header.value}\n`;
-        });
-        results += 'Post Data:\n';
-        if (entry.request.postData && entry.request.postData.text) {
-            const decodedText = decodeURIComponent(entry.request.postData.text);
-            results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
-            
-            // Extract SAMLResponse
-            const match = decodedText.match(/SAMLResponse=([^&]+)/);
-            if (match) {
-                samlResponse = match[1];
-            }
-        }
-        results += '\n\n';
+    results += `SAML Request ${index + 1}:\n`;
+    results += `URL: ${entry.request.url}\n`;
+    results += `Method: ${entry.request.method}\n`;
+    results += 'Headers:\n';
+    entry.request.headers.forEach(header => {
+        results += `  ${header.name}: ${header.value}\n`;
     });
+    results += 'Post Data:\n';
+    if (entry.request.postData && entry.request.postData.text) {
+        const decodedText = decodeURIComponent(entry.request.postData.text);
+        results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
+        
+        // Extract SAMLResponse
+        const match = decodedText.match(/SAMLResponse=([^&]+)/);
+        if (match) {
+            samlResponse = match[1];
+        }
+    }
 
-    document.getElementById('results').textContent = results || 'No SAML requests found in the HAR file.';
+    document.getElementById('results').textContent = results;
     
     if (samlResponse) {
         const decodedSAML = decodeAndFormatSAML(samlResponse);
@@ -52,13 +74,28 @@ function analyzeHAR(contents) {
         const summary = getSAMLSummary(decodedSAML);
         document.getElementById('samlSummary').innerHTML = summary;
         
-        // Add resizers to table headers after creating the summary
         addTableResizers();
     } else {
-        document.getElementById('decodedSAML').textContent = 'No SAMLResponse found in the HAR file.';
-        document.getElementById('samlSummary').textContent = 'No SAMLResponse found in the HAR file.';
+        document.getElementById('decodedSAML').textContent = 'No SAMLResponse found in this request.';
+        document.getElementById('samlSummary').textContent = 'No SAMLResponse found in this request.';
     }
 }
+
+document.getElementById('prevRequest').addEventListener('click', function() {
+    if (currentRequestIndex > 0) {
+        currentRequestIndex--;
+        updateNavigation();
+        displaySAMLRequest(currentRequestIndex);
+    }
+});
+
+document.getElementById('nextRequest').addEventListener('click', function() {
+    if (currentRequestIndex < samlRequests.length - 1) {
+        currentRequestIndex++;
+        updateNavigation();
+        displaySAMLRequest(currentRequestIndex);
+    }
+});
 
 function decodeAndFormatSAML(encodedSAML) {
     const urlDecoded = decodeURIComponent(encodedSAML);
