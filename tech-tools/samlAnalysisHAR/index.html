@@ -16,11 +16,14 @@
                 <p><strong>How to save a HAR file:</strong></p>
                 <ol>
                     <li>Open your browser's Developer Tools (F12 or Ctrl+Shift+I)</li>
-                    <li>Go to the Network tab</li>
+                    <li>Go to the Network tab and enable "Preserve log"</li>
+                        <ul> 
+                            <li>Depending on browser and app configuration, you might need to enable "Auto-open DevTools for popups" in the "Global" DevTools Settings</li>
+                        </ul>
                     <li>Perform the action that triggers the SAML request</li>
-                    <li>Right-click in the Network tab and select "Save all as HAR with content"</li>
+                    <li>Right-click on the network output area to "Save all as HAR with content" or click the "Export HAR" download icon to save the HAR file</li>
+                    <li>Upload the saved HAR file here to analyze the resutls</li>
                 </ol>
-                <p>Then, upload the saved HAR file using the input below.</p>
             </div>
         </div>
         <input type="file" id="fileInput" accept=".har">
