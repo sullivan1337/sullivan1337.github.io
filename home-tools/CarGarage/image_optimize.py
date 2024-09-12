@@ -7,6 +7,8 @@
 # run script with:
 # python image_optimize.py
 
+# can also use https://redketchup.io/image-resizer online
+
 import os
 from PIL import Image
 
