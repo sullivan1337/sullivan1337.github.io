@@ -13,7 +13,6 @@ let data = {
     company: "Acme Corporation",
     name: "Luke Warm",
     title: "VP Marketing/Sales",
-    department: "Management",
     email: "lwarm@example.com",
     phone: "(234) 555-6789",
     linkedin: "https://www.linkedin.com/in/lukewarm",
@@ -87,8 +86,16 @@ const svg = d3.select("#chart-container").append("svg")
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
+const companyTitle = svg.append("text")
+    .attr("class", "company-title")
+    .attr("x", -margin.left + 10)  // 10px from the left edge
+    .attr("y", -margin.top + 20)   // 20px from the top edge
+    .text(data.company);
+
 svg.append("text")
     .attr("class", "company-title")
+    .attr("x", width / 2)
+    .attr("y", -20)
     .text(data.company);
 
 const tree = d3.tree().size([width, height]);
@@ -126,14 +133,17 @@ function update(source) {
             update(d);
         });
 
-    function calculateNodeSize(d) {
-        const nameLength = d.data.name.length;
-        const titleLength = d.data.title.length;
-        const width = Math.max(nameLength, titleLength) * 7 + 150;
-        const height = 120;
-        return { width, height };
-    }
+        function calculateNodeSize(d) {
+            const nameLength = d.data.name.length;
+            const titleLength = d.data.title.length;
+            const buFlagWidth = Math.max(d.data.buText.length * 10, 30);
+            const width = Math.max(nameLength, titleLength) * 7 + 150;
+            const height = 120;
+            
+            return { width, height, buFlagWidth };
+        }
 
+    // Main card rectangle
     nodeEnter.append('rect')
         .attr('width', d => calculateNodeSize(d).width)
         .attr('height', d => calculateNodeSize(d).height)
@@ -143,6 +153,7 @@ function update(source) {
         .attr('ry', 5)
         .attr('fill', '#2d2d2d');
 
+    // Left color bar
     nodeEnter.append('rect')
         .attr('class', 'bu-color')
         .attr('width', 10)
@@ -151,26 +162,27 @@ function update(source) {
         .attr('y', d => -calculateNodeSize(d).height / 2)
         .attr('fill', d => d.data.buColor);
 
+    // BU flag
     nodeEnter.append('rect')
         .attr('class', 'bu-flag')
-        .attr('width', d => Math.max(d.data.buText.length * 10, 30))
+        .attr('width', d => calculateNodeSize(d).buFlagWidth)
         .attr('height', 20)
-        .attr('x', d => calculateNodeSize(d).width / 2 - Math.max(d.data.buText.length * 10, 30) - 5)
+        .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth - 5)
         .attr('y', d => -calculateNodeSize(d).height / 2 + 5)
         .attr('rx', 10)
         .attr('ry', 10)
         .attr('fill', d => d.data.buColor);
 
+    // BU text
     nodeEnter.append('text')
         .attr('class', 'bu-text')
-        .attr('x', d => calculateNodeSize(d).width / 2 - Math.max(d.data.buText.length * 5, 15) - 5)
+        .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
         .attr('y', d => -calculateNodeSize(d).height / 2 + 18)
-        .attr('fill', '#FFFFFF')
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
-        .attr('font-size', '10px')
         .text(d => d.data.buText);
 
+    // Name text
     nodeEnter.append('text')
         .attr('dy', '-1.5em')
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
@@ -178,18 +190,12 @@ function update(source) {
         .text(d => d.data.name)
         .style('font-weight', 'bold');
 
+    // Title text
     nodeEnter.append('text')
         .attr('dy', '0em')
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
         .attr('text-anchor', 'start')
         .text(d => d.data.title);
-
-    nodeEnter.append('text')
-        .attr('dy', '1.5em')
-        .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
-        .attr('text-anchor', 'start')
-        .text(d => d.data.department)
-        .attr('class', 'department');
 
     nodeEnter.append('text')
         .attr('dy', '3em')
@@ -268,258 +274,260 @@ function update(source) {
 
         const nodeUpdate = nodeEnter.merge(node);
 
-nodeUpdate.transition()
-.duration(750)
-.attr("transform", d => `translate(${d.x},${d.y})`);
+        nodeUpdate.transition()
+            .duration(750)
+            .attr("transform", d => `translate(${d.x},${d.y})`);
+    
+        nodeUpdate.select('rect')
+            .attr('width', d => calculateNodeSize(d).width)
+            .attr('height', d => calculateNodeSize(d).height)
+            .attr('x', d => -calculateNodeSize(d).width / 2)
+            .attr('y', d => -calculateNodeSize(d).height / 2);
+    
+        nodeUpdate.select('.bu-color')
+            .attr('height', d => calculateNodeSize(d).height)
+            .attr('x', d => -calculateNodeSize(d).width / 2)
+            .attr('y', d => -calculateNodeSize(d).height / 2)
+            .attr('fill', d => d.data.buColor);
+    
+        nodeUpdate.select('.bu-flag')
+            .attr('width', d => calculateNodeSize(d).buFlagWidth)
+            .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth - 5)
+            .attr('y', d => -calculateNodeSize(d).height / 2 + 5)
+            .attr('fill', d => d.data.buColor);
+    
+        nodeUpdate.select('.bu-text')
+            .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
+            .attr('y', d => -calculateNodeSize(d).height / 2 + 18)
+            .text(d => d.data.buText);
+        
 
-nodeUpdate.select('rect')
-.attr('width', d => calculateNodeSize(d).width)
-.attr('height', d => calculateNodeSize(d).height)
-.attr('x', d => -calculateNodeSize(d).width / 2)
-.attr('y', d => -calculateNodeSize(d).height / 2);
+    nodeUpdate.selectAll('text')
+        .filter(function() { return !this.classList.contains('expand-collapse') && !this.classList.contains('edit-button'); })
+        .attr('x', d => -calculateNodeSize(d).width / 2 + 15);
 
-nodeUpdate.select('.bu-color')
-.attr('fill', d => d.data.buColor)
-.attr('height', d => calculateNodeSize(d).height)
-.attr('x', d => -calculateNodeSize(d).width / 2)
-.attr('y', d => -calculateNodeSize(d).height / 2);
+    nodeUpdate.select('.expand-collapse-circle')
+        .attr('cx', d => calculateNodeSize(d).width / 2 - 30)
+        .attr('cy', d => calculateNodeSize(d).height / 2 - 15);
 
-nodeUpdate.select('.bu-flag')
-.attr('width', d => Math.max(d.data.buText.length * 10, 30))
-.attr('x', d => calculateNodeSize(d).width / 2 - Math.max(d.data.buText.length * 10, 30) - 5)
-.attr('y', d => -calculateNodeSize(d).height / 2 + 5)
-.attr('fill', d => d.data.buColor);
+    nodeUpdate.select('.expand-collapse')
+        .attr('x', d => calculateNodeSize(d).width / 2 - 30)
+        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
+        .text(d => d.children || d._children ? (d.children ? '-' : '+') : '');
 
-nodeUpdate.select('.bu-text')
-.attr('x', d => calculateNodeSize(d).width / 2 - Math.max(d.data.buText.length * 5, 15) - 5)
-.attr('y', d => -calculateNodeSize(d).height / 2 + 18)
-.text(d => d.data.buText);
+    nodeUpdate.select('.edit-button-circle')
+        .attr('cx', d => calculateNodeSize(d).width / 2 - 10)
+        .attr('cy', d => calculateNodeSize(d).height / 2 - 15);
 
-nodeUpdate.selectAll('text')
-.filter(function() { return !this.classList.contains('expand-collapse') && !this.classList.contains('edit-button'); })
-.attr('x', d => -calculateNodeSize(d).width / 2 + 15);
+    nodeUpdate.select('.edit-button')
+        .attr('x', d => calculateNodeSize(d).width / 2 - 10)
+        .attr('y', d => calculateNodeSize(d).height / 2 - 11);
 
-nodeUpdate.select('.expand-collapse-circle')
-.attr('cx', d => calculateNodeSize(d).width / 2 - 30)
-.attr('cy', d => calculateNodeSize(d).height / 2 - 15);
+    const nodeExit = node.exit().transition()
+        .duration(750)
+        .attr("transform", d => `translate(${source.x},${source.y})`)
+        .remove();
 
-nodeUpdate.select('.expand-collapse')
-.attr('x', d => calculateNodeSize(d).width / 2 - 30)
-.attr('y', d => calculateNodeSize(d).height / 2 - 11)
-.text(d => d.children || d._children ? (d.children ? '-' : '+') : '');
+    const link = svg.selectAll('path.link')
+        .data(links, d => d.id);
 
-nodeUpdate.select('.edit-button-circle')
-.attr('cx', d => calculateNodeSize(d).width / 2 - 10)
-.attr('cy', d => calculateNodeSize(d).height / 2 - 15);
+    const linkEnter = link.enter().insert('path', "g")
+        .attr("class", "link")
+        .attr('d', d => {
+            const o = {x: source.x0, y: source.y0};
+            return diagonal(o, o);
+        });
 
-nodeUpdate.select('.edit-button')
-.attr('x', d => calculateNodeSize(d).width / 2 - 10)
-.attr('y', d => calculateNodeSize(d).height / 2 - 11);
+    const linkUpdate = linkEnter.merge(link);
 
-const nodeExit = node.exit().transition()
-.duration(750)
-.attr("transform", d => `translate(${source.x},${source.y})`)
-.remove();
+    linkUpdate.transition()
+        .duration(750)
+        .attr('d', d => diagonal(d, d.parent));
 
-const link = svg.selectAll('path.link')
-.data(links, d => d.id);
+    link.exit().transition()
+        .duration(750)
+        .attr('d', d => {
+            const o = {x: source.x, y: source.y};
+            return diagonal(o, o);
+        })
+        .remove();
 
-const linkEnter = link.enter().insert('path', "g")
-.attr("class", "link")
-.attr('d', d => {
-const o = {x: source.x0, y: source.y0};
-return diagonal(o, o);
-});
+    nodes.forEach(d => {
+        d.x0 = d.x;
+        d.y0 = d.y;
+    });
 
-const linkUpdate = linkEnter.merge(link);
-
-linkUpdate.transition()
-.duration(750)
-.attr('d', d => diagonal(d, d.parent));
-
-link.exit().transition()
-.duration(750)
-.attr('d', d => {
-const o = {x: source.x, y: source.y};
-return diagonal(o, o);
-})
-.remove();
-
-nodes.forEach(d => {
-d.x0 = d.x;
-d.y0 = d.y;
-});
-
-function diagonal(s, d) {
-return `M ${s.x} ${s.y}
-    C ${s.x} ${(s.y + d.y) / 2},
-      ${d.x} ${(s.y + d.y) / 2},
-      ${d.x} ${d.y}`;
-}
+    function diagonal(s, d) {
+        return `M ${s.x} ${s.y}
+            C ${s.x} ${(s.y + d.y) / 2},
+              ${d.x} ${(s.y + d.y) / 2},
+              ${d.x} ${d.y}`;
+    }
 }
 
 update(root);
 
 function updateJSON() {
-document.getElementById('jsonBox').value = JSON.stringify(data, null, 2);
+    document.getElementById('jsonBox').value = JSON.stringify(data, null, 2);
 }
 
 updateJSON();
 
 document.getElementById('jsonBox').addEventListener('change', function() {
-try {
-data = JSON.parse(this.value);
-root = d3.hierarchy(data);
-root.x0 = width / 2;
-root.y0 = 0;
-update(root);
-svg.select('.company-title').text(data.company);
-} catch (error) {
-console.error("Invalid JSON:", error);
-}
+    try {
+        data = JSON.parse(this.value);
+        root = d3.hierarchy(data);
+        root.x0 = width / 2;
+        root.y0 = 0;
+        companyTitle.text(data.company);  // Update the company name
+        update(root);
+    } catch (error) {
+        console.error("Invalid JSON:", error);
+    }
 });
 
 function editNode(event, d) {
-const form = d3.select("body").append("div")
-.attr("class", "editForm")
-.style("left", (event.pageX + 10) + "px")
-.style("top", (event.pageY - 25) + "px");
+    const form = d3.select("body").append("div")
+        .attr("class", "editForm")
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 25) + "px");
 
-form.append("span")
-.attr("class", "close-button")
-.html("&times;")
-.on("click", () => form.remove());
+    form.append("span")
+        .attr("class", "close-button")
+        .html("&times;")
+        .on("click", () => form.remove());
 
-const nameInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "Name")
-.attr("value", d.data.name);
+    const nameInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "Name")
+        .attr("value", d.data.name);
 
-const titleInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "Title")
-.attr("value", d.data.title);
+    const titleInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "Title")
+        .attr("value", d.data.title);
 
-const departmentSelect = form.append("select")
-.attr("placeholder", "Department");
+    const emailInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "Email")
+        .attr("value", d.data.email);
 
-Object.keys(buColors).forEach(dept => {
-departmentSelect.append("option")
-.attr("value", dept)
-.text(dept);
-});
+    const phoneInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "Phone")
+        .attr("value", d.data.phone);
 
-departmentSelect.property("value", d.data.department);
+    const linkedinInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "LinkedIn URL")
+        .attr("value", d.data.linkedin);
 
-const emailInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "Email")
-.attr("value", d.data.email);
+    const buTextInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "BU Text")
+        .attr("value", d.data.buText);
 
-const phoneInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "Phone")
-.attr("value", d.data.phone);
+    const buColorSelect = form.append("div")
+        .attr("class", "color-picker");
 
-const linkedinInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "LinkedIn URL")
-.attr("value", d.data.linkedin);
+    standardColors.forEach(color => {
+        buColorSelect.append("div")
+            .style("background-color", color)
+            .style("width", "20px")
+            .style("height", "20px")
+            .style("display", "inline-block")
+            .style("margin", "2px")
+            .style("cursor", "pointer")
+            .style("border", d.data.buColor === color ? "2px solid white" : "none")
+            .on("click", function() {
+                d.data.buColor = color;
+                buColorSelect.selectAll("div").style("border", "none");
+                d3.select(this).style("border", "2px solid white");
+                updateNodeData();
+            });
+    });
 
-const buTextInput = form.append("input")
-.attr("type", "text")
-.attr("placeholder", "BU Text")
-.attr("value", d.data.buText);
-
-const buColorSelect = form.append("select")
-.attr("placeholder", "BU Flag Color");
-
-standardColors.forEach(color => {
-buColorSelect.append("option")
-.attr("value", color)
-.text(color);
-});
-
-buColorSelect.property("value", d.data.buColor);
-
-// Function to update the node data and refresh the chart
-function updateNodeData() {
-d.data.name = nameInput.property("value");
-d.data.title = titleInput.property("value");
-d.data.department = departmentSelect.property("value");
-d.data.email = emailInput.property("value");
-d.data.phone = phoneInput.property("value");
-d.data.linkedin = linkedinInput.property("value");
-d.data.buText = buTextInput.property("value");
-d.data.buColor = buColorSelect.property("value");
-update(d);
-updateJSON();
-}
-
-// Add event listeners for auto-updating
-nameInput.on("input", updateNodeData);
-titleInput.on("input", updateNodeData);
-departmentSelect.on("change", updateNodeData);
-emailInput.on("input", updateNodeData);
-phoneInput.on("input", updateNodeData);
-linkedinInput.on("input", updateNodeData);
-buTextInput.on("input", updateNodeData);
-buColorSelect.on("change", updateNodeData);
-
-form.append("button")
-.text("Add Child")
-.on("click", () => {
-if (!d.data.children) d.data.children = [];
-const newChild = {
-    name: "New Employee",
-    title: "New Title",
-    department: "Management",
-    email: "email@example.com",
-    phone: "(123) 456-7890",
-    linkedin: "https://www.linkedin.com/in/newemployee",
-    buText: "NEW",
-    buColor: standardColors[0]
-};
-d.data.children.push(newChild);
-if (!d.children) d.children = [];
-d.children.push({data: newChild});
-update(d);
-updateJSON();
-form.remove();
-});
-
-form.append("button")
-.text("Delete")
-.on("click", () => {
-if (d.parent) {
-    const index = d.parent.data.children.indexOf(d.data);
-    if (index > -1) {
-        d.parent.data.children.splice(index, 1);
-        d.parent.children = d.parent.children.filter(child => child !== d);
+    // Function to update the node data and refresh the chart
+    function updateNodeData() {
+        d.data.name = nameInput.property("value");
+        d.data.title = titleInput.property("value");
+        d.data.email = emailInput.property("value");
+        d.data.phone = phoneInput.property("value");
+        d.data.linkedin = linkedinInput.property("value");
+        d.data.buText = buTextInput.property("value");
+        update(d);
+        updateJSON();
     }
-    update(d.parent);
-    updateJSON();
-}
-form.remove();
-});
+
+    // Add event listeners for auto-updating
+    nameInput.on("input", updateNodeData);
+    titleInput.on("input", updateNodeData);
+    emailInput.on("input", updateNodeData);
+    phoneInput.on("input", updateNodeData);
+    linkedinInput.on("input", updateNodeData);
+    buTextInput.on("input", updateNodeData);
+
+    form.append("button")
+        .text("Add Child")
+        .on("click", () => {
+            if (!d.data.children) d.data.children = [];
+            const newChild = {
+                name: "New Employee",
+                title: "New Title",
+                email: "email@example.com",
+                phone: "(123) 456-7890",
+                linkedin: "https://www.linkedin.com/in/newemployee",
+                buText: "NEW",
+                buColor: standardColors[0]
+            };
+            d.data.children.push(newChild);
+            if (!d.children) d.children = [];
+            d.children.push(d3.hierarchy(newChild));
+            update(root);
+            updateJSON();
+            form.remove();
+        });
+
+    form.append("button")
+        .text("Delete")
+        .on("click", () => {
+            if (d.parent) {
+                const index = d.parent.data.children.indexOf(d.data);
+                if (index > -1) {
+                    d.parent.data.children.splice(index, 1);
+                    d.parent.children = d.parent.children.filter(child => child !== d);
+                }
+                update(root);
+                updateJSON();
+            }
+            form.remove();
+        });
+
+    // Auto-close when clicking outside the form
+    d3.select("body").on("click.editForm", function() {
+        if (d3.event && !form.node().contains(d3.event.target)) {
+            form.remove();
+            d3.select("body").on("click.editForm", null);
+        }
+    });
 }
 
 const zoom = d3.zoom()
-.scaleExtent([0.1, 3])
-.on("zoom", (event) => {
-svg.attr("transform", event.transform);
-});
+    .scaleExtent([0.1, 3])
+    .on("zoom", (event) => {
+        svg.attr("transform", event.transform);
+    });
 
 d3.select("#chart-container").call(zoom);
 
 window.addEventListener('resize', () => {
-width = window.innerWidth - margin.right - margin.left;
-height = window.innerHeight * 0.9 - margin.top - margin.bottom;
-d3.select("#chart-container svg")
-.attr("width", width + margin.right + margin.left)
-.attr("height", height + margin.top + margin.bottom);
-tree.size([width, height]);
-update(root);
+    width = window.innerWidth - margin.right - margin.left;
+    height = window.innerHeight * 0.9 - margin.top - margin.bottom;
+    d3.select("#chart-container svg")
+        .attr("width", width + margin.right + margin.left)
+        .attr("height", height + margin.top + margin.bottom);
+    tree.size([width, height]);
+    update(root);
 });
 
 // Initial update to ensure everything is rendered correctly

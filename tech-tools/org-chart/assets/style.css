@@ -9,11 +9,13 @@ body, html {
     color: #ffffff;
     overflow: hidden;
 }
+
 #chart-container {
     width: 100%;
     height: 90vh;
     overflow: hidden;
 }
+
 #jsonBox {
     width: 700px;
     height: 90px;
@@ -27,22 +29,27 @@ body, html {
     color: #ffffff;
     resize: none;
 }
+
 .node {
     cursor: pointer;
 }
+
 .node rect {
     stroke: #555;
     stroke-width: 1px;
 }
+
 .node text {
     fill: #ffffff;
     font-family: 'Inter', sans-serif;
 }
+
 .link {
     fill: none;
     stroke: #555;
     stroke-width: 1px;
 }
+
 .editForm {
     position: absolute;
     background: #2d2d2d;
@@ -52,6 +59,7 @@ body, html {
     z-index: 1000;
     color: #ffffff;
 }
+
 .editForm input, .editForm select {
     display: block;
     margin: 5px 0;
@@ -61,32 +69,57 @@ body, html {
     border: 1px solid #555;
     padding: 5px;
 }
-.department {
-    font-size: 10px;
-    fill: #ffffff;
-}
+
 .bu-flag {
+    stroke: #ffffff;
     stroke-width: 1px;
 }
+
+.bu-text {
+    font-size: 10px;
+    fill: #ffffff;
+    font-weight: bold;
+}
+
 .expand-collapse, .edit-button {
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
 }
+
 .close-button {
     float: right;
     cursor: pointer;
     font-size: 18px;
     font-weight: bold;
 }
+
 .linkedin-link {
     fill: #0077b5;
     text-decoration: underline;
     cursor: pointer;
 }
+
 .company-title {
-    font-size: 24px;
+    font-size: 18px;
     font-weight: bold;
-    text-anchor: middle;
     fill: #ffffff;
+}
+
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.color-picker div {
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.color-picker div:hover {
+    border: 2px solid white;
 }
