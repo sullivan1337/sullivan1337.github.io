@@ -9,7 +9,12 @@
   
   <body>
     <header>
-      <h1 class="header-left"><a href="https://github.com/sullivan1337/sullivan1337.github.io">sullivan1337.github.io</a></h1>
+      <div class="header-left">
+        <span class="home-icon" onclick="showLandingPage()">🏠 Home</span>
+      </div>
+      <div class="header-right">
+        <a href="https://github.com/sullivan1337" target="_blank">github.com/sullivan1337</a>
+      </div>
     </header>
     
     <nav>
@@ -56,8 +61,8 @@
     
     <main>
       <div id="landing-page">
-        <h2>Welcome to sullivan1337's GitHub Projects</h2>
-        <p>Explore the available tools and resources:</p>
+        <h2>Welcome to sullivan1337's GitHub Projects:</h2>
+
         <div id="dynamic-tool-list">
           <div class="tool-category">
             <h3>Tech Tools</h3>
@@ -98,6 +103,12 @@
         var iframe = document.getElementById('content-frame');
         iframe.style.display = 'block';
         iframe.src = src;
+      }
+
+      // Show landing page and hide the iframe
+      function showLandingPage() {
+        document.getElementById('landing-page').style.display = 'block';
+        document.getElementById('content-frame').style.display = 'none';
       }
 
       // Set the GitHub API URL to fetch the last X commits
