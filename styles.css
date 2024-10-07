@@ -9,8 +9,7 @@ body {
 .home-icon-container {
     position: absolute;
     top: 10px;
-
-    width: 100%;
+    width: 90%;
     text-align: center;
 }
 
@@ -22,6 +21,7 @@ body {
     padding: 4px 6px;
     border-radius: 4px;
     display: inline-block;
+    color: white;
 }
 
 .home-icon:hover {
@@ -38,7 +38,7 @@ nav {
     width: 225px;
     overflow-y: scroll;
     padding: 10px;
-    padding-top: 50px; /* Space to move sections below the Home button */
+    padding-top: 48px; /* Space to move sections below the Home button */
     box-sizing: border-box;
     scrollbar-width: none;
     position: relative;
@@ -96,6 +96,10 @@ nav h3 {
 .tech-section, .section-content {
     display: block;
     margin-top: 10px;
+}
+
+nav button {
+    height: 30px; /* Set button height to 30px for left navigation buttons only */
 }
 
 button {
@@ -167,6 +171,38 @@ iframe {
     transform: translateY(-5px);
 }
 
+.footer-info {
+    position: relative; /* Relative positioning to anchor the close button */
+    padding: 5px 8px;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.footer-info p {
+    flex-grow: 1; /* Allow paragraph to take the available space */
+    text-align: center; /* Keep the content centered */
+    margin: 0; /* Remove default margin */
+}
+
+.close-footer {
+    position: absolute; /* Position absolutely within footer-info */
+    right: 0; /* Pin to the far right */
+    background-color: #4477aa;
+    border: none;
+    color: #ffffff;
+    font-size: 1em;
+    cursor: pointer;
+    padding: 5px; /* Only a small padding around the "X" */
+    width: auto; /* Set width to just fit the content */
+    min-width: 10px; /* Ensure it's not too wide */
+}
+
+.close-footer:hover {
+    color: #ff6666;
+}
+
 footer {
     position: fixed;
     bottom: 4px;
@@ -174,21 +210,12 @@ footer {
     right: 0;
     background-color: #2c2c2c;
     color: #fff;
-    text-align: center;
     font-size: 0.8em;
     border: 1px solid #555;
     border-radius: 4px;
     margin: 0 19px;
 }
 
-.footer-info {
-    display: flex;
-    justify-content: center;
-    padding: 5px 8px;
-    margin: 0;
-    flex-direction: column;
-    align-items: center;
-}
 
 ul {
     list-style: none;

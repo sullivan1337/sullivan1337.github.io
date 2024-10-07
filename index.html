@@ -74,8 +74,17 @@
     <footer>
       <div class="footer-info">
         <p>Latest Commits: <span id="lastCommits"></span> | Latest GitHub Actions: <span id="githubActions"></span> | <a href="https://github.com/sullivan1337" target="_blank">github.com/sullivan1337</a></p>
+        <button class="close-footer" onclick="hideFooter()">X</button>
       </div>
     </footer>
+    
+    <script>
+      // Function to hide the footer when "X" button is clicked
+      function hideFooter() {
+        document.querySelector('footer').style.display = 'none';
+      }
+    </script>
+    
 
     <script>
       // Toggle visibility of sections
