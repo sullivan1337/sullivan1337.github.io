@@ -6,22 +6,12 @@ body {
 
 }
 
-header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 20px;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+.home-icon-container {
+    position: absolute;
+    top: 10px;
 
-.header-left {
-    padding-top: 5px;
-    padding-left: 35px;
+    width: 100%;
+    text-align: center;
 }
 
 .home-icon {
@@ -29,28 +19,31 @@ header {
     font-size: 1.2em;
     border: 1px solid #555;
     background-color: #2c2c2c;
-    padding: 8px;
+    padding: 4px 6px;
     border-radius: 4px;
+    display: inline-block;
 }
 
 .home-icon:hover {
     background-color: #4477aa;
-    text-emphasis-color: white;
-
+    color: white;
 }
 
 nav {
     background-color: #333;
-    height: calc(100vh - 49px);
+    height: 100vh; /* Full height of the viewport */
     position: fixed;
     left: 0;
-    top: 49px;
+    top: 0; /* Start from the very top of the page */
     width: 225px;
     overflow-y: scroll;
     padding: 10px;
+    padding-top: 50px; /* Space to move sections below the Home button */
     box-sizing: border-box;
     scrollbar-width: none;
+    position: relative;
 }
+
 
 .github-link {
     position: absolute;
@@ -64,11 +57,11 @@ nav::-webkit-scrollbar {
     display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
-nav .section {
+nav .tech-section, nav .section {
     border: 1px solid #555;
     background-color: #2c2c2c;
     padding: 8px;
-    margin-bottom: 10px;
+    margin-top: 10px;
     border-radius: 4px;
 }
 
@@ -100,7 +93,7 @@ nav h3 {
     margin-left: 10px;
 }
 
-.section-content {
+.tech-section, .section-content {
     display: block;
     margin-top: 10px;
 }
@@ -133,7 +126,7 @@ button:hover {
 main {
     position: fixed;
     left: 225px;
-    top: 50px;
+    top: 0px;
     right: 0;
     bottom: 0;
     overflow: hidden;
@@ -176,7 +169,7 @@ iframe {
 
 footer {
     position: fixed;
-    bottom: 0;
+    bottom: 4px;
     left: 225px;
     right: 0;
     background-color: #2c2c2c;
@@ -185,7 +178,7 @@ footer {
     font-size: 0.8em;
     border: 1px solid #555;
     border-radius: 4px;
-    margin: 0 10px;
+    margin: 0 19px;
 }
 
 .footer-info {
