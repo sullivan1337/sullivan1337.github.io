@@ -16,49 +16,60 @@
       <div class="section">
         <h3 onclick="toggleSection('tech-tools')">Tech Tools <span id="tech-tools-toggle" class="toggle-symbol">-</span></h3>
         <div id="tech-tools" class="section-content">
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/g-toolbox/apps/har_analyzer/index.htm';">G-Toolbox (HAR)</button>
+          <button onclick="showIframe('./tech-tools/g-toolbox/apps/har_analyzer/index.htm');">G-Toolbox (HAR)</button>
           <button onclick="window.open('./tech-tools/countdowns/index.html', '_blank');">
             Event Countdown <span class="new-tab-icon">🔗</span>
           </button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/terminal-tools/';">Terminal Tools & Scripts</button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html';">CyberChef</button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/webhook-generator/index.html';">Webhook Generator</button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/jwt-coder/index.html';">JWT Encoder/Decoder</button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/samlAnalysisHAR/index.html';">HAR SAML Analyzer</button>
+          <button onclick="showIframe('./tech-tools/terminal-tools/');">Terminal Tools & Scripts</button>
+          <button onclick="showIframe('./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html');">CyberChef</button>
+          <button onclick="showIframe('./tech-tools/webhook-generator/index.html');">Webhook Generator</button>
+          <button onclick="showIframe('./tech-tools/jwt-coder/index.html');">JWT Encoder/Decoder</button>
+          <button onclick="showIframe('./tech-tools/samlAnalysisHAR/index.html');">HAR SAML Analyzer</button>
         </div>
       </div>
       <div class="section">
         <h3 onclick="toggleSection('home-tools')">Home Tools <span id="home-tools-toggle" class="toggle-symbol">-</span></h3>
         <div id="home-tools" class="section-content">
-          <button onclick="window.open(src = 'https://zilviabackupstatic.blob.core.windows.net/$web/zilviaarchive/zilvia.net/f/index.html', '_blank');">
+          <button onclick="window.open('https://zilviabackupstatic.blob.core.windows.net/$web/zilviaarchive/zilvia.net/f/index.html', '_blank');">
             Zilvia.net Backup <span class="new-tab-icon">🔗</span>
           </button>
-          <button onclick="document.getElementById('content-frame').src='./home-tools/EvoScanBackup/index.htm';">EvoScan Backup</button>
+          <button onclick="showIframe('./home-tools/EvoScanBackup/index.htm');">EvoScan Backup</button>
           <button onclick="window.open('./home-tools/CarGarage/index.html', '_blank');">
             Current & Past Cars <span class="new-tab-icon">🔗</span>
           </button>
-          <button onclick="document.getElementById('content-frame').src='./home-tools/FOV-Calc/';">Sim Rig FOV Calc</button>
-          <button onclick="window.open(src = 'https://gcal-mapit.com/', '_blank');">
+          <button onclick="showIframe('./home-tools/FOV-Calc/');">Sim Rig FOV Calc</button>
+          <button onclick="window.open('https://gcal-mapit.com/', '_blank');">
             Drift Calendar <span class="new-tab-icon">🔗</span>
           </button>
           <button onclick="window.open('./home-tools/DataLog1337/index.html', '_blank');">
             Tuning Log Viewer <span class="new-tab-icon">🔗</span>
           </button>
-
           <br>
-          
           <button onclick="window.open('./home-tools/recipes/index.html', '_blank');">
             Cooking & Baking <span class="new-tab-icon">🔗</span>
           </button>
-          <button onclick="document.getElementById('content-frame').src='./home-tools/Invoice-generator/index.html';">Invoice Generator</button>
-          <button onclick="document.getElementById('content-frame').src='./tech-tools/rackDesign/index.html';">Simple Rack Designer</button>
-
+          <button onclick="showIframe('./home-tools/Invoice-generator/index.html');">Invoice Generator</button>
+          <button onclick="showIframe('./tech-tools/rackDesign/index.html');">Simple Rack Designer</button>
         </div>
       </div>
     </nav>
     
     <main>
-      <iframe id="content-frame" src="https://github.com/sullivan1337#user-profile-contributions" scrolling="yes"></iframe>
+      <div id="landing-page">
+        <h2>Welcome to sullivan1337's GitHub Projects</h2>
+        <p>Explore the available tools and resources:</p>
+        <div id="dynamic-tool-list">
+          <div class="tool-category">
+            <h3>Tech Tools</h3>
+            <div id="tech-tools-list" class="tool-grid"></div>
+          </div>
+          <div class="tool-category">
+            <h3>Home Tools</h3>
+            <div id="home-tools-list" class="tool-grid"></div>
+          </div>
+        </div>
+      </div>
+      <iframe id="content-frame" src="" scrolling="yes" style="display:none;"></iframe>
     </main>
 
     <footer>
@@ -79,6 +90,14 @@
           sectionContent.style.display = "none";
           toggleIcon.innerText = "+";
         }
+      }
+
+      // Show iframe and hide the landing page
+      function showIframe(src) {
+        document.getElementById('landing-page').style.display = 'none';
+        var iframe = document.getElementById('content-frame');
+        iframe.style.display = 'block';
+        iframe.src = src;
       }
 
       // Set the GitHub API URL to fetch the last X commits
@@ -124,6 +143,31 @@
       };
       actionsXhttp.open("GET", actionsApiUrl, true);
       actionsXhttp.send();
+
+      // Generate a list of all navigation items for the landing page
+      function generateToolList() {
+        const toolSections = document.querySelectorAll('.section-content');
+        
+        toolSections.forEach(section => {
+          const sectionId = section.id;
+          const toolListDiv = document.getElementById(sectionId + '-list');
+          const buttons = section.querySelectorAll('button');
+
+          buttons.forEach(button => {
+            const newButton = button.cloneNode(true);
+            newButton.classList.add('tool-tile');
+            newButton.onclick = function() {
+              if (newButton.onclick !== null) {
+                button.onclick(); // Use the original onclick to replicate the same behavior.
+              }
+            };
+            toolListDiv.appendChild(newButton);
+          });
+        });
+      }
+
+      // Generate tool list on load
+      document.addEventListener('DOMContentLoaded', generateToolList);
     </script>
 
   </body>
