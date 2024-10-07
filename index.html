@@ -10,48 +10,60 @@
   <body>
     <header>
       <h1 class="header-left"><a href="https://github.com/sullivan1337/sullivan1337.github.io">sullivan1337.github.io</a></h1>
-      <div class="header-right">
-        <div class="header-info">
-          <h4>Latest Commits:</h4>
-          <ul id="lastCommits" style="list-style: none; padding: 0; margin: 0;"></ul>
-        </div>
-        <div class="header-info">
-          <h4>Latest GitHub Actions Runs:</h4>
-          <ul id="githubActions" style="list-style: none; padding: 0; margin: 0;"></ul>
-        </div>
-      </div>
     </header>
     
     <nav>
-      <h3 style="color: #fff;">Tech Tools</h3>
-
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/g-toolbox/apps/har_analyzer/index.htm';">G-toolbox (HAR Analyzer)</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/countdowns/index.html';">Event Countdown Timer</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/terminal-tools/';">Terminal Tools & Scripts</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html';">CyberChef</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/webhook-generator/index.html';">Webhook Generator</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/jwt-coder/index.html';">JWT Encoder/Decoder</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/samlAnalysisHAR/index.html';">HAR SAML Response Analysis</a>
-      <br>
-      <hr>
-      
-      <h3 style="color: #fff;">Home Tools</h3>
-      <a href="./home-tools/recipes/index.html">Cooking/Baking Recipes</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/gcal-mapit/index.html';">Gcal-mapit</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/Invoice-generator/index.html';">Invoice Generator</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/EvoScanBackup/index.htm';">EvoScan Backup</a>
-      <a href="./home-tools/CarGarage/index.html">Current and Past Cars</a>
-      <a href="./home-tools/DataLog1337/index.html">Tuning Data Log Viewer</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./tech-tools/rackDesign/index.html';">Simple Rack Designer</a>
-      <a href="#" onclick="document.getElementById('content-frame').src='./home-tools/FOV-Calc/';">Sim Rig FOV Calc</a>
-
+      <div class="section">
+        <h3 onclick="toggleSection('tech-tools')">Tech Tools <span id="tech-tools-toggle" class="toggle-symbol">-</span></h3>
+        <div id="tech-tools" class="section-content">
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/g-toolbox/apps/har_analyzer/index.htm';">G-toolbox (HAR Analyzer)</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/countdowns/index.html';">Event Countdown Timer</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/terminal-tools/';">Terminal Tools & Scripts</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html';">CyberChef</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/webhook-generator/index.html';">Webhook Generator</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/jwt-coder/index.html';">JWT Encoder/Decoder</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/samlAnalysisHAR/index.html';">HAR SAML Analyzer</button>
+        </div>
+      </div>
+      <div class="section">
+        <h3 onclick="toggleSection('home-tools')">Home Tools <span id="home-tools-toggle" class="toggle-symbol">-</span></h3>
+        <div id="home-tools" class="section-content">
+          <button onclick="document.getElementById('content-frame').src='./home-tools/recipes/index.html';">Cooking/Baking Recipes</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/gcal-mapit/index.html';">Gcal-mapit</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/Invoice-generator/index.html';">Invoice Generator</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/EvoScanBackup/index.htm';">EvoScan Backup</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/CarGarage/index.html';">Current and Past Cars</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/DataLog1337/index.html';">Tuning Data Log Viewer</button>
+          <button onclick="document.getElementById('content-frame').src='./tech-tools/rackDesign/index.html';">Simple Rack Designer</button>
+          <button onclick="document.getElementById('content-frame').src='./home-tools/FOV-Calc/';">Sim Rig FOV Calc</button>
+        </div>
+      </div>
     </nav>
     
     <main>
       <iframe id="content-frame" src=""></iframe>
     </main>
 
+    <footer>
+      <div class="footer-info">
+        <p>Latest Commits: <span id="lastCommits"></span> | Latest GitHub Actions: <span id="githubActions"></span></p>
+      </div>
+    </footer>
+
     <script>
+      // Toggle visibility of sections
+      function toggleSection(sectionId) {
+        var sectionContent = document.getElementById(sectionId);
+        var toggleIcon = document.getElementById(sectionId + '-toggle');
+        if (sectionContent.style.display === "none" || sectionContent.style.display === "") {
+          sectionContent.style.display = "block";
+          toggleIcon.innerText = "-";
+        } else {
+          sectionContent.style.display = "none";
+          toggleIcon.innerText = "+";
+        }
+      }
+
       // Set the GitHub API URL to fetch the last X commits
       var apiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/commits?per_page=1";
 
@@ -59,45 +71,38 @@
       var xhttp = new XMLHttpRequest();
       xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-          // Parse the JSON response and output the last X commit messages and dates
           var response = JSON.parse(this.responseText);
           var lastCommitElem = document.getElementById("lastCommits");
-          var commitList = "";
-
-          response.forEach(function(commit) {
+          if (response.length > 0) {
+            var commit = response[0];
             var commitDate = new Date(commit.commit.author.date);
             var estDate = new Date(commitDate.toLocaleString("en-US", { timeZone: "America/New_York" }));
             var commitUrl = commit.html_url;
             var commitId = commit.sha;
 
-            commitList += "<li>" + commit.commit.message + " (" + estDate.toLocaleString() + " EST) <br> <a href='" + commitUrl + "' target='_blank'>" + commitId + "</a></li>";
-          });
-
-          lastCommitElem.innerHTML = commitList;
+            lastCommitElem.innerHTML = commit.commit.message + " (" + estDate.toLocaleString() + " EST) <a href='" + commitUrl + "' target='_blank'>" + commitId + "</a>";
+          }
         }
       };
       xhttp.open("GET", apiUrl, true);
       xhttp.send();
-    </script>
-    <script>
-      // set the GitHub API URL for the GitHub Actions workflow runs
+
+      // Set the GitHub API URL for the GitHub Actions workflow runs
       var actionsApiUrl = "https://api.github.com/repos/sullivan1337/sullivan1337.github.io/actions/runs?per_page=1";
     
-      // use an AJAX request to get the last 3 GitHub Actions workflow runs
+      // Use an AJAX request to get the last GitHub Actions workflow runs
       var actionsXhttp = new XMLHttpRequest();
       actionsXhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-          // parse the JSON response and generate the GitHub Actions runs list
           var actionsResponse = JSON.parse(this.responseText);
           var runs = actionsResponse.workflow_runs;
           var actionsElem = document.getElementById("githubActions");
-          var actionsContent = "";
-    
-          runs.forEach(function(run) {
-            actionsContent += "<li><a href='" + run.html_url + "' target='_blank'>" + run.name + " #" + run.run_number + "</a><br>" + run.status + " (" + run.conclusion + ")</li>";
-          });
-    
-          actionsElem.innerHTML = actionsContent;
+          if (runs.length > 0) {
+            var run = runs[0];
+            var status = run.status;
+            var conclusion = run.conclusion ? `(${run.conclusion})` : "";
+            actionsElem.innerHTML = "<a href='" + run.html_url + "' target='_blank'>" + run.name + " #" + run.run_number + "</a>" + " - " + status + " " + conclusion;
+          }
         }
       };
       actionsXhttp.open("GET", actionsApiUrl, true);

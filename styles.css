@@ -8,53 +8,110 @@ header {
     background-color: #333;
     color: #fff;
     padding: 10px 20px;
-    text-align: center;
     position: fixed;
     left: 0;
     top: 0;
     width: 100%;
     z-index: 1;
     display: flex;
-    justify-content: space-between;
-    height: 50px;
     align-items: center;
 }
 
 .header-left {
     margin: 0;
+    text-align: left;
 }
 
-.header-right {
-    position: absolute;
-    right: 50px; /* Decrease this value to bring the elements closer to the left */
-    display: flex;
-    align-items: center;
+nav {
+    background-color: #333;
+    height: calc(100vh - 50px);
+    position: fixed;
+    left: 0;
+    top: 50px;
+    width: 225px;
+    overflow-y: scroll; /* Enable scroll */
+    padding: 10px;
+    box-sizing: border-box;
+    scrollbar-width: none; /* For Firefox */
 }
 
-.header-info {
-    display: flex;
-    flex-direction: column;
-    margin-left: 20px;
-}
-
-h1 {
-    font-size: 1.8em;
-    margin: 0;
+nav::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
 }
 
 nav h3 {
-    text-align: left;
-    padding-left: 8px;
-  }
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between; /* Move toggle icon to the right */
+    align-items: center;
+}
 
-h4 {
-    margin: 0;
+.toggle-symbol {
+    font-size: 1.2em;
+    margin-left: 10px;
+}
+
+.section-content {
+    display: block; /* All sections are expanded by default */
+    margin-top: 10px;
+}
+
+button {
+    display: block;
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    padding: 10px;
+    background-color: #336699;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em; /* Reduced font size by 2 points */
+    text-align: left; /* Left align text within buttons */
+}
+
+button:hover {
+    background-color: #4477aa;
+}
+
+main {
+    position: fixed;
+    left: 225px;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 225px;
+    right: 0;
+    background-color: #333;
+    color: #fff;
+    padding: 5px;
+    text-align: center;
     font-size: 0.8em;
 }
 
+.footer-info {
+    display: flex;
+    justify-content: center;
+}
+
 ul {
-    margin: 0;
+    list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 a {
@@ -63,45 +120,4 @@ a {
 
 a:hover {
     color: #4477aa;
-}
-
-nav {
-  background-color: #333;
-  height: calc(100vh - 50px); /* Subtract the new header height */
-  position: fixed;
-  left: 0;
-  top: 70px; /* Set this to the new header height */
-  width: 225px;
-  text-align: center;
-}
-
-nav a {
-    display: block;
-    color: #fff;
-    text-decoration: none;
-    padding: 10px;
-    text-align: center;
-}
-
-nav a:hover {
-    background-color: #444;
-    color: #fff;
-}
-
-main {
-    position: fixed;
-    left: 225px;
-    top: 70px;
-    right: 0;
-    bottom: 0;
-    overflow: hidden;
-}
-
-iframe {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
 }
