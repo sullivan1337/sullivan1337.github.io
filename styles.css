@@ -3,7 +3,6 @@ body {
     margin: 0;
     padding: 0;
     background-color: #d7d7d7;
-
 }
 
 .home-icon-container {
@@ -43,7 +42,6 @@ nav {
     scrollbar-width: none;
     position: relative;
 }
-
 
 .github-link {
     position: absolute;
@@ -149,7 +147,6 @@ iframe {
     overflow-y: auto; /* Enable scrolling within the landing page */
     box-sizing: border-box;
     scrollbar-width: none;
-
 }
 
 .tool-grid {
@@ -192,7 +189,6 @@ iframe {
     z-index: 10; /* Ensure the overlay is above the iframe */
 }
 
-
 .tool-tile {
     background-color: #336699;
     color: #fff;
@@ -219,11 +215,26 @@ iframe {
 }
 
 @media (max-width: 768px) {
+    /* Hide the navigation on small screens */
+    nav {
+        display: none;
+    }
+
+    /* Adjust the main content to take up the full width */
+    main {
+        left: 0;
+    }
+
+    /* Display the grid in 2 columns on smaller screens */
     .tool-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-}
 
+    /* Hide the footer on small screens */
+    footer {
+        display: none;
+    }
+}
 
 .footer-info {
     position: relative; /* Relative positioning to anchor the close button */
@@ -269,7 +280,6 @@ footer {
     border-radius: 4px;
     margin: 0 19px;
 }
-
 
 ul {
     list-style: none;
