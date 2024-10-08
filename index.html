@@ -159,29 +159,40 @@
       actionsXhttp.send();
 
       // Generate a list of all navigation items for the landing page
-      function generateToolList() {
-        const toolSections = document.querySelectorAll('.section-content');
-        
-        toolSections.forEach(section => {
-          const sectionId = section.id;
-          const toolListDiv = document.getElementById(sectionId + '-list');
-          const buttons = section.querySelectorAll('button');
+// Generate a list of all navigation items for the landing page with previews
+function generateToolList() {
+    const toolSections = document.querySelectorAll('.section-content');
+    
+    toolSections.forEach(section => {
+        const sectionId = section.id;
+        const toolListDiv = document.getElementById(sectionId + '-list');
+        const buttons = section.querySelectorAll('button');
 
-          buttons.forEach(button => {
+        buttons.forEach(button => {
             const newButton = button.cloneNode(true);
             newButton.classList.add('tool-tile');
-            newButton.onclick = function() {
-              if (newButton.onclick !== null) {
-                button.onclick(); // Use the original onclick to replicate the same behavior.
-              }
-            };
-            toolListDiv.appendChild(newButton);
-          });
-        });
-      }
+            
+            // Create iframe preview
+            const iframePreview = document.createElement('iframe');
+            iframePreview.src = newButton.getAttribute('onclick').toString().match(/'(.*?)'/)[1]; // Extract URL from button's onclick
+            iframePreview.className = 'tool-preview'; // Add class for styling
+            iframePreview.setAttribute('scrolling', 'no');
+            iframePreview.setAttribute('frameborder', '0');
 
-      // Generate tool list on load
-      document.addEventListener('DOMContentLoaded', generateToolList);
+            // Append button and preview iframe to the tool list
+            const previewContainer = document.createElement('div');
+            previewContainer.classList.add('tool-preview-container');
+            previewContainer.appendChild(newButton);
+            previewContainer.appendChild(iframePreview);
+
+            toolListDiv.appendChild(previewContainer);
+        });
+    });
+}
+
+// Generate tool list on load
+document.addEventListener('DOMContentLoaded', generateToolList);
+
     </script>
 
   </body>

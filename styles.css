@@ -145,13 +145,39 @@ iframe {
 
 #landing-page {
     padding: 20px;
+    height: calc(100vh - 50px); /* Adjust height to fill the remaining space */
+    overflow-y: auto; /* Enable scrolling within the landing page */
+    box-sizing: border-box;
+    scrollbar-width: none;
+
 }
 
 .tool-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
-    margin-top: 10px;
+    margin-top: 1px;
+}
+
+.tool-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+}
+
+.tool-preview {
+    width: 400%; /* Quadruple the width */
+    height: 600px; /* Quadruple the height */
+    border: 0px solid #ccc;
+    margin-top: 0px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transform: scale(0.25); /* Scale down to 25% */
+    transform-origin: top left; /* Scale from top left corner */
+    margin-right: -300%; /* Compensate for increased width */
+    margin-bottom: -450px; /* Compensate for increased height */
+    pointer-events: none;
 }
 
 .tool-tile {
@@ -164,12 +190,27 @@ iframe {
     font-size: 1em;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
 }
 
 .tool-tile:hover {
     background-color: #4477aa;
     transform: translateY(-5px);
 }
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+    .tool-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 
 .footer-info {
     position: relative; /* Relative positioning to anchor the close button */
