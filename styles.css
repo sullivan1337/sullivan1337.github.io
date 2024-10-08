@@ -164,21 +164,34 @@ iframe {
     flex-direction: column;
     align-items: center;
     overflow: hidden;
+    position: relative;
 }
 
 .tool-preview {
-    width: 400%; /* Quadruple the width */
-    height: 600px; /* Quadruple the height */
+    width: 400%;
+    height: 600px;
     border: 0px solid #ccc;
     margin-top: 0px;
     border-radius: 5px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transform: scale(0.25); /* Scale down to 25% */
-    transform-origin: top left; /* Scale from top left corner */
-    margin-right: -300%; /* Compensate for increased width */
-    margin-bottom: -450px; /* Compensate for increased height */
-    pointer-events: none;
+    transform: scale(0.25);
+    transform-origin: top left;
+    margin-right: -300%;
+    margin-bottom: -450px;
+    pointer-events: auto; /* Allow click interactions */
 }
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    background: transparent;
+    z-index: 10; /* Ensure the overlay is above the iframe */
+}
+
 
 .tool-tile {
     background-color: #336699;
