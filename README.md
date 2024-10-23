@@ -11,6 +11,7 @@ Other tools:
 * https://string.is/
     * https://github.com/recurser/string-is/tree/develop
 * https://www.base64decode.org/
+* https://tuanpham-dev.github.io/react-invoice-generator/
 
 UI Stuff:
 * https://github.com/BlackrockDigital/startbootstrap
