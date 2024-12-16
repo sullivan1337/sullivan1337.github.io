@@ -297,9 +297,11 @@ a:hover {
 
 .popup-content {
     display: block;
-    width: auto; /* Maintain aspect ratio */
-    max-width: 90vw; /* Limit max width */
-    max-height: 90vh; /* Limit max height */
+    width: auto; /* Maintain the aspect ratio */
+    height: auto; /* Maintain the aspect ratio */
+    max-width: 90vw; /* Limit the width to viewport */
+    max-height: 90vh; /* Limit the height to viewport */
     border-radius: 15px;
-    cursor: pointer; /* Make the popup image clickable */
+    cursor: pointer;
+    object-fit: contain; /* Ensure the image fits within the constraints */
 }
