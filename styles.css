@@ -294,3 +294,12 @@ a {
 a:hover {
     color: #4477aa;
 }
+
+.popup-content {
+    display: block;
+    width: auto; /* Maintain aspect ratio */
+    max-width: 90vw; /* Limit max width */
+    max-height: 90vh; /* Limit max height */
+    border-radius: 15px;
+    cursor: pointer; /* Make the popup image clickable */
+}

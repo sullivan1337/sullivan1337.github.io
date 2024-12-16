@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     popup.addEventListener("click", function(event) {
-        if (event.target === popup) {
+        if (event.target === popup || event.target === popupImg) {
             popup.style.display = "none";
         }
     });
