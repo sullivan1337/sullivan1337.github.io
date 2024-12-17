@@ -288,11 +288,12 @@ h3 {
 
 .popup-content {
     display: block;
-    width: 100%; /* Make image take full width */
-    height: auto; /* Maintain aspect ratio */
+    max-width: 90vw; /* Limit width to 90% of viewport */
+    max-height: 90vh; /* Limit height to 90% of viewport */
+    aspect-ratio: auto; /* Use the image's intrinsic aspect ratio */
+    object-fit: contain; /* Ensures the image fits within the constraints without distortion */
     border-radius: 15px;
-    max-width: 90vw; /* Add max-width to prevent overflow on very large screens */
-    max-height: 90vh; /* Add max-height to ensure it fits within the viewport */
+    cursor: pointer; /* Allows clicking on the popup image to close */
 }
 
 .popup-close {
