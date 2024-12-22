@@ -184,11 +184,17 @@ h1 {
   border-color: #ff5722; /* Orange */
 }
 
-/* Responsive tweaks */
+/* Responsive adjustments */
 @media (max-width: 800px) {
-  .results, 
+  .diagram-container,
+  .results {
+    flex: 1 1 100%; /* Stack these elements */
+    margin: 10px 0; /* Add spacing between stacked elements */
+  }
+
   .diagram-container {
-    flex: 1 1 100%; /* Stack them on small devices */
+    align-items: center; /* Ensure centering of content */
+    padding: 15px; /* Adjust padding for smaller screens */
   }
 }
 

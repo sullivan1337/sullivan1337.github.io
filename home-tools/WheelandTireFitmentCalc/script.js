@@ -113,11 +113,14 @@ function drawDiagram(
   // Ensure container is visible
   document.getElementById('diagram-container').style.display = 'block';
 
-  // Fixed SVG size
-  const SVG_WIDTH = 600;
-  const SVG_HEIGHT = 400;
-  svg.setAttribute('width', SVG_WIDTH);
-  svg.setAttribute('height', SVG_HEIGHT);
+    // Get the container's size dynamically
+    const container = document.getElementById('diagram-container');
+    const SVG_WIDTH = container.offsetWidth; // Use the container's width
+    const SVG_HEIGHT = container.offsetHeight > 0 ? container.offsetHeight : SVG_WIDTH * 0.66; // Maintain aspect ratio
+
+    // Set the SVG dimensions
+    svg.setAttribute('width', SVG_WIDTH);
+    svg.setAttribute('height', SVG_HEIGHT);
 
   // Scale factor
   const scale = Math.min(SVG_WIDTH, SVG_HEIGHT) / 750;
