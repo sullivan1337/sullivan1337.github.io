@@ -1,7 +1,9 @@
 /***********************************************************
  * script.js
- * Combines your existing calculation logic with an updated
- * drawDiagram that supports an optional "fender" arc.
+ * 1) Adds highlight if Distance to Fender > -2mm (red).
+ * 2) Adds highlight if speedo error > +/- 2%.
+ * 3) Fixes offset sliders to a certain width so no jumpy layout.
+ * 4) Shows "Modified Fender" (in mm) that combines offsetX with fenderGapWidth.
  ***********************************************************/
 
 /**
@@ -9,419 +11,518 @@
  */
 function calculate() {
     // Get old wheel/tire values from the form
-    let old_tireWidth = parseFloat(document.getElementById('old_tireWidth').value);
-    let old_aspectRatio = parseFloat(document.getElementById('old_aspectRatio').value);
-    let old_wheelDiameter = parseFloat(document.getElementById('old_wheelDiameter').value);
-    let old_wheelWidth = parseFloat(document.getElementById('old_wheelWidth').value);
-    let old_offset = parseFloat(document.getElementById('old_offset').value);
-  
-    // Get new wheel/tire values from the form
-    let new_tireWidth = parseFloat(document.getElementById('new_tireWidth').value);
-    let new_aspectRatio = parseFloat(document.getElementById('new_aspectRatio').value);
-    let new_wheelDiameter = parseFloat(document.getElementById('new_wheelDiameter').value);
-    let new_wheelWidth = parseFloat(document.getElementById('new_wheelWidth').value);
-    let new_offset = parseFloat(document.getElementById('new_offset').value);
-  
+    let old_tireWidth      = parseFloat(document.getElementById('old_tireWidth').value);
+    let old_aspectRatio    = parseFloat(document.getElementById('old_aspectRatio').value);
+    let old_wheelDiameter  = parseFloat(document.getElementById('old_wheelDiameter').value);
+    let old_wheelWidth     = parseFloat(document.getElementById('old_wheelWidth').value);
+    let old_offset         = parseFloat(document.getElementById('old_offset').value);
+
+    // Get new wheel/tire values
+    let new_tireWidth      = parseFloat(document.getElementById('new_tireWidth').value);
+    let new_aspectRatio    = parseFloat(document.getElementById('new_aspectRatio').value);
+    let new_wheelDiameter  = parseFloat(document.getElementById('new_wheelDiameter').value);
+    let new_wheelWidth     = parseFloat(document.getElementById('new_wheelWidth').value);
+    let new_offset         = parseFloat(document.getElementById('new_offset').value);
+
     // Validate numeric inputs
     if (
-      isNaN(old_tireWidth) || isNaN(old_aspectRatio) || isNaN(old_wheelDiameter) ||
-      isNaN(old_wheelWidth) || isNaN(old_offset) ||
-      isNaN(new_tireWidth) || isNaN(new_aspectRatio) || isNaN(new_wheelDiameter) ||
-      isNaN(new_wheelWidth) || isNaN(new_offset)
+      isNaN(old_tireWidth)   || isNaN(old_aspectRatio)   || isNaN(old_wheelDiameter) ||
+      isNaN(old_wheelWidth)  || isNaN(old_offset)        ||
+      isNaN(new_tireWidth)   || isNaN(new_aspectRatio)   || isNaN(new_wheelDiameter) ||
+      isNaN(new_wheelWidth)  || isNaN(new_offset)
     ) {
       alert('Please ensure all fields are filled with valid numbers.');
       return;
     }
-  
+
     // Calculate old tire sidewall, diameter, circumference
-    let old_sidewall = old_tireWidth * (old_aspectRatio / 100);
-    let old_diameter = (old_wheelDiameter * 25.4) + (2 * old_sidewall);
+    let old_sidewall      = old_tireWidth * (old_aspectRatio / 100);
+    let old_diameter      = (old_wheelDiameter * 25.4) + (2 * old_sidewall);
     let old_circumference = Math.PI * old_diameter;
-  
+
     // Calculate new tire sidewall, diameter, circumference
-    let new_sidewall = new_tireWidth * (new_aspectRatio / 100);
-    let new_diameter = (new_wheelDiameter * 25.4) + (2 * new_sidewall);
+    let new_sidewall      = new_tireWidth * (new_aspectRatio / 100);
+    let new_diameter      = (new_wheelDiameter * 25.4) + (2 * new_sidewall);
     let new_circumference = Math.PI * new_diameter;
-  
+
     // Convert wheel widths from inches to mm
     let old_wheelWidth_mm = old_wheelWidth * 25.4;
     let new_wheelWidth_mm = new_wheelWidth * 25.4;
-  
+
     // Calculate poke and inset
     let old_poke = ((old_wheelWidth_mm / 2) - old_offset);
     let old_inset = ((old_wheelWidth_mm / 2) + old_offset);
     let new_poke = ((new_wheelWidth_mm / 2) - new_offset);
     let new_inset = ((new_wheelWidth_mm / 2) + new_offset);
-  
+
     // Speedometer error
     let speedo_error_ratio = (old_circumference - new_circumference) / old_circumference;
-    let speedo_error_pct = (speedo_error_ratio * 100).toFixed(2);
-  
-    // Speed readouts (compare old circumference vs new)
+    let speedo_error_pct   = (speedo_error_ratio * 100).toFixed(2); // string format
+
+    // Speed readouts
     let readAt30 = 30 * (old_circumference / new_circumference);
     let readAt60 = 60 * (old_circumference / new_circumference);
-  
+
     // Update results table
     document.getElementById('res_oldDiameter').innerText = old_diameter.toFixed(1) + " mm";
     document.getElementById('res_newDiameter').innerText = new_diameter.toFixed(1) + " mm";
-    document.getElementById('res_oldCirc').innerText = old_circumference.toFixed(1) + " mm";
-    document.getElementById('res_newCirc').innerText = new_circumference.toFixed(1) + " mm";
-    document.getElementById('res_oldPoke').innerText = old_poke.toFixed(1) + " mm";
-    document.getElementById('res_newPoke').innerText = new_poke.toFixed(1) + " mm";
-    document.getElementById('res_oldInset').innerText = old_inset.toFixed(1) + " mm";
-    document.getElementById('res_newInset').innerText = new_inset.toFixed(1) + " mm";
+    document.getElementById('res_oldCirc').innerText     = old_circumference.toFixed(1) + " mm";
+    document.getElementById('res_newCirc').innerText     = new_circumference.toFixed(1) + " mm";
+    document.getElementById('res_oldPoke').innerText     = old_poke.toFixed(1) + " mm";
+    document.getElementById('res_newPoke').innerText     = new_poke.toFixed(1) + " mm";
+    document.getElementById('res_oldInset').innerText    = old_inset.toFixed(1) + " mm";
+    document.getElementById('res_newInset').innerText    = new_inset.toFixed(1) + " mm";
     document.getElementById('res_speedoError').innerText = speedo_error_pct + "% (Speedometer error)";
-    document.getElementById('res_30new').innerText = readAt30.toFixed(2) + " mph";
-    document.getElementById('res_60new').innerText = readAt60.toFixed(2) + " mph";
-  
-    // Show the results container
+    document.getElementById('res_30new').innerText       = readAt30.toFixed(2) + " mph";
+    document.getElementById('res_60new').innerText       = readAt60.toFixed(2) + " mph";
+
+    // Highlight speedo error cell if more than +/-2.0%
+    let speedoCell = document.getElementById('res_speedoError');
+    let errVal = parseFloat(speedo_error_pct); // number
+    if (Math.abs(errVal) > 2.0) {
+      speedoCell.style.backgroundColor = "red";
+      speedoCell.style.color = "#fff";
+    } else {
+      speedoCell.style.backgroundColor = "";
+      speedoCell.style.color = "";
+    }
+
+    // Show results
     document.getElementById('results').style.display = 'block';
-  
-    // Now draw the diagram (no static vertical line)
+
+    // Draw the diagram
     drawDiagram(
       old_offset, old_wheelWidth_mm, old_diameter, old_wheelDiameter, old_tireWidth,
       new_offset, new_wheelWidth_mm, new_diameter, new_wheelDiameter, new_tireWidth
     );
+}
+
+/**
+ * Draw our updated diagram in the <svg> with id="diagram"
+ *   - Optionally draws a "fender" 
+ *   - Then calculates "Distance to Fender" for BOTH old & new tires
+ */
+function drawDiagram(
+  old_offset, old_wheelWidth_mm, old_diameter, old_wheelDiameter, old_tireWidth,
+  new_offset, new_wheelWidth_mm, new_diameter, new_wheelDiameter, new_tireWidth
+) {
+  // Clear previous diagram
+  const svg = document.getElementById('diagram');
+  svg.innerHTML = '';
+
+  // Ensure container is visible
+  document.getElementById('diagram-container').style.display = 'block';
+
+  // Fixed SVG size
+  const SVG_WIDTH = 600;
+  const SVG_HEIGHT = 400;
+  svg.setAttribute('width', SVG_WIDTH);
+  svg.setAttribute('height', SVG_HEIGHT);
+
+  // Scale factor
+  const scale = Math.min(SVG_WIDTH, SVG_HEIGHT) / 750;
+
+  // Center point
+  const centerX = SVG_WIDTH / 2;
+  const centerY = SVG_HEIGHT / 2;
+
+  // --- Old tire setup in px
+  const old_centerX       = centerX - (old_offset * scale);
+  const old_tireWidth_px  = old_tireWidth * scale;
+  const old_diameter_px   = old_diameter * scale;
+  const old_rimWidth_px   = old_wheelWidth_mm * scale;
+  const old_rimHeight_px  = (old_wheelDiameter * 25.4) * scale;
+
+  // --- New tire setup in px
+  const new_centerX       = centerX - (new_offset * scale);
+  const new_tireWidth_px  = new_tireWidth * scale;
+  const new_diameter_px   = new_diameter * scale;
+  const new_rimWidth_px   = new_wheelWidth_mm * scale;
+  const new_rimHeight_px  = (new_wheelDiameter * 25.4) * scale;
+
+  // Draw suspension
+  drawSuspension(svg, centerX, centerY, SVG_WIDTH, SVG_HEIGHT);
+
+  // Lug circles
+  for (let i = -1; i <= 1; i++) {
+    const lug = createSVGElement('circle', {
+      cx: centerX,
+      cy: centerY + i * 10,
+      r: 2,
+      fill: '#333'
+    });
+    svg.appendChild(lug);
   }
-  
-  /**
-   * Draw our updated diagram in the <svg> with id="diagram"
-   *   - No static vertical hub line
-   *   - Optionally draws a "fender" if the user has "Show Fender?" checked
-   */
-  function drawDiagram(
-    old_offset, old_wheelWidth_mm, old_diameter, old_wheelDiameter, old_tireWidth,
-    new_offset, new_wheelWidth_mm, new_diameter, new_wheelDiameter, new_tireWidth
-  ) {
-    // Clear previous diagram
-    const svg = document.getElementById('diagram');
-    svg.innerHTML = '';
-  
-    // Make sure diagram container is visible
-    document.getElementById('diagram-container').style.display = 'block';
-  
-    // Determine final SVG width/height (or fallback if 0)
-    const container = document.getElementById('diagram-container');
-    const SVG_WIDTH = 600;
-    const SVG_HEIGHT = 400;
-  
-    // Set our <svg> dimensions
-    svg.setAttribute('width', SVG_WIDTH);
-    svg.setAttribute('height', SVG_HEIGHT);
-  
-    // A scale factor so your parts don't go offscreen
-    const scale = Math.min(SVG_WIDTH, SVG_HEIGHT) / 750;
-  
-    // The center of our coordinate system
-    const centerX = SVG_WIDTH / 2;
-    const centerY = SVG_HEIGHT / 2;
-  
-    // Convert mm to pixel space
-    const old_centerX = centerX - (old_offset * scale);
-    const new_centerX = centerX - (new_offset * scale);
-  
-    const old_tireWidth_px  = old_tireWidth * scale;
-    const old_tireHeight_px = old_diameter * scale;
-    const old_rimWidth_px   = old_wheelWidth_mm * scale;
-    const old_rimHeight_px  = (old_wheelDiameter * 25.4) * scale;
-  
-    const new_tireWidth_px  = new_tireWidth * scale;
-    const new_tireHeight_px = new_diameter * scale;
-    const new_rimWidth_px   = new_wheelWidth_mm * scale;
-    const new_rimHeight_px  = (new_wheelDiameter * 25.4) * scale;
-  
-    // 1) Draw suspension / arms / coilover (minus vertical hub line)
-    drawSuspension(svg, centerX, centerY, SVG_WIDTH, SVG_HEIGHT);
-  
-    // 2) Draw some lug circles near the hub center
-    //    (Spacing them by 10 px up/down from center)
-    for (let i = -1; i <= 1; i++) {
-      const lug = createSVGElement('circle', {
-        cx: centerX,
-        cy: centerY + i * 10,
-        r: 2,
-        fill: '#333'
-      });
-      svg.appendChild(lug);
-    }
-  
-    // 3) Draw "old" setup in Blue
-    drawWheelAndTire(
-      svg,
-      old_centerX, centerY,
-      old_rimWidth_px, old_rimHeight_px,
-      old_tireWidth_px, old_tireHeight_px,
-      '#0078d4'  // or "blue"
+
+  // Draw old wheel/tire
+  drawWheelAndTire(
+    svg,
+    old_centerX, centerY,
+    old_rimWidth_px, old_rimHeight_px,
+    old_tireWidth_px, old_diameter_px,
+    '#0078d4'
+  );
+
+  // Draw new wheel/tire
+  drawWheelAndTire(
+    svg,
+    new_centerX, centerY,
+    new_rimWidth_px, new_rimHeight_px,
+    new_tireWidth_px, new_diameter_px,
+    '#ff5722'
+  );
+
+  // If "Show Fender?" is unchecked => set both fender dists to "N/A"
+  const showFenderCheckbox = document.getElementById('showFender');
+  if (!showFenderCheckbox || !showFenderCheckbox.checked) {
+    document.getElementById('res_oldFenderDist').innerText = "N/A";
+    document.getElementById('res_newFenderDist').innerText = "N/A";
+    return;
+  }
+
+  // Otherwise, read the fender inputs and draw the arc
+  const fenderGapHeightInput = document.getElementById('fenderGapHeight');
+  const fenderGapWidthInput  = document.getElementById('fenderGapWidth');
+  const offsetXSlider        = document.getElementById('fenderOffsetX');
+  const offsetYSlider        = document.getElementById('fenderOffsetY');
+
+  if (fenderGapHeightInput && fenderGapWidthInput && offsetXSlider && offsetYSlider) {
+    const fenderGapHeight = parseFloat(fenderGapHeightInput.value) || 0;
+    const fenderGapWidth  = parseFloat(fenderGapWidthInput.value)  || 0;
+    const offsetX         = parseFloat(offsetXSlider.value) || 0;
+    const offsetY         = parseFloat(offsetYSlider.value) || 0;
+
+    // 1) Draw the arc
+    const r = drawFender(svg, centerX, centerY, scale,
+                         fenderGapHeight, fenderGapWidth,
+                         offsetX, offsetY);
+
+    // 2) Compute distance for both Old + New top-right corners
+    //    We'll replicate the "top-right corner" logic from how we drew the tire.
+
+    // Old tire corner
+    const oldTireTopRightX = old_centerX + (old_tireWidth_px / 2);
+    const oldTireTopRightY = centerY - (old_diameter_px / 2);
+    const oldDistToFenderMm = computeDistanceToArc(
+      oldTireTopRightX, oldTireTopRightY,
+      centerX, centerY, offsetX, offsetY,
+      fenderGapHeight, fenderGapWidth,
+      r, scale
     );
-  
-    // 4) Draw "new" setup in Orange
-    drawWheelAndTire(
-      svg,
-      new_centerX, centerY,
-      new_rimWidth_px, new_rimHeight_px,
-      new_tireWidth_px, new_tireHeight_px,
-      '#ff5722'  // or "orange"
+
+    // New tire corner
+    const newTireTopRightX = new_centerX + (new_tireWidth_px / 2);
+    const newTireTopRightY = centerY - (new_diameter_px / 2);
+    const newDistToFenderMm = computeDistanceToArc(
+      newTireTopRightX, newTireTopRightY,
+      centerX, centerY, offsetX, offsetY,
+      fenderGapHeight, fenderGapWidth,
+      r, scale
     );
-  
-    // 5) Draw optional Fender if "Show Fender?" is checked
-    const showFenderCheckbox = document.getElementById('showFender');
-    if (showFenderCheckbox && showFenderCheckbox.checked) {
-      const fenderGapInput = document.getElementById('fenderGap');
-      const offsetXSlider  = document.getElementById('fenderOffsetX');
-      const offsetYSlider  = document.getElementById('fenderOffsetY');
-  
-      if (fenderGapInput && offsetXSlider && offsetYSlider) {
-        const fenderGap = parseFloat(fenderGapInput.value) || 80;
-        const offsetX   = parseFloat(offsetXSlider.value) || 0;
-        const offsetY   = parseFloat(offsetYSlider.value) || 0;
-  
-        drawFender(svg, centerX, centerY, scale, fenderGap, offsetX, offsetY);
-      }
+
+    // Update table cells
+    const oldCell = document.getElementById('res_oldFenderDist');
+    const newCell = document.getElementById('res_newFenderDist');
+
+    oldCell.innerText = oldDistToFenderMm.toFixed(1) + " mm";
+    newCell.innerText = newDistToFenderMm.toFixed(1) + " mm";
+
+    // Highlight red if distance > -2 mm (meaning the corner is 
+    // within or past the fender by less than 2 mm).
+    highlightFenderCell(oldCell, oldDistToFenderMm);
+    highlightFenderCell(newCell, newDistToFenderMm);
+
+    // 3) Also show "Modified Fender" readout:
+    // Convert offsetX from px => mm via scale, then add fenderGapWidth
+    let offsetX_mm = offsetX / scale; // px -> mm
+    let totalFenderWidth = fenderGapWidth + offsetX_mm;
+    // Suppose we show it in an element: <span id="fenderWidthCalc"></span>
+    const fwEl = document.getElementById('fenderWidthCalc');
+    if (fwEl) {
+      fwEl.innerText = totalFenderWidth.toFixed(1) + " mm";
     }
   }
-  
-  /**
-   * Draw the Wheel + Tire: 
-   *   - Rim rectangle (dashed)
-   *   - Tire top/bottom lines
-   *   - Sidewalls (lines from rim corners to tire corners)
-   */
-  function drawWheelAndTire(
-    svg, centerX, centerY,
-    rimW, rimH,
-    tireW, tireH,
-    color
-  ) {
-    // Rim rectangle (dashed)
-    const rimRect = createSVGElement('rect', {
-      x: centerX - rimW / 2,
-      y: centerY - rimH / 2,
-      width: rimW,
-      height: rimH,
-      fill: 'none',
-      stroke: color,
-      'stroke-width': '1',
-      'stroke-dasharray': '3 2'
-    });
-    svg.appendChild(rimRect);
-  
-    // Tire top line
-    const tireTop = createSVGElement('line', {
-      x1: centerX - tireW / 2,
-      y1: centerY - tireH / 2,
-      x2: centerX + tireW / 2,
-      y2: centerY - tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    });
-    svg.appendChild(tireTop);
-  
-    // Tire bottom line
-    const tireBottom = createSVGElement('line', {
-      x1: centerX - tireW / 2,
-      y1: centerY + tireH / 2,
-      x2: centerX + tireW / 2,
-      y2: centerY + tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    });
-    svg.appendChild(tireBottom);
-  
-    // Sidewalls
-    drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color);
+}
+
+/**
+ * Draw the Wheel + Tire
+ */
+function drawWheelAndTire(
+  svg, wheelCenterX, wheelCenterY,
+  rimW, rimH,
+  tireW, tireH,
+  color
+) {
+  // Rim (dashed)
+  const rimRect = createSVGElement('rect', {
+    x: wheelCenterX - rimW / 2,
+    y: wheelCenterY - rimH / 2,
+    width: rimW,
+    height: rimH,
+    fill: 'none',
+    stroke: color,
+    'stroke-width': '1',
+    'stroke-dasharray': '3 2'
+  });
+  svg.appendChild(rimRect);
+
+  // Tire top line
+  const tireTop = createSVGElement('line', {
+    x1: wheelCenterX - tireW / 2,
+    y1: wheelCenterY - tireH / 2,
+    x2: wheelCenterX + tireW / 2,
+    y2: wheelCenterY - tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  });
+  svg.appendChild(tireTop);
+
+  // Tire bottom line
+  const tireBottom = createSVGElement('line', {
+    x1: wheelCenterX - tireW / 2,
+    y1: wheelCenterY + tireH / 2,
+    x2: wheelCenterX + tireW / 2,
+    y2: wheelCenterY + tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  });
+  svg.appendChild(tireBottom);
+
+  // Sidewalls
+  drawSidewalls(svg, wheelCenterX, wheelCenterY, tireW, tireH, rimW, rimH, color);
+}
+
+/**
+ * Draw sidewalls
+ */
+function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
+  // Top sidewalls
+  svg.appendChild(createSVGElement('line', {
+    x1: centerX - rimW / 2,
+    y1: centerY - rimH / 2,
+    x2: centerX - tireW / 2,
+    y2: centerY - tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  }));
+  svg.appendChild(createSVGElement('line', {
+    x1: centerX + rimW / 2,
+    y1: centerY - rimH / 2,
+    x2: centerX + tireW / 2,
+    y2: centerY - tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  }));
+
+  // Bottom sidewalls
+  svg.appendChild(createSVGElement('line', {
+    x1: centerX - rimW / 2,
+    y1: centerY + rimH / 2,
+    x2: centerX - tireW / 2,
+    y2: centerY + tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  }));
+  svg.appendChild(createSVGElement('line', {
+    x1: centerX + rimW / 2,
+    y1: centerY + rimH / 2,
+    x2: centerX + tireW / 2,
+    y2: centerY + tireH / 2,
+    stroke: color,
+    'stroke-width': '2'
+  }));
+}
+
+/**
+ * Draw a 1/4 circle "fender" 
+ * Return the radius used
+ */
+function drawFender(
+  svg, hubCenterX, hubCenterY, scale,
+  fenderGapHeight, fenderGapWidth,
+  offsetX, offsetY
+) {
+  // Arc radius
+  const r = 120;
+
+  // Convert mm to px
+  const gapPxHeight = fenderGapHeight * scale;
+  const gapPxWidth  = fenderGapWidth  * scale;
+
+  // Shift so "Width=0" keeps arc over hub
+  const cx = (hubCenterX + offsetX + gapPxWidth) - r;
+  const cy = (hubCenterY + offsetY) - gapPxHeight;
+
+  // Draw arc from (cx, cy-r) to (cx+r, cy)
+  const pathData = `
+    M ${cx} ${cy - r}
+    A ${r} ${r} 0 0 1 ${cx + r} ${cy}
+  `;
+  const arc = createSVGElement('path', {
+    d: pathData,
+    stroke: '#666',
+    'stroke-width': '4',
+    fill: 'none'
+  });
+  svg.appendChild(arc);
+
+  return r;
+}
+
+/**
+ * Compute the distance (in mm) from a given corner (cornerX, cornerY)
+ * to the "fender arc" which has center = (cx, cy) - r
+ */
+function computeDistanceToArc(
+  cornerX, cornerY,
+  hubCenterX, hubCenterY, offsetX, offsetY,
+  fenderGapHeight, fenderGapWidth,
+  r, scale
+) {
+  // Recreate the center
+  const gapPxHeight = fenderGapHeight * scale;
+  const gapPxWidth  = fenderGapWidth  * scale;
+
+  const cx = (hubCenterX + offsetX + gapPxWidth) - r;
+  const cy = (hubCenterY + offsetY) - gapPxHeight;
+
+  // Dist from corner -> arc center
+  const dx = cornerX - cx;
+  const dy = cornerY - cy;
+  const distPx = Math.sqrt(dx*dx + dy*dy);
+
+  // gapPx = distPx - r
+  const gapPx = distPx - r;
+
+  // Convert to mm
+  return gapPx / scale;
+}
+
+/**
+ * Highlight the cell if distanceToFender > -2 mm
+ */
+function highlightFenderCell(cell, distMm) {
+  // If distMm > -2 => the tire is within ~2 mm or out past the arc
+  if (distMm > -2) {
+    cell.style.backgroundColor = "red";
+    cell.style.color = "#fff";
+  } else {
+    cell.style.backgroundColor = "";
+    cell.style.color = "";
   }
-  
-  /**
-   * Draw the sidewalls: lines from the rim corners to the tire corners (top and bottom)
-   */
-  function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
-    // Top sidewalls
-    // Left top
-    svg.appendChild(createSVGElement('line', {
-      x1: centerX - rimW / 2,
-      y1: centerY - rimH / 2,
-      x2: centerX - tireW / 2,
-      y2: centerY - tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    }));
-    // Right top
-    svg.appendChild(createSVGElement('line', {
-      x1: centerX + rimW / 2,
-      y1: centerY - rimH / 2,
-      x2: centerX + tireW / 2,
-      y2: centerY - tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    }));
-  
-    // Bottom sidewalls
-    // Left bottom
-    svg.appendChild(createSVGElement('line', {
-      x1: centerX - rimW / 2,
-      y1: centerY + rimH / 2,
-      x2: centerX - tireW / 2,
-      y2: centerY + tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    }));
-    // Right bottom
-    svg.appendChild(createSVGElement('line', {
-      x1: centerX + rimW / 2,
-      y1: centerY + rimH / 2,
-      x2: centerX + tireW / 2,
-      y2: centerY + tireH / 2,
-      stroke: color,
-      'stroke-width': '2'
-    }));
-  }
-  
-  /**
-   * Optional stylized "Fender" arc above the wheel, with user offsets
-   *   fenderGap: hub-to-fender distance in mm (converted to px)
-   *   offsetX / offsetY: user slider offsets in px
-   */
-  function drawFender(svg, hubCenterX, hubCenterY, scale, fenderGap, offsetX, offsetY) {
-    // Convert gap from mm to pixels
-    const gapPx = fenderGap * scale;
-  
-    // "Center" of the circle is offset above the hub by gapPx, plus user offsets
-    const cx = hubCenterX + offsetX;
-    const cy = hubCenterY - gapPx + offsetY;
-  
-    // We'll define radius for the arc. Tweak as desired.
-    const r = 120; // how big the quarter circle is
-  
-    // Move from top of circle (cx, cy - r) to right side (cx + r, cy)
-    const pathData = `
-      M ${cx} ${cy - r}
-      A ${r} ${r} 0 0 1 ${cx + r} ${cy}
-    `;
-  
-    const arc = createSVGElement('path', {
-      d: pathData,
-      stroke: '#666',
-      'stroke-width': '4',
+}
+
+/**
+ * Draw stylized suspension
+ */
+function drawSuspension(svg, centerX, centerY, w, h) {
+  const coiloverX = centerX - 150;
+  const coiloverY = centerY - 60;
+
+  // Coilover main line
+  const coiloverLine = createSVGElement('line', {
+    x1: coiloverX,      y1: coiloverY - 20,
+    x2: coiloverX + 20, y2: coiloverY + 20,
+    stroke: '#555',
+    'stroke-width': '4'
+  });
+  svg.appendChild(coiloverLine);
+
+  // Coil arcs
+  for (let i = 0; i < 3; i++) {
+    const coilArc = createSVGElement('path', {
+      d: `M ${coiloverX} ${coiloverY + i*10}
+           C ${coiloverX + 10} ${coiloverY + i*10 - 5},
+             ${coiloverX + 10} ${coiloverY + i*10 + 5},
+             ${coiloverX + 20} ${coiloverY + i*10}`,
+      stroke: '#888',
+      'stroke-width': '2',
       fill: 'none'
     });
-    svg.appendChild(arc);
+    svg.appendChild(coilArc);
   }
-  
-  
-  /**
-   * Draw stylized suspension (no static vertical line):
-   *   - coilover, arcs, knuckle, lower control arm, axle line
-   */
-  function drawSuspension(svg, centerX, centerY, w, h) {
-    // Position it to the left of the hub
-    const coiloverX = centerX - 150;
-    const coiloverY = centerY - 60;
-  
-    // Coilover main line
-    const coiloverLine = createSVGElement('line', {
-      x1: coiloverX,      y1: coiloverY - 20,
-      x2: coiloverX + 20, y2: coiloverY + 20,
-      stroke: '#555',
-      'stroke-width': '4'
-    });
-    svg.appendChild(coiloverLine);
-  
-    // Coil arcs
-    for (let i = 0; i < 3; i++) {
-      const coilArc = createSVGElement('path', {
-        d: `M ${coiloverX} ${coiloverY + i * 10}
-             C ${coiloverX + 10} ${coiloverY + i * 10 - 5},
-               ${coiloverX + 10} ${coiloverY + i * 10 + 5},
-               ${coiloverX + 20} ${coiloverY + i * 10}`,
-        stroke: '#888',
-        'stroke-width': '2',
-        fill: 'none'
-      });
-      svg.appendChild(coilArc);
-    }
-  
-    // Knuckle line
-    const knuckle = createSVGElement('line', {
-      x1: centerX,      y1: centerY,
-      x2: coiloverX + 20, y2: coiloverY + 20,
-      stroke: '#444',
-      'stroke-width': '3'
-    });
-    svg.appendChild(knuckle);
-  
-    // Lower control arm
-    const armX = centerX - 100;
-    const armY = centerY + 40;
-    const controlArm = createSVGElement('line', {
-      x1: armX,     y1: armY,
-      x2: centerX,  y2: centerY,
-      stroke: '#444',
-      'stroke-width': '3'
-    });
-    svg.appendChild(controlArm);
-  
-    // Axle: dashed horizontal line through the hub
-    const axle = createSVGElement('line', {
-      x1: centerX - 80,
-      y1: centerY,
-      x2: centerX + 80,
-      y2: centerY,
-      stroke: '#444',
-      'stroke-width': '2',
-      'stroke-dasharray': '2 2'
-    });
-    svg.appendChild(axle);
+
+  // Knuckle
+  const knuckle = createSVGElement('line', {
+    x1: centerX,     y1: centerY,
+    x2: coiloverX + 20, y2: coiloverY + 20,
+    stroke: '#444',
+    'stroke-width': '3'
+  });
+  svg.appendChild(knuckle);
+
+  // Lower control arm
+  const armX = centerX - 100;
+  const armY = centerY + 40;
+  const controlArm = createSVGElement('line', {
+    x1: armX,    y1: armY,
+    x2: centerX, y2: centerY,
+    stroke: '#444',
+    'stroke-width': '3'
+  });
+  svg.appendChild(controlArm);
+
+  // Axle: dashed line
+  const axle = createSVGElement('line', {
+    x1: centerX - 80,
+    y1: centerY,
+    x2: centerX + 80,
+    y2: centerY,
+    stroke: '#444',
+    'stroke-width': '2',
+    'stroke-dasharray': '2 2'
+  });
+  svg.appendChild(axle);
+}
+
+/**
+ * Utility function to create an SVG element
+ */
+function createSVGElement(tag, attrs) {
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for (const key in attrs) {
+    el.setAttribute(key, attrs[key]);
   }
-  
-  /**
-   * Utility for creating an SVG element with a set of attributes
-   */
-  function createSVGElement(tag, attrs) {
-    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-    for (const key in attrs) {
-      el.setAttribute(key, attrs[key]);
-    }
-    return el;
-  }
-  
-  
-  /***********************************************************
-   * Event listeners for the "Show Fender?" checkbox and sliders
-   * so that we can update the diagram live (optional).
-   *
-   * Note: If you prefer the user to click "Calculate" each time,
-   * you can omit these live listeners and just rely on `calculate()`.
-   ***********************************************************/
-  
-  // Show/hide fender options
-  document.getElementById('showFender').addEventListener('change', function() {
-    const fenderOpts = document.getElementById('fenderOptions');
-    if (this.checked) {
-      fenderOpts.style.display = 'block';
-    } else {
-      fenderOpts.style.display = 'none';
-    }
-    // Optionally auto redraw:
-    calculate();
-  });
-  
-  // Live slider updates for X offset
-  document.getElementById('fenderOffsetX').addEventListener('input', function() {
-    document.getElementById('fenderOffsetXValue').textContent = this.value;
-    // Optionally auto redraw:
-    calculate();
-  });
-  
-  // Live slider updates for Y offset
-  document.getElementById('fenderOffsetY').addEventListener('input', function() {
-    document.getElementById('fenderOffsetYValue').textContent = this.value;
-    // Optionally auto redraw:
-    calculate();
-  });
-  
-  // Live updates for the "Hub to Fender" mm input
-  document.getElementById('fenderGap').addEventListener('input', function() {
-    // Optionally auto redraw:
-    calculate();
-  });
-  
+  return el;
+}
+
+
+/***********************************************************
+ * Event listeners (live updates)
+ ***********************************************************/
+
+// Show/hide fender options in a consistent container
+document.getElementById('showFender').addEventListener('change', function() {
+  const fenderOpts = document.getElementById('fenderOptions');
+  fenderOpts.style.display = this.checked ? 'block' : 'none';
+  calculate();
+});
+
+// Fix slider text display widths via a small inline style or CSS:
+const fxSlider = document.getElementById('fenderOffsetXValue');
+const fySlider = document.getElementById('fenderOffsetYValue');
+fxSlider.style.width = "40px";
+fySlider.style.width = "40px";
+
+// X slider
+document.getElementById('fenderOffsetX').addEventListener('input', function() {
+  // Put the numeric value in the fixed-width span
+  fxSlider.textContent = this.value;
+  calculate();
+});
+
+// Y slider
+document.getElementById('fenderOffsetY').addEventListener('input', function() {
+  fySlider.textContent = this.value;
+  calculate();
+});
+
+// Height
+document.getElementById('fenderGapHeight').addEventListener('input', function() {
+  calculate();
+});
+
+// Width
+document.getElementById('fenderGapWidth').addEventListener('input', function() {
+  calculate();
+});
