@@ -103,21 +103,23 @@ function calculate() {
  *   - Then calculates "Distance to Fender" for BOTH old & new tires
  */
 function drawDiagram(
-  old_offset, old_wheelWidth_mm, old_diameter, old_wheelDiameter, old_tireWidth,
-  new_offset, new_wheelWidth_mm, new_diameter, new_wheelDiameter, new_tireWidth
-) {
-  // Clear previous diagram
-  const svg = document.getElementById('diagram');
-  svg.innerHTML = '';
-
-  // Ensure container is visible
-  document.getElementById('diagram-container').style.display = 'block';
-
-    // Get the container's size dynamically
+    old_offset, old_wheelWidth_mm, old_diameter, old_wheelDiameter, old_tireWidth,
+    new_offset, new_wheelWidth_mm, new_diameter, new_wheelDiameter, new_tireWidth
+  ) {
+    // Clear previous diagram
+    const svg = document.getElementById('diagram');
+    svg.innerHTML = '';
+  
+    // Ensure container is visible
+    document.getElementById('diagram-container').style.display = 'block';
+  
+    // Get the container's width
     const container = document.getElementById('diagram-container');
-    const SVG_WIDTH = container.offsetWidth; // Use the container's width
-    const SVG_HEIGHT = container.offsetHeight > 0 ? container.offsetHeight : SVG_WIDTH * 0.66; // Maintain aspect ratio
-
+    const SVG_WIDTH = container.offsetWidth;
+    
+    // Instead of using container.offsetHeight, use a ratio
+    const SVG_HEIGHT = Math.round(SVG_WIDTH * 0.66);
+  
     // Set the SVG dimensions
     svg.setAttribute('width', SVG_WIDTH);
     svg.setAttribute('height', SVG_HEIGHT);

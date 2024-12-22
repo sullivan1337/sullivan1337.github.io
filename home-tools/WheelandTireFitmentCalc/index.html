@@ -64,34 +64,6 @@
   </div>
 
   <div class="fender-controls">
-    <label>
-      <input type="checkbox" id="showFender" />
-      Show Fender?
-    </label>
-    <br />
-  
-    <div id="fenderOptions" style="display:none;">
-      <label for="fenderGapHeight">Hub to Fender (Height/Up in mm):</label>
-      <input type="number" id="fenderGapHeight" value="300" style="width:60px;" />
-    
-      <br><br>
-    
-      <label for="fenderGapWidth">Hub to Fender (Width/Out in mm):</label>
-      <input type="number" id="fenderGapWidth" value="120" style="width:60px;" />
-    
-      <br><br>
-    
-      <label for="fenderOffsetX">Fender X Offset:</label>
-      <input type="range" id="fenderOffsetX" min="-100" max="100" value="0" />
-      <span id="fenderOffsetXValue">0</span>
-    
-      <br><br>
-    
-      <label for="fenderOffsetY">Fender Y Offset:</label>
-      <input type="range" id="fenderOffsetY" min="-100" max="100" value="0" />
-      <span id="fenderOffsetYValue">0</span>
-    </div>
-
     <div class="calculate-container">
       <button class="calculate-btn" onclick="calculate()">Calculate</button>
     </div>
@@ -154,6 +126,33 @@
 
     <div class="diagram-container" id="diagram-container" style="display:none;">
       <h2>Visualization (Front View)</h2>
+      <label>
+        <input type="checkbox" id="showFender" />
+        Show Fender?
+      </label>
+      <br />
+    
+      <div id="fenderOptions" style="display:none;">
+        <label for="fenderGapHeight">Hub to Fender (Height/Up in mm):</label>
+        <input type="number" id="fenderGapHeight" value="300" style="width:60px;" />
+      
+        <br><br>
+      
+        <label for="fenderGapWidth">Hub to Fender (Width/Out in mm):</label>
+        <input type="number" id="fenderGapWidth" value="120" style="width:60px;" />
+      
+        <br><br>
+      
+        <label for="fenderOffsetX">Fender X Offset:</label>
+        <input type="range" id="fenderOffsetX" min="-100" max="100" value="0" />
+        <span id="fenderOffsetXValue">0</span>
+      
+        <br><br>
+      
+        <label for="fenderOffsetY">Fender Y Offset:</label>
+        <input type="range" id="fenderOffsetY" min="-100" max="100" value="0" />
+        <span id="fenderOffsetYValue">0</span>
+      </div>
       <svg id="diagram"></svg>
       <div class="legend">
         <div class="legend-item">
