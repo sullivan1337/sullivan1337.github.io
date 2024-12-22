@@ -3,128 +3,159 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Wheel & Tire Fitment - Calculator</title>
+<title>Wheel and Tire Fitment Calc</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-  <h1>Wheel & Tire Fitment Calculator</h1>
-  <div class="form-section">
-    <div class="form-block">
-      <h3>Existing Setup</h3>
-      <div class="form-group">
-        <label for="old_tireWidth">Tire Width (mm):</label>
-        <input type="number" id="old_tireWidth" value="205">
-      </div>
-      <div class="form-group">
-        <label for="old_aspectRatio">Aspect Ratio (%):</label>
-        <input type="number" id="old_aspectRatio" value="55">
-      </div>
-      <div class="form-group">
-        <label for="old_wheelDiameter">Wheel Diameter (inches):</label>
-        <input type="number" id="old_wheelDiameter" value="16">
-      </div>
-      <div class="form-group">
-        <label for="old_wheelWidth">Wheel Width (inches):</label>
-        <input type="number" id="old_wheelWidth" value="6" step="0.5">
-      </div>
-      <div class="form-group">
-        <label for="old_offset">Offset (mm):</label>
-        <input type="number" id="old_offset" value="50">
-      </div>
-    </div>
-
-    <div class="form-block">
-      <h3>New Setup</h3>
-      <div class="form-group">
-        <label for="new_tireWidth">Tire Width (mm):</label>
-        <input type="number" id="new_tireWidth" value="225">
-      </div>
-      <div class="form-group">
-        <label for="new_aspectRatio">Aspect Ratio (%):</label>
-        <input type="number" id="new_aspectRatio" value="40">
-      </div>
-      <div class="form-group">
-        <label for="new_wheelDiameter">Wheel Diameter (inches):</label>
-        <input type="number" id="new_wheelDiameter" value="18">
-      </div>
-      <div class="form-group">
-        <label for="new_wheelWidth">Wheel Width (inches):</label>
-        <input type="number" id="new_wheelWidth" value="8.5" step="0.5">
-      </div>
-      <div class="form-group">
-        <label for="new_offset">Offset (mm):</label>
-        <input type="number" id="new_offset" value="30">
+  <h1>Wheel and Tire Fitment Calculator</h1>
+  <div class="staggered-form-section">
+    <div class="staggered-block">
+      <h3>Your Existing Setup</h3>
+      <div class="staggered-inputs">
+        <div class="form-group">
+          <label for="old_tireWidth">Width (mm)</label>
+          <input type="number" id="old_tireWidth" value="205">
+        </div>
+        <div class="form-group">
+          <label for="old_aspectRatio">Profile (%)</label>
+          <input type="number" id="old_aspectRatio" value="55">
+        </div>
+        <div class="form-group">
+          <label for="old_wheelDiameter">Diameter (inches)</label>
+          <input type="number" id="old_wheelDiameter" value="16">
+        </div>
+        <div class="form-group">
+          <label for="old_wheelWidth">Wheel Width (inches)</label>
+          <input type="number" id="old_wheelWidth" value="6" step="0.5">
+        </div>
+        <div class="form-group">
+          <label for="old_offset">Offset (mm)</label>
+          <input type="number" id="old_offset" value="50">
+        </div>
       </div>
     </div>
 
-    <div class="form-block" style="align-self:flex-end;">
+    <div class="staggered-block">
+      <h3>Your New Setup</h3>
+      <div class="staggered-inputs">
+        <div class="form-group">
+          <label for="new_tireWidth">Width (mm)</label>
+          <input type="number" id="new_tireWidth" value="225">
+        </div>
+        <div class="form-group">
+          <label for="new_aspectRatio">Profile (%)</label>
+          <input type="number" id="new_aspectRatio" value="40">
+        </div>
+        <div class="form-group">
+          <label for="new_wheelDiameter">Diameter (inches)</label>
+          <input type="number" id="new_wheelDiameter" value="18">
+        </div>
+        <div class="form-group">
+          <label for="new_wheelWidth">Wheel Width (inches)</label>
+          <input type="number" id="new_wheelWidth" value="8.5" step="0.5">
+        </div>
+        <div class="form-group">
+          <label for="new_offset">Offset (mm)</label>
+          <input type="number" id="new_offset" value="30">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fender-controls">
+    <label>
+      <input type="checkbox" id="showFender" />
+      Show Fender?
+    </label>
+    <br />
+  
+    <div id="fenderOptions" style="display: none; margin-top: 8px;">
+      <label for="fenderGap">Hub to Fender (height in mm): </label>
+      <input type="number" id="fenderGap" value="80" style="width: 60px;" />
+      <br /><br />
+  
+      <label for="fenderOffsetX">Fender X Offset: </label>
+      <input type="range" id="fenderOffsetX" min="-100" max="100" value="0" />
+      <span id="fenderOffsetXValue">0</span>
+      <br /><br />
+  
+      <label for="fenderOffsetY">Fender Y Offset: </label>
+      <input type="range" id="fenderOffsetY" min="-100" max="100" value="0" />
+      <span id="fenderOffsetYValue">0</span>
+    </div>
+
+    <div class="calculate-container">
       <button class="calculate-btn" onclick="calculate()">Calculate</button>
     </div>
   </div>
 
-  <div class="results" id="results" style="display:none;">
-    <h2>Results</h2>
-    <table class="results-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Existing</th>
-          <th>New</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>Diameter (mm)</th>
-          <td id="res_oldDiameter"></td>
-          <td id="res_newDiameter"></td>
-        </tr>
-        <tr>
-          <th>Circumference (mm)</th>
-          <td id="res_oldCirc"></td>
-          <td id="res_newCirc"></td>
-        </tr>
-        <tr>
-          <th>Poke (mm)</th>
-          <td id="res_oldPoke"></td>
-          <td id="res_newPoke"></td>
-        </tr>
-        <tr>
-          <th>Inset (mm)</th>
-          <td id="res_oldInset"></td>
-          <td id="res_newInset"></td>
-        </tr>
-        <tr>
-          <th>Speedo Error</th>
-          <td colspan="2" id="res_speedoError"></td>
-        </tr>
-        <tr>
-          <th>Reading at 30mph</th>
-          <td>30 mph</td>
-          <td id="res_30new"></td>
-        </tr>
-        <tr>
-          <th>Reading at 60mph</th>
-          <td>60 mph</td>
-          <td id="res_60new"></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="results-visualization-container">
+    <div class="results" id="results" style="display:none;">
+      <h2>Your Results</h2>
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Existing</th>
+            <th>New</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Diameter (mm)</th>
+            <td id="res_oldDiameter"></td>
+            <td id="res_newDiameter"></td>
+          </tr>
+          <tr>
+            <th>Circumference (mm)</th>
+            <td id="res_oldCirc"></td>
+            <td id="res_newCirc"></td>
+          </tr>
+          <tr>
+            <th>Poke (mm)</th>
+            <td id="res_oldPoke"></td>
+            <td id="res_newPoke"></td>
+          </tr>
+          <tr>
+            <th>Inset (mm)</th>
+            <td id="res_oldInset"></td>
+            <td id="res_newInset"></td>
+          </tr>
+          <tr>
+            <th>Speedo Error</th>
+            <td colspan="2" id="res_speedoError"></td>
+          </tr>
+          <tr>
+            <th>Reading at 30mph</th>
+            <td>30 mph</td>
+            <td id="res_30new"></td>
+          </tr>
+          <tr>
+            <th>Reading at 60mph</th>
+            <td>60 mph</td>
+            <td id="res_60new"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <div class="diagram-container" id="diagram-container" style="display:none;">
-    <h2>Visualization (Front View)</h2>
-    <svg id="diagram" width="600" height="300"></svg>
-    <div class="legend">
-      <div class="legend-item">
-        <span class="legend-color old"></span> Old Setup
-      </div>
-      <div class="legend-item">
-        <span class="legend-color new"></span> New Setup
+    <div class="diagram-container" id="diagram-container" style="display:none;">
+      <h2>Visualization (Front View)</h2>
+      <svg id="diagram"></svg>
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color old"></span> Old Setup
+        </div>
+        <div class="legend-item">
+          <span class="legend-color new"></span> New Setup
+        </div>
       </div>
     </div>
   </div>
 </div>
+
 <script src="script.js"></script>
 </body>
 </html>
+

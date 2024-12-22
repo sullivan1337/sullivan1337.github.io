@@ -1,150 +1,198 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background: #f9f9f9;
-  }
-  
-  h1, h2 {
-    text-align: center;
-    color: #333;
-  }
-  
-  .container {
-    max-width: 1200px;
-    margin: auto;
-  }
-  
-  .form-section {
-    display: flex;
-    flex-wrap: wrap;
-    background: #fff;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow:0 0 5px rgba(0,0,0,0.1);
-  }
-  
-  .form-block {
-    flex: 1;
-    min-width: 250px;
-    margin:10px;
-  }
-  
-  .form-block h3 {
-    margin-bottom: 10px;
-    font-size: 1.2em;
-    border-bottom:1px solid #ddd;
-    padding-bottom:5px;
-  }
-  
-  .form-group {
-    margin-bottom:10px;
-  }
-  
-  .form-group label {
-    display:block;
-    margin-bottom:5px;
-    font-weight:bold;
-    font-size:0.9em;
-  }
-  
-  .form-group input {
-    width:100%;
-    padding:8px;
-    border:1px solid #ccc;
-    border-radius:4px;
-    font-size:1em;
-  }
-  
-  .calculate-btn {
-    display:inline-block;
-    margin:10px auto;
-    padding:10px 20px;
-    background:#5cb85c;
-    color:#fff;
-    border:none;
-    border-radius:4px;
-    cursor:pointer;
-    font-size:1em;
-  }
-  
-  .calculate-btn:hover {
-    background:#4e9e4e;
-  }
-  
-  .results {
-    background:#fff;
-    border-radius:8px;
-    padding:20px;
-    box-shadow:0 0 5px rgba(0,0,0,0.1);
-  }
-  
-  .results h2 {
-    margin-top:0;
-  }
-  
-  .results-table {
-    width:100%;
-    border-collapse:collapse;
-  }
-  
-  .results-table th,
-  .results-table td {
-    border-bottom:1px solid #ddd;
-    text-align:left;
-    padding:10px;
-  }
-  
-  .results-table th {
-    background:#eee;
-  }
-  
-  .note {
-    font-size:0.9em;
-    margin-top:10px;
-    color:#666;
-  }
-  
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background: #f0f4f8;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* Staggered layout for the forms */
+.staggered-form-section {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 10px;
+}
+
+.staggered-block {
+  flex: 1 1 320px; /* Minimum width for each block */
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px; /* Some spacing if they wrap */
+}
+
+.staggered-block h3 {
+  font-size: 1.2em;
+  text-align: center;
+  margin-bottom: 15px;
+  color: #fff;
+  padding: 10px;
+  background: #0078d4; /* Blue for both blocks */
+  border-radius: 4px;
+}
+
+.staggered-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.form-group {
+  flex: 1 1 calc(50% - 10px); /* 2 columns in each block */
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.calculate-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 100%;
+  margin-top: 10px;
+}
+
+.calculate-btn {
+  padding: 15px 30px;
+  background: #ff5722; /* Orange button */
+  color: #fff;
+  font-size: 1.1em;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+.calculate-btn:hover {
+  background: #e64a19;
+}
+
+/* Container for results and diagram */
+.results-visualization-container {
+  display: flex;
+  flex-wrap: wrap; /* let them wrap on smaller devices */
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 20px;
+}
+
+/* Results panel */
+.results {
+  flex: 1 1 300px; /* at least 300px wide */
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Make the results table look a bit nicer */
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.results-table th,
+.results-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.results-table thead th {
+  background: #f8f8f8;
+  font-weight: bold;
+}
+
+.diagram-container {
+  flex: 1 1 400px; /* at least 400px wide on larger screens */
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  /* For demonstration, enforce a min-height so the SVG is visible */
+  min-height: 400px;
+
+  display: flex;
+  flex-direction: column; /* So we can stack the SVG and legend */
+  align-items: center;    /* Center horizontally */
+  justify-content: center; /* Center vertically */
+}
+
+/* Make sure the SVG doesn't overflow its parent container */
+.diagram-container svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* Legend styling */
+.legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.legend-item {
+  margin: 0 20px;
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 20px;
+  height: 10px;
+  margin-right: 5px;
+  border: 2px solid #000;
+}
+
+.legend-color.old {
+  border-color: #0078d4; /* Blue */
+}
+
+.legend-color.new {
+  border-color: #ff5722; /* Orange */
+}
+
+/* Responsive tweaks */
+@media (max-width: 800px) {
+  .results, 
   .diagram-container {
-    background:#fff;
-    padding:20px;
-    border-radius:8px;
-    box-shadow:0 0 5px rgba(0,0,0,0.1);
-    margin-top:20px;
+    flex: 1 1 100%; /* Stack them on small devices */
   }
-  
-  .legend {
-    display:flex;
-    justify-content:center;
-    margin-top:10px;
-  }
-  
-  .legend-item {
-    margin:0 20px;
-    display:flex;
-    align-items:center;
-    font-size:0.9em;
-  }
-  
-  .legend-color {
-    display:inline-block;
-    width:20px;
-    height:10px;
-    margin-right:5px;
-    border:2px solid #000;
-  }
-  
-  .legend-color.old {
-    border-color:black;
-  }
-  
-  .legend-color.new {
-    border-color:orange;
-  }
-  
-  @media (max-width:600px) {
-    .form-section {
-      flex-direction:column;
-    }
-  }
-  
+}
+
+.fender-controls {
+  margin-top: 20px;
+  text-align: center; /* or left, as you prefer */
+}
