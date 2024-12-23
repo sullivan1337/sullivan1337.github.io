@@ -488,7 +488,7 @@ function highlightFenderCell(cell, distMm) {
  * Draw stylized suspension
  */
 function drawSuspension(svg, centerX, centerY, w, h) {
-  const coiloverX = centerX - 150;
+  const coiloverX = centerX - 175;
   const coiloverY = centerY - 60;
 
   // Coilover main line
@@ -578,8 +578,18 @@ fySlider.style.width = "40px";
 
 // X slider
 document.getElementById('fenderOffsetX').addEventListener('input', function() {
-  // Put the numeric value in the fixed-width span
-  fxSlider.textContent = this.value;
+  const fxSliderValue = this.value;
+  
+  // Update the span with the slider value
+  fxSlider.textContent = fxSliderValue;
+
+  // Update the "Hub to Fender Depth (Width/Out)" input box
+  const fenderGapWidthInput = document.getElementById('fenderGapWidth');
+  const initialWidth = parseFloat(fenderGapWidthInput.getAttribute('data-initial-value')) || 120; // Default to 120 if not set
+  const newWidth = initialWidth + parseFloat(fxSliderValue);
+  fenderGapWidthInput.value = Math.round(newWidth); // Round to the nearest whole number
+
+  // Recalculate visualization and results
   calculate();
 });
 
