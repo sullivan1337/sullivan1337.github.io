@@ -98,7 +98,7 @@ function calculate() {
     document.getElementById('res_newPoke').innerText     = new_poke.toFixed(1) + " mm";
     document.getElementById('res_oldInset').innerText    = old_inset.toFixed(1) + " mm";
     document.getElementById('res_newInset').innerText    = new_inset.toFixed(1) + " mm";
-    document.getElementById('res_speedoError').innerText = speedo_error_pct + "% (Speedometer error)";
+    document.getElementById('res_speedoError').innerText = speedo_error_pct + "% (difference)";
     document.getElementById('res_30new').innerText       = readAt30.toFixed(2) + " mph";
     document.getElementById('res_60new').innerText       = readAt60.toFixed(2) + " mph";
 
@@ -333,7 +333,7 @@ function drawWheelAndTire(
     height: rimH,
     fill: 'none',
     stroke: color,
-    'stroke-width': '1',
+    'stroke-width': '3', // Increased thickness for rim outline
     'stroke-dasharray': '3 2'
   });
   svg.appendChild(rimRect);
@@ -345,7 +345,7 @@ function drawWheelAndTire(
     x2: wheelCenterX + tireW / 2,
     y2: wheelCenterY - tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for tire outline
   });
   svg.appendChild(tireTop);
 
@@ -356,13 +356,14 @@ function drawWheelAndTire(
     x2: wheelCenterX + tireW / 2,
     y2: wheelCenterY + tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for tire outline
   });
   svg.appendChild(tireBottom);
 
   // Sidewalls
   drawSidewalls(svg, wheelCenterX, wheelCenterY, tireW, tireH, rimW, rimH, color);
 }
+
 
 /**
  * Draw sidewalls
@@ -375,7 +376,7 @@ function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
     x2: centerX - tireW / 2,
     y2: centerY - tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for sidewalls
   }));
   svg.appendChild(createSVGElement('line', {
     x1: centerX + rimW / 2,
@@ -383,7 +384,7 @@ function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
     x2: centerX + tireW / 2,
     y2: centerY - tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for sidewalls
   }));
 
   // Bottom sidewalls
@@ -393,7 +394,7 @@ function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
     x2: centerX - tireW / 2,
     y2: centerY + tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for sidewalls
   }));
   svg.appendChild(createSVGElement('line', {
     x1: centerX + rimW / 2,
@@ -401,9 +402,10 @@ function drawSidewalls(svg, centerX, centerY, tireW, tireH, rimW, rimH, color) {
     x2: centerX + tireW / 2,
     y2: centerY + tireH / 2,
     stroke: color,
-    'stroke-width': '2'
+    'stroke-width': '3' // Increased thickness for sidewalls
   }));
 }
+
 
 /**
  * Draw a 1/4 circle "fender" 
@@ -433,7 +435,7 @@ function drawFender(
   const arc = createSVGElement('path', {
     d: pathData,
     stroke: '#666',
-    'stroke-width': '4',
+    'stroke-width': '3',
     fill: 'none'
   });
   svg.appendChild(arc);
@@ -489,14 +491,14 @@ function highlightFenderCell(cell, distMm) {
  */
 function drawSuspension(svg, centerX, centerY, w, h) {
   const coiloverX = centerX - 175;
-  const coiloverY = centerY - 60;
+  const coiloverY = centerY - 110;
 
   // Coilover main line
   const coiloverLine = createSVGElement('line', {
     x1: coiloverX,      y1: coiloverY - 20,
     x2: coiloverX + 20, y2: coiloverY + 20,
     stroke: '#555',
-    'stroke-width': '4'
+    'stroke-width': '3'
   });
   svg.appendChild(coiloverLine);
 
