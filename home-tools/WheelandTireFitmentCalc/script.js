@@ -6,6 +6,32 @@
  * 4) Shows "Modified Fender" (in mm) that combines offsetX with fenderGapWidth.
  ***********************************************************/
 
+/***********************************************************
+ * Add live update event listeners to all inputs
+ ***********************************************************/
+
+function addLiveUpdateListeners() {
+  const inputIds = [
+    'old_tireWidth', 'old_aspectRatio', 'old_wheelDiameter', 'old_wheelWidth', 'old_offset',
+    'new_tireWidth', 'new_aspectRatio', 'new_wheelDiameter', 'new_wheelWidth', 'new_offset',
+    'fenderGapHeight', 'fenderGapWidth', 'fenderOffsetX', 'fenderOffsetY'
+  ];
+
+  inputIds.forEach(id => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener('input', calculate); // Call calculate on value change
+    }
+  });
+}
+
+// Call this function once the DOM is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+  addLiveUpdateListeners();
+  calculate(); // Initial calculation
+});
+
+
 /**
  * Main calculation and UI update function
  */
@@ -137,8 +163,6 @@ function stopHold() {
   // Clear the interval when the button is released
   clearInterval(holdInterval);
 }
-
-
 
 /**
  * Draw our updated diagram in the <svg> with id="diagram"

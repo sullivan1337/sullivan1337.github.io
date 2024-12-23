@@ -63,12 +63,18 @@ h1, h2 {
   text-align: center;
 }
 
+/* Align the checkbox and label text inline */
 .form-group label {
-  display: block;
+  display: flex;
+  align-items: center;
   font-size: 0.9em;
-  margin-bottom: 5px;
   font-weight: bold;
-  color: #555;
+  gap: 5px; /* Adds spacing between the checkbox and text */
+}
+
+.form-group input[type="checkbox"] {
+  width: auto; /* Ensure checkbox size is not constrained */
+  margin: 0; /* Remove default margin */
 }
 
 .form-group input {
@@ -243,4 +249,62 @@ input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+
+.staggered-block-fender {
+  flex: 1 1 320px;
+  padding: 15px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.staggered-block-fender h3 {
+  font-size: 1.2em;
+  text-align: center;
+  margin-bottom: 15px;
+  background: #4caf50; /* Green header */
+  color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.fender-inputs {
+  display: flex;
+  flex-direction: column;
+}
+
+.fender-inputs label {
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.fender-inputs input {
+  width: 100%;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.fender-inputs input[type="range"] {
+  width: 100%;
+}
+
+.fender-inputs span {
+  display: inline-block;
+  text-align: center;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+#showFender {
+  margin-right: 5px;
+}
+
+#fenderOptions {
+  display: none; /* Initially hidden */
+}
+
+#showFender:checked ~ #fenderOptions {
+  display: block;
 }

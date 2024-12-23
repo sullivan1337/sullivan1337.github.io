@@ -46,7 +46,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="old_offset">Offset (mm)</label>
+            <label for="old_offset">Wheel Offset (mm)</label>
             <div class="input-container">
               <button type="button" class="btn-decrement" onmousedown="startHold('old_offset', -1)" onmouseup="stopHold()">-</button>
               <input type="number" id="old_offset" value="50">
@@ -92,7 +92,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="new_offset">Offset (mm)</label>
+            <label for="new_offset">Wheel Offset (mm)</label>
             <div class="input-container">
               <button type="button" class="btn-decrement" onmousedown="startHold('new_offset', -1)" onmouseup="stopHold()">-</button>
               <input type="number" id="new_offset" value="25">
@@ -101,19 +101,38 @@
           </div>
         </div>
       </div>
+    <div class="staggered-block-fender">
+      <h3>Fender Options</h3>
+      <div class="fender-inputs">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="showFender" />
+            Show Fender?
+          </label>
+        </div>
+        <div id="fenderOptions">
+          <div class="form-group">
+            <label for="fenderGapHeight">Hub to Fender Height (Vertical/Up) in mm:</label>
+            <input type="number" id="fenderGapHeight" value="300" />
+          </div>
+          <div class="form-group">
+            <label for="fenderGapWidth">Hub to Fender Depth (Width/Out) in mm:</label>
+            <input type="number" id="fenderGapWidth" value="120" />
+          </div>
+          <div class="form-group">
+            <label for="fenderOffsetX">Fender X Offset: (rolling/pulling fender)</label>
+            <input type="range" id="fenderOffsetX" min="-100" max="100" value="0" />
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-   
-
-  <div class="fender-controls">
-    <div class="calculate-container">
-      <button class="calculate-btn" onclick="calculate()">Calculate</button>
-    </div>
-  </div>
+  </div> 
+</div>
+  
 
   <div class="results-visualization-container">
     <div class="results" id="results" style="display:none;">
-      <h2>Your Results</h2>
+      <h2>Results</h2>
       <table class="results-table">
         <thead>
           <tr>
@@ -168,11 +187,7 @@
 
     <div class="diagram-container" id="diagram-container" style="display:none;">
       <h2>Visualization (Front View)</h2>
-      <label>
-        <input type="checkbox" id="showFender" />
-        Show Fender?
-      </label>
-      <br />
+
     
       <div id="fenderOptions" style="display:none;">
         <label for="fenderGapHeight">Hub to Fender (Height/Up in mm):</label>
