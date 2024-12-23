@@ -7,61 +7,103 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-  <h1>Wheel and Tire Fitment Calculator</h1>
-  <div class="staggered-form-section">
-    <div class="staggered-block">
-      <h3>Your Existing Setup</h3>
-      <div class="staggered-inputs">
-        <div class="form-group">
-          <label for="old_tireWidth">Width (mm)</label>
-          <input type="number" id="old_tireWidth" value="225">
-        </div>
-        <div class="form-group">
-          <label for="old_aspectRatio">Profile (%)</label>
-          <input type="number" id="old_aspectRatio" value="45">
-        </div>
-        <div class="form-group">
-          <label for="old_wheelDiameter">Diameter (inches)</label>
-          <input type="number" id="old_wheelDiameter" value="18">
-        </div>
-        <div class="form-group">
-          <label for="old_wheelWidth">Wheel Width (inches)</label>
-          <input type="number" id="old_wheelWidth" value="8.5" step="0.5">
-        </div>
-        <div class="form-group">
-          <label for="old_offset">Offset (mm)</label>
-          <input type="number" id="old_offset" value="50">
+  <div class="container">
+    <h2>Wheel and Tire Fitment Calculator</h2>
+    <div class="staggered-form-section">
+      <div class="staggered-block">
+        <h3>Existing Setup</h3>
+        <div class="staggered-inputs">
+          <div class="form-group">
+            <label for="old_tireWidth">Tire Width (mm)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('old_tireWidth', -5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="old_tireWidth" value="225">
+              <button type="button" class="btn-increment" onmousedown="startHold('old_tireWidth', 5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="old_aspectRatio">Tire Profile (%)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('old_aspectRatio', -5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="old_aspectRatio" value="45">
+              <button type="button" class="btn-increment" onmousedown="startHold('old_aspectRatio', 5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="old_wheelDiameter">Wheel Diameter (inches)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('old_wheelDiameter', -1)" onmouseup="stopHold()">-</button>
+              <input type="number" id="old_wheelDiameter" value="18">
+              <button type="button" class="btn-increment" onmousedown="startHold('old_wheelDiameter', 1)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="old_wheelWidth">Wheel Width (inches)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('old_wheelWidth', -0.5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="old_wheelWidth" value="8.5" step="0.5">
+              <button type="button" class="btn-increment" onmousedown="startHold('old_wheelWidth', 0.5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="old_offset">Offset (mm)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('old_offset', -1)" onmouseup="stopHold()">-</button>
+              <input type="number" id="old_offset" value="50">
+              <button type="button" class="btn-increment" onmousedown="startHold('old_offset', 1)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="staggered-block">
-      <h3>Your New Setup</h3>
-      <div class="staggered-inputs">
-        <div class="form-group">
-          <label for="new_tireWidth">Width (mm)</label>
-          <input type="number" id="new_tireWidth" value="245">
-        </div>
-        <div class="form-group">
-          <label for="new_aspectRatio">Profile (%)</label>
-          <input type="number" id="new_aspectRatio" value="30">
-        </div>
-        <div class="form-group">
-          <label for="new_wheelDiameter">Diameter (inches)</label>
-          <input type="number" id="new_wheelDiameter" value="20">
-        </div>
-        <div class="form-group">
-          <label for="new_wheelWidth">Wheel Width (inches)</label>
-          <input type="number" id="new_wheelWidth" value="10" step="0.5">
-        </div>
-        <div class="form-group">
-          <label for="new_offset">Offset (mm)</label>
-          <input type="number" id="new_offset" value="25">
+  
+      <div class="staggered-block-new">
+        <h3>New Setup</h3>
+        <div class="staggered-inputs">
+          <div class="form-group">
+            <label for="new_tireWidth">Tire Width (mm)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('new_tireWidth', -5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="new_tireWidth" value="245">
+              <button type="button" class="btn-increment" onmousedown="startHold('new_tireWidth', 5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="new_aspectRatio">Tire Profile (%)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('new_aspectRatio', -5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="new_aspectRatio" value="30">
+              <button type="button" class="btn-increment" onmousedown="startHold('new_aspectRatio', 5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="new_wheelDiameter">Wheel Diameter (inches)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('new_wheelDiameter', -1)" onmouseup="stopHold()">-</button>
+              <input type="number" id="new_wheelDiameter" value="20">
+              <button type="button" class="btn-increment" onmousedown="startHold('new_wheelDiameter', 1)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="new_wheelWidth">Wheel Width (inches)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('new_wheelWidth', -0.5)" onmouseup="stopHold()">-</button>
+              <input type="number" id="new_wheelWidth" value="10" step="0.5">
+              <button type="button" class="btn-increment" onmousedown="startHold('new_wheelWidth', 0.5)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="new_offset">Offset (mm)</label>
+            <div class="input-container">
+              <button type="button" class="btn-decrement" onmousedown="startHold('new_offset', -1)" onmouseup="stopHold()">-</button>
+              <input type="number" id="new_offset" value="25">
+              <button type="button" class="btn-increment" onmousedown="startHold('new_offset', 1)" onmouseup="stopHold()">+</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+   
 
   <div class="fender-controls">
     <div class="calculate-container">
@@ -166,7 +208,7 @@
   </div>
 </div>
 
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
 

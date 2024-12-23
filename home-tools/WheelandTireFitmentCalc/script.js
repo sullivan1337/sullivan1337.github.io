@@ -97,6 +97,49 @@ function calculate() {
     );
 }
 
+function updateValue(inputId, increment) {
+  const input = document.getElementById(inputId);
+
+  // Read current value and step
+  const step = parseFloat(input.step || 1);
+  const currentValue = parseFloat(input.value || 0);
+
+  // Scale everything to integers to avoid floating-point issues
+  const scale = 1 / step; // E.g., for step = 0.5, scale = 2
+  const newValue = (currentValue * scale + increment * scale) / scale;
+
+  // Ensure the new value respects min/max constraints (if defined)
+  const min = input.min ? parseFloat(input.min) : -Infinity;
+  const max = input.max ? parseFloat(input.max) : Infinity;
+
+  if (!isNaN(newValue) && newValue >= min && newValue <= max) {
+    // Determine precision based on the input field
+    const precision = (inputId === 'old_wheelWidth' || inputId === 'new_wheelWidth') ? 1 : 0;
+    input.value = newValue.toFixed(precision); // Show decimal for wheel widths, integers for others
+    input.dispatchEvent(new Event('input')); // Trigger input listeners
+  }
+}
+
+// Interval ID for click-and-hold behavior
+let holdInterval;
+
+// Define the `startHold` function
+function startHold(inputId, increment) {
+  // Update the value immediately
+  updateValue(inputId, increment);
+
+  // Start an interval for continuous increment/decrement
+  holdInterval = setInterval(() => updateValue(inputId, increment), 250);
+}
+
+// Define the `stopHold` function
+function stopHold() {
+  // Clear the interval when the button is released
+  clearInterval(holdInterval);
+}
+
+
+
 /**
  * Draw our updated diagram in the <svg> with id="diagram"
  *   - Optionally draws a "fender" 
