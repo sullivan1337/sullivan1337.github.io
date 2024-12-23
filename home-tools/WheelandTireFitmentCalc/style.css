@@ -20,7 +20,7 @@ h1, h2 {
   justify-content: space-between;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   padding: 0; /* No extra padding */
 }
 
@@ -66,8 +66,12 @@ h1, h2 {
 }
 
 .form-group {
+  display: flex;
   flex: 1 1 calc(50% - 10px);
   margin: 0; /* Removed top and bottom margins */
+  justify-content: center;
+  align-items: center; /* Center-align the entire form group */
+  flex-direction: column;
   text-align: center;
 }
 
@@ -86,6 +90,8 @@ h1, h2 {
   margin-bottom: 10px;
 }
 
+
+
 .form-group input {
   width: 100%;
   padding: 5px;
@@ -94,28 +100,30 @@ h1, h2 {
   text-align: center;
 }
 
-/* Input container for plus/minus buttons and input fields */
 .input-container {
   display: flex;
   align-items: center;
+  justify-content: center; /* Center the input and buttons */
+  gap: 5px; /* Add spacing between input and buttons */
 }
 
 .input-container input {
-  flex: 1;
-  text-align: center;
+  flex: 0 0 50px; /* Narrower input box */
+  text-align: center; /* Align text to the center */
   border: 1px solid #ccc;
-  border-radius: 0;
+  border-radius: 4px;
+  padding: 4px;
+  box-sizing: border-box; /* Ensure padding and border are included in width */
 }
 
 .input-container button {
-  width: 30px;
+  width: 40px;
   height: 30px;
   background: #0078d4;
   color: #fff;
   border: none;
   font-size: 1em;
   border-radius: 8px;
-  cursor: pointer;
 }
 
 .input-container button:hover {
