@@ -14,32 +14,33 @@ h1, h2 {
   margin: auto;
 }
 
-/* Staggered layout for the forms */
 .staggered-form-section {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
   gap: 10px;
+  margin-bottom: 20px;
+  padding: 0; /* No extra padding */
 }
 
-.staggered-block, .staggered-block-new {
+.staggered-block, .staggered-block-new, .staggered-block-fender {
   flex: 1 1 320px;
-  padding: 15px;
+  padding: 8px; /* Further reduced padding */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 10px;
+  margin: 0; /* Removed unnecessary margins */
+  min-height: 202px; /* Ensure consistent height */
 }
 
-.staggered-block h3, .staggered-block-new h3 {
+.staggered-block h3, .staggered-block-new h3, .staggered-block-fender h3 {
   font-size: 1.2em;
   text-align: center;
-  margin-bottom: 15px;
-  color: #fff;
-  padding: 10px;
+  margin: 0 0 10px; /* Remove margin above, keep below */
+  padding: 6px; /* Reduced padding inside the headings */
   border-radius: 4px;
+  color: #fff;
 }
 
 .staggered-block h3 {
@@ -50,16 +51,23 @@ h1, h2 {
   background: #ff5722; /* Orange for new blocks */
 }
 
+.staggered-block-fender h3 {
+  background: #4caf50; /* Green for Fender Options */
+}
+
+
 .staggered-inputs {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 10px;
+  margin: 0; /* Removed top margin */
+  padding: 0; /* Removed any internal padding */
 }
 
 .form-group {
   flex: 1 1 calc(50% - 10px);
-  margin-bottom: 10px;
+  margin: 0; /* Removed top and bottom margins */
   text-align: center;
 }
 
@@ -69,12 +77,12 @@ h1, h2 {
   align-items: center;
   font-size: 0.9em;
   font-weight: bold;
-  gap: 5px; /* Adds spacing between the checkbox and text */
+  gap: 5px;
 }
 
 .form-group input[type="checkbox"] {
-  width: auto; /* Ensure checkbox size is not constrained */
-  margin: 0; /* Remove default margin */
+  width: auto;
+  margin: 0;
 }
 
 .form-group input {
@@ -85,55 +93,72 @@ h1, h2 {
   text-align: center;
 }
 
-.calculate-container {
+/* Input container for plus/minus buttons and input fields */
+.input-container {
   display: flex;
-  justify-content: center;
   align-items: center;
-  flex: 0 0 100%;
-  margin-top: 10px;
 }
 
-.calculate-btn {
-  padding: 15px 30px;
-  background: #00a10d;
+.input-container input {
+  flex: 1;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 0;
+}
+
+.input-container button {
+  width: 30px;
+  height: 30px;
+  background: #0078d4;
   color: #fff;
-  font-size: 1.1em;
-  font-weight: bold;
   border: none;
+  font-size: 1em;
   border-radius: 8px;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-.calculate-btn:hover {
-  background: #15891e;
+.input-container button:hover {
+  background: #005ea6;
+}
+
+.staggered-block .input-container button {
+  border-radius: 4px;
+}
+
+.staggered-block-new .input-container button {
+  background: #ff5722;
+}
+
+.staggered-block-new .input-container button:hover {
+  background: #e64a19;
 }
 
 .results-visualization-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 20px;
-  gap: 20px;
+  gap: 10px;
+  margin-top: 10px; /* Reduced margin at the top */
+  padding: 0; /* No padding for the container */
 }
 
-.results {
+.results, .diagram-container {
   flex: 1 1 300px;
   background: #fff;
-  padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  min-height: 250px; /* Ensure consistent height */
 }
 
 .results-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 10px;
+  margin-top: 1px; /* Slight reduction for tighter layout */
 }
 
 .results-table th, .results-table td {
   border: 1px solid #ccc;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
 }
 
@@ -143,16 +168,11 @@ h1, h2 {
 }
 
 .diagram-container {
-  flex: 1 1 400px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 300px; /* Adjust for visualization height consistency */
 }
 
 .diagram-container svg {
@@ -160,14 +180,15 @@ h1, h2 {
   max-height: 100%;
 }
 
+
 .legend {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .legend-item {
-  margin: 0 20px;
+  margin: 0 10px;
   display: flex;
   align-items: center;
   font-size: 0.9em;
@@ -201,75 +222,6 @@ h1, h2 {
   }
 }
 
-.fender-controls {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.input-container {
-  display: flex;
-  align-items: center;
-}
-
-.input-container input {
-  flex: 1;
-  text-align: center;
-  border: 1px solid #ccc;
-  border-radius: 0;
-}
-
-.input-container button {
-  background: #0078d4;
-  color: #fff;
-  border: none;
-  width: 30px;
-  height: 30px;
-  font-size: 1em;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.input-container button:hover {
-  background: #005ea6;
-}
-
-.staggered-block .input-container button {
-  border-radius: 4px;
-}
-
-.staggered-block-new .input-container button {
-  background: #ff5722;
-}
-
-.staggered-block-new .input-container button:hover {
-  background: #e64a19;
-}
-
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-
-.staggered-block-fender {
-  flex: 1 1 320px;
-  padding: 15px;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.staggered-block-fender h3 {
-  font-size: 1.2em;
-  text-align: center;
-  margin-bottom: 15px;
-  background: #4caf50; /* Green header */
-  color: #fff;
-  padding: 10px;
-  border-radius: 4px;
-}
-
 .fender-inputs {
   display: flex;
   flex-direction: column;
@@ -297,14 +249,22 @@ input[type="number"]::-webkit-outer-spin-button {
   font-weight: bold;
 }
 
+/* Fender Options */
 #showFender {
   margin-right: 5px;
 }
 
 #fenderOptions {
-  display: none; /* Initially hidden */
+  display: none;
 }
 
 #showFender:checked ~ #fenderOptions {
   display: block;
+}
+
+/* Remove spinner controls from number inputs */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
