@@ -192,7 +192,7 @@ function drawDiagram(
     svg.setAttribute('height', SVG_HEIGHT);
 
   // Scale factor
-  const scale = Math.min(SVG_WIDTH, SVG_HEIGHT) / 750;
+  const scale = Math.min(SVG_WIDTH, SVG_HEIGHT) / 900;
 
   // Center point
   const centerX = SVG_WIDTH / 2;
