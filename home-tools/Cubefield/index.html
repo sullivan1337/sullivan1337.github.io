@@ -1,23 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Cubefield with Ruffle</title>
-    <!-- Load Ruffle -->
-    <script src="./ruffle/ruffle.js"></script>
-    <script>
-      window.RufflePlayer = window.RufflePlayer || {};
-      window.addEventListener("DOMContentLoaded", () => {
-        const ruffle = window.RufflePlayer.newest();
-        const player = ruffle.createPlayer();
-        const container = document.getElementById("player-container");
-        container.appendChild(player);
-        player.load("cubefield.swf"); // Path to your SWF
-      });
-    </script>
+  <meta charset="utf-8">
+  <title>Cubefield - Ruffle (Dark Mode, Responsive 4:3)</title>
+  <style>
+    /* Reset margins, fill the browser window */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #121212; /* Dark background */
+    }
+
+    /* Center the container both horizontally & vertically */
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /*
+      The container:
+        - Has a 4:3 aspect ratio
+        - Scales up to 800px wide (never exceeding it)
+        - Stays within the browser window’s width & height
+          by using min(...) or max(...) style logic
+          so it won't overflow or create scrollbars
+    */
+    #player-container {
+      aspect-ratio: 4 / 3;                 /* Keep 4:3 ratio */
+      width: 100%;                         /* Expand as much as possible */
+      max-width: min(1000px, 100vw, calc(100vh * 4/3));
+      background-color: #000;              /* Black letterbox / background */
+    }
+
+    /* Let the Ruffle player fill its parent container */
+    ruffle-player {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <!-- Include Ruffle -->
+  <script src="ruffle/ruffle.js"></script>
+  <script>
+    window.RufflePlayer = window.RufflePlayer || {};
+    window.addEventListener("DOMContentLoaded", () => {
+      const ruffle = window.RufflePlayer.newest();
+      const player = ruffle.createPlayer();
+      const container = document.getElementById("player-container");
+      container.appendChild(player);
+
+      // Load your SWF
+      player.load("cubefield.swf");
+    });
+  </script>
 </head>
 <body>
-    <h1>Play Cubefield</h1>
-    <div id="player-container"></div>
+  <div id="player-container"></div>
 </body>
 </html>
