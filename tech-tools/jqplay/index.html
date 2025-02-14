@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Local jqPlay Mirror</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>jqPlay Mirror (Local WebAssembly)</h1>
+
+  <!-- JSON Input -->
+  <section>
+    <h3>JSON Input</h3>
+    <textarea id="jsonInput" rows="10" cols="50">
+{
+  "hello": "world",
+  "numbers": [1, 2, 3]
+}
+    </textarea>
+  </section>
+
+  <!-- jq Filter -->
+  <section>
+    <h3>jq Filter</h3>
+    <textarea id="jqFilter" rows="2" cols="50">.numbers[]</textarea>
+  </section>
+
+  <!-- Button and Output -->
+  <button id="runBtn">Run jq</button>
+  <section>
+    <h3>Output</h3>
+    <pre id="output"></pre>
+  </section>
+
+  <!-- (1) Define 'Module' before loading jq.js so it knows where to find jq.wasm -->
+  <script>
+    // If jq.wasm is in the same folder, return path as-is. 
+    // Otherwise, adjust this to the correct relative or absolute URL.
+    window.Module = {
+      locateFile(path) {
+        return path; 
+      }
+    };
+  </script>
+
+  <!-- (2) The main Emscripten/JS glue code (excluded here; you already have jq.js) -->
+  <script src="jq.js"></script>
+
+  <!-- (3) Our custom script to connect the UI to jq-wasm -->
+  <script src="script.js"></script>
+</body>
+</html>
