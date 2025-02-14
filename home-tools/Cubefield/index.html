@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cubefield with Ruffle</title>
+    <!-- Load Ruffle -->
+    <script src="./ruffle/ruffle.js"></script>
+    <script>
+      window.RufflePlayer = window.RufflePlayer || {};
+      window.addEventListener("DOMContentLoaded", () => {
+        const ruffle = window.RufflePlayer.newest();
+        const player = ruffle.createPlayer();
+        const container = document.getElementById("player-container");
+        container.appendChild(player);
+        player.load("cubefield.swf"); // Path to your SWF
+      });
+    </script>
+</head>
+<body>
+    <h1>Play Cubefield</h1>
+    <div id="player-container"></div>
+</body>
+</html>
