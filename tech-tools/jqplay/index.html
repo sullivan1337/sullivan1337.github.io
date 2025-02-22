@@ -2,51 +2,41 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Local jqPlay Mirror</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Local jqPlay (fiatjaf/jq-web v0.6.1, Minimal)</title>
 </head>
 <body>
-  <h1>jqPlay Mirror (Local WebAssembly)</h1>
 
-  <!-- JSON Input -->
-  <section>
-    <h3>JSON Input</h3>
-    <textarea id="jsonInput" rows="10" cols="50">
+  <h1>jq-web (Minimal) Distribution Example</h1>
+
+  <p>JSON Input:</p>
+  <textarea id="jsonInput" rows="6" cols="60">
 {
-  "hello": "world",
-  "numbers": [1, 2, 3]
+  "msg": "Hello from minimal build!",
+  "numbers": [10, 20, 30]
 }
-    </textarea>
-  </section>
+  </textarea>
+  <br />
 
-  <!-- jq Filter -->
-  <section>
-    <h3>jq Filter</h3>
-    <textarea id="jqFilter" rows="2" cols="50">.numbers[]</textarea>
-  </section>
+  <p>jq Filter:</p>
+  <textarea id="jqFilter" rows="2" cols="60">.numbers[]</textarea>
+  <br />
 
-  <!-- Button and Output -->
   <button id="runBtn">Run jq</button>
-  <section>
-    <h3>Output</h3>
-    <pre id="output"></pre>
-  </section>
+  <pre id="output"></pre>
 
-  <!-- (1) Define 'Module' before loading jq.js so it knows where to find jq.wasm -->
+  <!-- 1) Define Module so the Emscripten script knows where to find jq.wasm -->
   <script>
-    // If jq.wasm is in the same folder, return path as-is. 
-    // Otherwise, adjust this to the correct relative or absolute URL.
     window.Module = {
-      locateFile(path) {
-        return path; 
+      locateFile: function(path) {
+        return path;
       }
     };
   </script>
 
-  <!-- (2) The main Emscripten/JS glue code (excluded here; you already have jq.js) -->
+  <!-- 2) Load jq.js (the minimal build) -->
   <script src="jq.js"></script>
 
-  <!-- (3) Our custom script to connect the UI to jq-wasm -->
+  <!-- 3) Our own script that waits for window.jqReady, then calls window.jq(...) -->
   <script src="script.js"></script>
 </body>
 </html>

@@ -5,20 +5,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const runBtn = document.getElementById('runBtn');
   
     runBtn.addEventListener('click', async () => {
-      const jsonInput = document.getElementById('jsonInput').value;
-      const jqFilter = document.getElementById('jqFilter').value;
-      outputEl.textContent = 'Running...';
+      outputEl.textContent = "Running...";
+  
+      const jsonText = document.getElementById('jsonInput').value;
+      const filter = document.getElementById('jqFilter').value;
   
       try {
-        // jq.js from fiatjaf/jq-web exposes a Promise "window.jqReady"
-        // and a global function "window.jq(json, filter)" once loaded.
-        await window.jqReady; 
-        
-        // Call the jq function provided by the wasm build:
-        const result = window.jq(jsonInput, jqFilter);
+        // Wait for the WASM to finish initializing
+        await window.jqReady;
+  
+        // Now we can call the global function window.jq(...)
+        const result = window.jq(jsonText, filter);
         outputEl.textContent = result;
       } catch (err) {
-        outputEl.textContent = 'Error: ' + err;
+        outputEl.textContent = "Error: " + err;
       }
     });
   });
