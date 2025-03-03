@@ -2,26 +2,19 @@
  * 1) GLOBAL VARIABLES & STORAGE
  ****************************************************/
 let people = []; 
-// Each person: { id, name, title, image, x, y, managerId }
+// Each person object: { id, name, title, image, managerId, x, y }
 
 let currentZIndex = 1;
 let linkedInAccessToken = null;
 
-/** 
- * If you have a LinkedIn Dev App with “openid, profile, email” 
- * enabled, you can do an OIDC flow.
- * 
- * WARNING: Storing client_secret in JS is not secure. 
- */
-
-// Your App's Client ID + Secret
+// If your LinkedIn Dev App uses “openid, profile, email”
 const LINKEDIN_CLIENT_ID = "78qsr9zwrk1nou";
 const LINKEDIN_CLIENT_SECRET = "WPL_AP1.JS2imcsb02toiK1D.Uul9zw==";
 
-// GitHub Pages redirect
-const REDIRECT_URI = "https://sullivan1337.github.io/tech-tools/OrgChart/index.html";
+// Your GitHub Pages redirect
+const REDIRECT_URI = "https://sullivan1337.github.io/tech-tools/1337Chart/index.html";
 
-// OIDC Scopes for "Sign in with LinkedIn V2"
+// OIDC scopes
 const LINKEDIN_SCOPES = "openid%20profile%20email";
 
 // Endpoints
@@ -42,16 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSubmitEntry = document.getElementById('btnSubmitEntry');
   const btnLinkedInOAuth = document.getElementById('btnLinkedInOAuth');
 
-  // 1) Check if returning from LinkedIn with ?code=...
   checkForLinkedInRedirect();
 
-  // 2) "Add Person" button -> open modal
   btnAddEntry.addEventListener('click', () => {
     populateManagerSelect();
     entryModal.style.display = 'block';
   });
 
-  // 3) Modal close
   closeModal.addEventListener('click', () => {
     entryModal.style.display = 'none';
     clearModalFields();
@@ -64,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 4) Submitting the "Add Person" form
+  // Add a person
   btnSubmitEntry.addEventListener('click', () => {
     const linkedInLink = document.getElementById('linkedinLink').value.trim();
     const nameInput = document.getElementById('nameInput').value.trim();
@@ -76,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let personTitle = titleInput || "Sample Title";
     let personImage = imageInput || "https://via.placeholder.com/60";
 
-    // If user typed a LinkedIn link, we *could* fetch real data via userinfo if we have a token
-    // But for demonstration, we just do a mock if there's no token
+    // If user typed a LinkedIn link, but we can't fetch data from it (no open API for others),
+    // we'll just do a mock name if there's no actual access token usage
     if (linkedInLink && !linkedInAccessToken) {
       personName = "LinkedIn (mock)";
       personTitle = "Fetched Title (mock)";
@@ -88,35 +78,32 @@ document.addEventListener('DOMContentLoaded', () => {
       name: personName,
       title: personTitle,
       image: personImage,
-      x: 50,
-      y: 50,
-      managerId: managerSelect ? parseInt(managerSelect, 10) : null
+      managerId: managerSelect ? parseInt(managerSelect, 10) : null,
+      x: 0, // Will be set by autoLayout
+      y: 0
     };
 
     people.push(newPerson);
-    createPersonCard(newPerson);
+
+    // auto-layout so cards don't overlap
+    autoLayout();
 
     entryModal.style.display = 'none';
     clearModalFields();
     drawAllLines();
   });
 
-  // 5) Start the LinkedIn OIDC flow (PKCE)
+  // Start the LinkedIn OIDC flow (PKCE)
   btnLinkedInOAuth.addEventListener('click', async () => {
-    // 1) Generate code verifier
     codeVerifier = generateRandomString(50);
-    // 2) Generate a code challenge from it
     const codeChallenge = await sha256ToBase64Url(codeVerifier);
-    // 3) Generate random state
     stateParam = generateRandomString(16);
 
-    // 4) Build Auth URL
     const authUrl = `${AUTH_BASE}?response_type=code&client_id=${LINKEDIN_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
       `&scope=${LINKEDIN_SCOPES}&state=${stateParam}` +
       `&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
-    // 5) Redirect the browser to LinkedIn
     window.location.href = authUrl;
   });
 });
@@ -136,34 +123,18 @@ function checkForLinkedInRedirect() {
     return;
   }
 
-  // If we have 'code' and 'state' from LinkedIn
   if (code && state) {
-    // We could verify 'state' matches stateParam, but it’s lost if the page is reloaded
-    // For demonstration, let's proceed with exchanging the code
+    // (Ideally we compare 'state' with our stored stateParam, but for demonstration we skip that.)
     exchangeCodeForToken(code)
       .then(token => {
         linkedInAccessToken = token;
         console.log("LinkedIn Access Token acquired:", token);
 
-        // Optionally fetch actual user info (OIDC userinfo endpoint)
+        // If you want to get the user's basic info:
         fetchLinkedInUserInfo()
           .then(userinfo => {
             console.log("Fetched LinkedIn UserInfo:", userinfo);
-            /**
-             * userinfo might contain:
-             * {
-             *   sub: "abcdefg12345",
-             *   email_verified: true,
-             *   email: "someone@example.com",
-             *   name: "Jane Doe",
-             *   given_name: "Jane",
-             *   family_name: "Doe",
-             *   picture: "https://media.licdn.com/..."
-             * }
-             * 
-             * You can create an org chart entry automatically or
-             * fill the "Add Person" form with this data.
-             */
+            // userinfo might have { email, name, picture, sub, ... }
           })
           .catch(e => console.error("Error fetching LinkedIn userinfo:", e));
       })
@@ -172,13 +143,10 @@ function checkForLinkedInRedirect() {
 }
 
 /****************************************************
- * 4) EXCHANGE CODE FOR ACCESS TOKEN (CLIENT-SIDE)
- *    Not recommended in production if secret is required.
+ * 4) EXCHANGE CODE FOR ACCESS TOKEN (CLIENT-SIDE PKCE)
+ *    Not recommended for production if secret is required
  ****************************************************/
 async function exchangeCodeForToken(code) {
-  // If your app's OIDC flow requires client_secret, we include it here
-  // but for pure PKCE, ideally we omit it in front-end code or do the exchange server-side.
-  
   const bodyParams = new URLSearchParams({
     grant_type: "authorization_code",
     code: code,
@@ -202,21 +170,17 @@ async function exchangeCodeForToken(code) {
   }
 
   const data = await response.json();
-  // data: { "access_token": "...", "expires_in": 1234, "id_token": "...", ... }
-  return data.access_token;
+  return data.access_token; // or data.id_token if using OIDC ID tokens
 }
 
 /****************************************************
- * 5) FETCH THE USER'S PROFILE (OIDC /userinfo)
+ * 5) FETCH USERINFO FROM LINKEDIN OIDC
  ****************************************************/
 async function fetchLinkedInUserInfo() {
   if (!linkedInAccessToken) {
     throw new Error("No LinkedIn access token available.");
   }
 
-  // "Sign In with LinkedIn" OIDC provides:
-  // GET https://api.linkedin.com/v2/userinfo
-  // with Bearer token
   const resp = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: {
       "Authorization": `Bearer ${linkedInAccessToken}`
@@ -225,34 +189,134 @@ async function fetchLinkedInUserInfo() {
   if (!resp.ok) {
     throw new Error(`UserInfo fetch failed: ${resp.status}`);
   }
-  const userinfo = await resp.json();
-  return userinfo;
+  return await resp.json();
 }
 
 /****************************************************
- * 6) ORG CHART: ADD/EDIT PERSON
+ * 6) AUTO-LAYOUT SO CARDS DON'T OVERLAP
+ *    This arranges a top-down hierarchy.
+ *    The "highest ranking" = those with no manager.
  ****************************************************/
-function clearModalFields() {
-  document.getElementById('linkedinLink').value = "";
-  document.getElementById('nameInput').value = "";
-  document.getElementById('titleInput').value = "";
-  document.getElementById('imageInput').value = "";
-  document.getElementById('managerSelect').value = "";
-}
+function autoLayout() {
+  // We'll do a BFS for each "root" (person with no manager).
+  // Then place them in rows, spaced out so they don't overlap.
+  // For demonstration, each "generation" is one row down.
+  // We'll place siblings in horizontal order.
 
-function populateManagerSelect() {
-  const managerSelect = document.getElementById('managerSelect');
-  managerSelect.innerHTML = `<option value="">-- None --</option>`;
-  people.forEach((p) => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.text = p.name;
-    managerSelect.appendChild(opt);
+  // 1) Identify root nodes (managerId == null)
+  const roots = people.filter(p => !p.managerId);
+
+  // 2) We'll do a BFS from each root, assigning rows
+  let rowHeight = 150;  // vertical distance per generation
+  let colWidth = 250;   // horizontal distance per sibling
+  let cardWidth = 200;  // approximate width of each card
+
+  // We'll keep track of the "row" each node is on and the "column index" among siblings
+  // Then we'll update p.x, p.y accordingly.
+
+  // We'll maintain a queue of { personId, level, siblingIndex }
+  // We'll track how many nodes are in each level to align them horizontally.
+
+  // Step A: Build adjacency: manager -> list of subordinates
+  const adjacency = {};
+  people.forEach(p => {
+    adjacency[p.id] = [];
   });
+  people.forEach(p => {
+    if (p.managerId) {
+      adjacency[p.managerId].push(p.id);
+    }
+  });
+
+  // Step B: BFS from each root
+  let queue = [];
+  roots.forEach((rootId, i) => {
+    // i is siblingIndex among root-level nodes
+    queue.push({ personId: rootId.id, level: 0, siblingIndex: i });
+  });
+
+  // For convenience, group nodes by level
+  const levelsMap = {};
+
+  while (queue.length > 0) {
+    const { personId, level, siblingIndex } = queue.shift();
+
+    // Add this node to levelsMap
+    if (!levelsMap[level]) levelsMap[level] = [];
+    levelsMap[level].push({ personId, siblingIndex });
+
+    // Enqueue children
+    const children = adjacency[personId] || [];
+    children.forEach((childId, idx) => {
+      queue.push({ personId: childId, level: level + 1, siblingIndex: idx });
+    });
+  }
+
+  // Step C: For each level in levelsMap, position them horizontally
+  // so they don't overlap. We'll do a simple approach: place each node
+  // in that level side by side with colWidth spacing
+  // We'll also try to center them around 0 so the tree is not forced far left.
+
+  // Actually, to avoid overlap, we just place siblingIndex * colWidth for x
+  // row * rowHeight for y
+
+  Object.keys(levelsMap).forEach(levelStr => {
+    const level = parseInt(levelStr);
+    const nodesInLevel = levelsMap[level];
+    nodesInLevel.forEach((n, i) => {
+      const p = people.find(x => x.id === n.personId);
+      if (p) {
+        p.x = n.siblingIndex * colWidth;
+        p.y = level * rowHeight;
+      }
+    });
+  });
+
+  // Step D: Shift the entire layout so it’s not negative
+  // in case siblingIndex starts from 0. Let’s find minX
+  let minX = Math.min(...people.map(p => p.x));
+  if (minX < 0) {
+    people.forEach(p => {
+      p.x -= minX - 50; // a little padding
+    });
+  }
+
+  // Also ensure no negative y
+  let minY = Math.min(...people.map(p => p.y));
+  if (minY < 0) {
+    people.forEach(p => {
+      p.y -= minY - 50;
+    });
+  }
+
+  // Finally, update each card's DOM position
+  renderAllCards();
 }
 
-function createPersonCard(person) {
+/****************************************************
+ * 7) RENDER ALL CARDS / CREATE THEM IF NOT EXIST
+ ****************************************************/
+function renderAllCards() {
   const chartArea = document.getElementById('chartArea');
+
+  // We'll see which cards already exist, which ones need creation
+  // A simple approach: remove all cards from DOM and re-create them
+  // so they are placed at the updated positions
+  Array.from(chartArea.getElementsByClassName('person-card')).forEach(card => {
+    chartArea.removeChild(card);
+  });
+
+  people.forEach(person => {
+    createOrUpdatePersonCard(person);
+  });
+  
+  drawAllLines();
+}
+
+function createOrUpdatePersonCard(person) {
+  const chartArea = document.getElementById('chartArea');
+
+  // create a new card
   const card = document.createElement('div');
   card.classList.add('person-card');
   card.style.left = `${person.x}px`;
@@ -265,32 +329,32 @@ function createPersonCard(person) {
     <button class="delete-btn">Delete</button>
   `;
 
-  // Move card to top on mousedown
   card.addEventListener('mousedown', () => {
     card.style.zIndex = ++currentZIndex;
   });
 
-  // Draggable
+  // Make it draggable
   makeDraggable(card, person.id);
 
   // Delete
   card.querySelector('.delete-btn').addEventListener('click', () => {
     chartArea.removeChild(card);
+    // remove from people
     people = people.filter(p => p.id !== person.id);
-    // Remove manager references from subordinates
+    // remove subordinates' references
     people.forEach(p => {
       if (p.managerId === person.id) {
         p.managerId = null;
       }
     });
-    drawAllLines();
+    autoLayout(); // reflow
   });
 
   chartArea.appendChild(card);
 }
 
 /****************************************************
- * 7) DRAG & DROP + CONNECTION LINES
+ * 8) DRAG & DROP + LINE RE-DRAW
  ****************************************************/
 function makeDraggable(element, personId) {
   let offsetX, offsetY;
@@ -299,7 +363,6 @@ function makeDraggable(element, personId) {
   element.addEventListener('mousedown', (e) => {
     // Only if not clicking the Delete button
     if (e.target.classList.contains('delete-btn')) return;
-
     isDown = true;
     offsetX = element.offsetLeft - e.clientX;
     offsetY = element.offsetTop - e.clientY;
@@ -338,12 +401,13 @@ function savePositions(personId, left, top) {
 }
 
 /****************************************************
- * 8) DRAW LINES BETWEEN MANAGER AND SUBORDINATE
+ * 9) DRAW CONNECTION LINES
  ****************************************************/
 function drawAllLines() {
   const svg = document.getElementById('connectionSVG');
-  svg.innerHTML = ""; // clear existing lines
+  svg.innerHTML = ""; // Clear existing
 
+  // for each person, if they have a manager, draw a line
   people.forEach((person) => {
     if (person.managerId) {
       const manager = people.find(m => m.id === person.managerId);
@@ -379,16 +443,15 @@ function getCardCenter(personId) {
   const rect = card.getBoundingClientRect();
   const chartRect = chartArea.getBoundingClientRect();
 
+  // center of the card, relative to the chartArea
   const centerX = rect.left + rect.width / 2 - chartRect.left + chartArea.scrollLeft;
   const centerY = rect.top + rect.height / 2 - chartRect.top + chartArea.scrollTop;
   return { x: centerX, y: centerY };
 }
 
 /****************************************************
- * 9) HELPER FUNCTIONS: PKCE, etc.
+ * 10) HELPER FUNCTIONS: PKCE, ETC.
  ****************************************************/
-
-// Generate random string
 function generateRandomString(n) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   let randomString = '';
@@ -398,14 +461,34 @@ function generateRandomString(n) {
   return randomString;
 }
 
-// Convert the random string into a base64-url-encoded SHA256 hash
 async function sha256ToBase64Url(str) {
   const encoder = new TextEncoder();
   const data = encoder.encode(str);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   let base64 = btoa(String.fromCharCode(...hashArray));
-  // Convert to URL-safe base64
   base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   return base64;
+}
+
+/****************************************************
+ * 11) MISC
+ ****************************************************/
+function clearModalFields() {
+  document.getElementById('linkedinLink').value = "";
+  document.getElementById('nameInput').value = "";
+  document.getElementById('titleInput').value = "";
+  document.getElementById('imageInput').value = "";
+  document.getElementById('managerSelect').value = "";
+}
+
+function populateManagerSelect() {
+  const managerSelect = document.getElementById('managerSelect');
+  managerSelect.innerHTML = `<option value="">-- None --</option>`;
+  people.forEach((p) => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.text = p.name;
+    managerSelect.appendChild(opt);
+  });
 }

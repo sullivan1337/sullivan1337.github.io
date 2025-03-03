@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Org Chart Demo (LinkedIn OIDC)</title>
+  <title>The Org Chart Demo (LinkedIn OIDC + Auto Layout)</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -12,7 +12,7 @@
     <div class="header-controls">
       <!-- This button initiates PKCE-based LinkedIn OIDC in the client. -->
       <button id="btnLinkedInOAuth">Sign in with LinkedIn</button>
-      <!-- Add a new person (org chart). This is always on top, thanks to header z-index. -->
+      <!-- Add a new person -->
       <button id="btnAddEntry">Add Person</button>
     </div>
   </header>
@@ -23,9 +23,7 @@
       <span id="closeModal" class="close">&times;</span>
       <h2>Add a Person</h2>
 
-      <!-- If the user is already authenticated with LinkedIn,
-           we could automatically fetch name/picture from userinfo. 
-           "LinkedIn Profile" field is optional. -->
+      <!-- If user is authenticated, we can fetch their info from userinfo -->
       <label for="linkedinLink">LinkedIn Profile (optional):</label>
       <input type="text" id="linkedinLink" placeholder="https://www.linkedin.com/in/someone" />
 
@@ -53,7 +51,7 @@
   <main id="chartArea">
     <!-- SVG for drawing manager-subordinate lines -->
     <svg id="connectionSVG" width="100%" height="100%"></svg>
-    <!-- Draggable cards get appended here on top of the SVG -->
+    <!-- Draggable cards will be appended here dynamically on top of the SVG -->
   </main>
 
   <script src="script.js"></script>
