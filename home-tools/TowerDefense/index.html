@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tower Defense Game</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="sidebar">
+      <div id="scoreboard">
+        <h2>Tower Defense</h2>
+        <p id="level-info">Level: 1</p>
+        <p id="lives-info">Lives: 20</p>
+        <p id="points-info">Points: 500</p>
+        <p id="wave-info">Enemies left: 0</p>
+      </div>
+      <div id="tower-gallery">
+        <h3>Buy Towers</h3>
+        <div class="tower-option" data-type="1">Tower 1<br><small>Damage</small></div>
+        <div class="tower-option" data-type="2">Tower 2<br><small>Range</small></div>
+        <div class="tower-option" data-type="3">Tower 3<br><small>Rapid Fire</small></div>
+        <div class="tower-option" data-type="4">Tower 4<br><small>Balanced</small></div>
+      </div>
+      <div id="tower-info">
+        <h3>Tower Info</h3>
+        <div id="hover-info"></div>
+      </div>
+      <button id="new-game-btn">New Game</button>
+    </div>
+  </div>
+  <!-- In-Game Tower Menu -->
+  <div id="tower-menu" class="hidden">
+    <p id="tower-menu-info"></p>
+    <div id="tower-stats"></div>
+    <button id="upgrade-btn">Upgrade (Cost: 30)</button>
+    <button id="sell-btn">Sell (Refund: 25)</button>
+    <button id="close-menu-btn">Close</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
