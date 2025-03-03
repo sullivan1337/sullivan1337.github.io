@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>1337Org Chart</title>
+  <title>The Org Chart Demo (LinkedIn OIDC)</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header>
-    <h1>1337Org Chart</h1>
+    <h1>The Org</h1>
     <div class="header-controls">
-      <!-- This button initiates PKCE-based LinkedIn OAuth 2.0 on the client. -->
+      <!-- This button initiates PKCE-based LinkedIn OIDC in the client. -->
       <button id="btnLinkedInOAuth">Sign in with LinkedIn</button>
-      <!-- Add a new person (always on top, thanks to header z-index) -->
+      <!-- Add a new person (org chart). This is always on top, thanks to header z-index. -->
       <button id="btnAddEntry">Add Person</button>
     </div>
   </header>
@@ -24,8 +24,8 @@
       <h2>Add a Person</h2>
 
       <!-- If the user is already authenticated with LinkedIn,
-           we could automatically retrieve their data. 
-           The "LinkedIn Profile" field is optional. -->
+           we could automatically fetch name/picture from userinfo. 
+           "LinkedIn Profile" field is optional. -->
       <label for="linkedinLink">LinkedIn Profile (optional):</label>
       <input type="text" id="linkedinLink" placeholder="https://www.linkedin.com/in/someone" />
 
@@ -53,7 +53,7 @@
   <main id="chartArea">
     <!-- SVG for drawing manager-subordinate lines -->
     <svg id="connectionSVG" width="100%" height="100%"></svg>
-    <!-- Draggable cards will be appended here dynamically on top of the SVG -->
+    <!-- Draggable cards get appended here on top of the SVG -->
   </main>
 
   <script src="script.js"></script>

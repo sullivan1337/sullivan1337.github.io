@@ -7,16 +7,22 @@ let people = [];
 let currentZIndex = 1;
 let linkedInAccessToken = null;
 
-// ***** IMPORTANT *****
-// Using your actual app's Client ID and Secret (for demonstration only):
+/** 
+ * If you have a LinkedIn Dev App with “openid, profile, email” 
+ * enabled, you can do an OIDC flow.
+ * 
+ * WARNING: Storing client_secret in JS is not secure. 
+ */
+
+// Your App's Client ID + Secret
 const LINKEDIN_CLIENT_ID = "78qsr9zwrk1nou";
 const LINKEDIN_CLIENT_SECRET = "WPL_AP1.JS2imcsb02toiK1D.Uul9zw==";
 
-// Your GitHub Pages URL as the redirect URI
+// GitHub Pages redirect
 const REDIRECT_URI = "https://sullivan1337.github.io/tech-tools/OrgChart/index.html";
 
-// Scopes for "Sign In with LinkedIn" typically at least r_liteprofile or r_emailaddress
-const LINKEDIN_SCOPES = "r_liteprofile%20r_emailaddress";
+// OIDC Scopes for "Sign in with LinkedIn V2"
+const LINKEDIN_SCOPES = "openid%20profile%20email";
 
 // Endpoints
 const AUTH_BASE = "https://www.linkedin.com/oauth/v2/authorization";
@@ -36,22 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSubmitEntry = document.getElementById('btnSubmitEntry');
   const btnLinkedInOAuth = document.getElementById('btnLinkedInOAuth');
 
-  // Check if returning from LinkedIn with ?code= in the URL
+  // 1) Check if returning from LinkedIn with ?code=...
   checkForLinkedInRedirect();
 
-  // Show "Add Person" modal
+  // 2) "Add Person" button -> open modal
   btnAddEntry.addEventListener('click', () => {
     populateManagerSelect();
     entryModal.style.display = 'block';
   });
 
-  // Close modal
+  // 3) Modal close
   closeModal.addEventListener('click', () => {
     entryModal.style.display = 'none';
     clearModalFields();
   });
 
-  // Close modal if clicking outside content
   window.addEventListener('click', (e) => {
     if (e.target === entryModal) {
       entryModal.style.display = 'none';
@@ -59,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Submit the "Add Person" form
+  // 4) Submitting the "Add Person" form
   btnSubmitEntry.addEventListener('click', () => {
     const linkedInLink = document.getElementById('linkedinLink').value.trim();
     const nameInput = document.getElementById('nameInput').value.trim();
@@ -71,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let personTitle = titleInput || "Sample Title";
     let personImage = imageInput || "https://via.placeholder.com/60";
 
-    // If user put a LinkedIn link, but we do not have an actual token, just mock it
-    // If we have a token, you could do an actual fetch from LinkedIn to get their name/pic
+    // If user typed a LinkedIn link, we *could* fetch real data via userinfo if we have a token
+    // But for demonstration, we just do a mock if there's no token
     if (linkedInLink && !linkedInAccessToken) {
       personName = "LinkedIn (mock)";
       personTitle = "Fetched Title (mock)";
@@ -96,70 +101,83 @@ document.addEventListener('DOMContentLoaded', () => {
     drawAllLines();
   });
 
-  // Initiate LinkedIn OAuth via PKCE
+  // 5) Start the LinkedIn OIDC flow (PKCE)
   btnLinkedInOAuth.addEventListener('click', async () => {
     // 1) Generate code verifier
     codeVerifier = generateRandomString(50);
-    // 2) Generate a code challenge
+    // 2) Generate a code challenge from it
     const codeChallenge = await sha256ToBase64Url(codeVerifier);
-    // 3) Generate a random state
+    // 3) Generate random state
     stateParam = generateRandomString(16);
 
-    // 4) Redirect user to LinkedIn's authorization URL
+    // 4) Build Auth URL
     const authUrl = `${AUTH_BASE}?response_type=code&client_id=${LINKEDIN_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
       `&scope=${LINKEDIN_SCOPES}&state=${stateParam}` +
       `&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
+    // 5) Redirect the browser to LinkedIn
     window.location.href = authUrl;
   });
 });
 
 /****************************************************
- * 3) CHECK FOR LINKEDIN REDIRECT
+ * 3) CHECK FOR LINKEDIN REDIRECT (OIDC)
  ****************************************************/
 function checkForLinkedInRedirect() {
   const urlParams = new URLSearchParams(window.location.search);
   const code = urlParams.get('code');
   const state = urlParams.get('state');
   const error = urlParams.get('error');
+  const errorDesc = urlParams.get('error_description');
 
   if (error) {
-    console.log("LinkedIn OAuth error:", error);
+    console.log("LinkedIn OAuth error:", error, errorDesc);
     return;
   }
 
-  // If we have 'code' and 'state', try to exchange for an access token
+  // If we have 'code' and 'state' from LinkedIn
   if (code && state) {
-    // We should compare 'state' with our stored 'stateParam'
-    // But if the page reloaded, we may have lost the in-memory variable.
-    // For demonstration, let's attempt the token exchange anyway.
+    // We could verify 'state' matches stateParam, but it’s lost if the page is reloaded
+    // For demonstration, let's proceed with exchanging the code
     exchangeCodeForToken(code)
       .then(token => {
         linkedInAccessToken = token;
         console.log("LinkedIn Access Token acquired:", token);
 
-        // Optionally fetch the user's actual LinkedIn profile
-        fetchLinkedInProfile()
-          .then(profile => {
-            console.log("Fetched LinkedIn Profile:", profile);
-            // You can auto-insert the user in the org chart if you like
-            // e.g. autoCreatePersonFromProfile(profile);
+        // Optionally fetch actual user info (OIDC userinfo endpoint)
+        fetchLinkedInUserInfo()
+          .then(userinfo => {
+            console.log("Fetched LinkedIn UserInfo:", userinfo);
+            /**
+             * userinfo might contain:
+             * {
+             *   sub: "abcdefg12345",
+             *   email_verified: true,
+             *   email: "someone@example.com",
+             *   name: "Jane Doe",
+             *   given_name: "Jane",
+             *   family_name: "Doe",
+             *   picture: "https://media.licdn.com/..."
+             * }
+             * 
+             * You can create an org chart entry automatically or
+             * fill the "Add Person" form with this data.
+             */
           })
-          .catch(e => console.error("Error fetching LinkedIn profile:", e));
+          .catch(e => console.error("Error fetching LinkedIn userinfo:", e));
       })
       .catch(e => console.error("Token exchange error:", e));
   }
 }
 
 /****************************************************
- * 4) EXCHANGE CODE FOR ACCESS TOKEN
- *    (PURE CLIENT-SIDE with PKCE + SECRET in code)
- *    Not recommended for production.
+ * 4) EXCHANGE CODE FOR ACCESS TOKEN (CLIENT-SIDE)
+ *    Not recommended in production if secret is required.
  ****************************************************/
 async function exchangeCodeForToken(code) {
-  // If doing a PKCE-only client approach, some LinkedIn apps can omit the secret entirely.
-  // For demonstration, we’ll pass it. This is insecure for production.
+  // If your app's OIDC flow requires client_secret, we include it here
+  // but for pure PKCE, ideally we omit it in front-end code or do the exchange server-side.
   
   const bodyParams = new URLSearchParams({
     grant_type: "authorization_code",
@@ -184,33 +202,35 @@ async function exchangeCodeForToken(code) {
   }
 
   const data = await response.json();
-  // data: { "access_token": "...", "expires_in": 1234, ... }
+  // data: { "access_token": "...", "expires_in": 1234, "id_token": "...", ... }
   return data.access_token;
 }
 
 /****************************************************
- * 5) FETCH THE USER'S PROFILE (OPTIONAL)
+ * 5) FETCH THE USER'S PROFILE (OIDC /userinfo)
  ****************************************************/
-async function fetchLinkedInProfile() {
+async function fetchLinkedInUserInfo() {
   if (!linkedInAccessToken) {
     throw new Error("No LinkedIn access token available.");
   }
 
-  // Example call to LinkedIn's "Lite Profile" endpoint
-  const resp = await fetch("https://api.linkedin.com/v2/me", {
+  // "Sign In with LinkedIn" OIDC provides:
+  // GET https://api.linkedin.com/v2/userinfo
+  // with Bearer token
+  const resp = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: {
       "Authorization": `Bearer ${linkedInAccessToken}`
     }
   });
   if (!resp.ok) {
-    throw new Error(`Profile fetch failed: ${resp.status}`);
+    throw new Error(`UserInfo fetch failed: ${resp.status}`);
   }
-  const profile = await resp.json();
-  return profile;
+  const userinfo = await resp.json();
+  return userinfo;
 }
 
 /****************************************************
- * 6) ORG CHART LOGIC: ADD/EDIT PERSON
+ * 6) ORG CHART: ADD/EDIT PERSON
  ****************************************************/
 function clearModalFields() {
   document.getElementById('linkedinLink').value = "";
@@ -270,7 +290,7 @@ function createPersonCard(person) {
 }
 
 /****************************************************
- * 7) DRAG & DROP + LINES
+ * 7) DRAG & DROP + CONNECTION LINES
  ****************************************************/
 function makeDraggable(element, personId) {
   let offsetX, offsetY;
@@ -318,7 +338,7 @@ function savePositions(personId, left, top) {
 }
 
 /****************************************************
- * 8) DRAW CONNECTION LINES
+ * 8) DRAW LINES BETWEEN MANAGER AND SUBORDINATE
  ****************************************************/
 function drawAllLines() {
   const svg = document.getElementById('connectionSVG');
@@ -365,7 +385,7 @@ function getCardCenter(personId) {
 }
 
 /****************************************************
- * 9) PKCE HELPER FUNCTIONS
+ * 9) HELPER FUNCTIONS: PKCE, etc.
  ****************************************************/
 
 // Generate random string
