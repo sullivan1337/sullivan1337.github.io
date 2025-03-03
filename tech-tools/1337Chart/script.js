@@ -2,7 +2,7 @@
  * 1) GLOBAL VARIABLES & STORAGE
  ****************************************************/
 let people = []; 
-// Each person object: { id, name, title, image, managerId, x, y }
+// Each person: { id, name, title, image, managerId, x, y }
 
 let currentZIndex = 1;
 let linkedInAccessToken = null;
@@ -21,10 +21,8 @@ const LINKEDIN_SCOPES = "openid%20profile%20email";
 const AUTH_BASE = "https://www.linkedin.com/oauth/v2/authorization";
 const TOKEN_BASE = "https://www.linkedin.com/oauth/v2/accessToken";
 
-// PKCE variables
-let codeVerifier = null;
-let stateParam = null;
-
+// We'll store codeVerifier and stateParam in sessionStorage
+// so they persist across page reload
 /****************************************************
  * 2) ON DOM CONTENT LOADED
  ****************************************************/
@@ -35,13 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSubmitEntry = document.getElementById('btnSubmitEntry');
   const btnLinkedInOAuth = document.getElementById('btnLinkedInOAuth');
 
+  // 1) See if we're returning from LinkedIn with code=...
   checkForLinkedInRedirect();
 
+  // 2) Show "Add Person" modal
   btnAddEntry.addEventListener('click', () => {
     populateManagerSelect();
     entryModal.style.display = 'block';
   });
 
+  // 3) Close the modal
   closeModal.addEventListener('click', () => {
     entryModal.style.display = 'none';
     clearModalFields();
@@ -54,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Add a person
+  // 4) Submit the "Add Person" form
   btnSubmitEntry.addEventListener('click', () => {
     const linkedInLink = document.getElementById('linkedinLink').value.trim();
     const nameInput = document.getElementById('nameInput').value.trim();
@@ -66,26 +67,28 @@ document.addEventListener('DOMContentLoaded', () => {
     let personTitle = titleInput || "Sample Title";
     let personImage = imageInput || "https://via.placeholder.com/60";
 
-    // If user typed a LinkedIn link, but we can't fetch data from it (no open API for others),
-    // we'll just do a mock name if there's no actual access token usage
+    // If they provided a LinkedIn link but we can't actually fetch arbitrary user data
+    // (LinkedIn API doesn't allow searching for other members),
+    // we do a mock name if we have no real token usage.
     if (linkedInLink && !linkedInAccessToken) {
       personName = "LinkedIn (mock)";
       personTitle = "Fetched Title (mock)";
     }
 
+    // Create the new person
     const newPerson = {
       id: Date.now(),
       name: personName,
       title: personTitle,
       image: personImage,
       managerId: managerSelect ? parseInt(managerSelect, 10) : null,
-      x: 0, // Will be set by autoLayout
+      x: 0, 
       y: 0
     };
 
     people.push(newPerson);
 
-    // auto-layout so cards don't overlap
+    // Auto-layout so new cards don't overlap
     autoLayout();
 
     entryModal.style.display = 'none';
@@ -93,17 +96,25 @@ document.addEventListener('DOMContentLoaded', () => {
     drawAllLines();
   });
 
-  // Start the LinkedIn OIDC flow (PKCE)
+  // 5) Initiate LinkedIn OIDC (PKCE) flow
   btnLinkedInOAuth.addEventListener('click', async () => {
-    codeVerifier = generateRandomString(50);
+    // Generate code_verifier and code_challenge
+    const codeVerifier = generateRandomString(50);
     const codeChallenge = await sha256ToBase64Url(codeVerifier);
-    stateParam = generateRandomString(16);
+    // Generate random state
+    const stateParam = generateRandomString(16);
 
+    // ***** STORE IN SESSION STORAGE *****
+    sessionStorage.setItem("pkce_code_verifier", codeVerifier);
+    sessionStorage.setItem("pkce_state", stateParam);
+
+    // Build auth URL
     const authUrl = `${AUTH_BASE}?response_type=code&client_id=${LINKEDIN_CLIENT_ID}` +
       `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
       `&scope=${LINKEDIN_SCOPES}&state=${stateParam}` +
       `&code_challenge=${codeChallenge}&code_challenge_method=S256`;
 
+    // Redirect to LinkedIn
     window.location.href = authUrl;
   });
 });
@@ -124,36 +135,55 @@ function checkForLinkedInRedirect() {
   }
 
   if (code && state) {
-    // (Ideally we compare 'state' with our stored stateParam, but for demonstration we skip that.)
-    exchangeCodeForToken(code)
-      .then(token => {
-        linkedInAccessToken = token;
-        console.log("LinkedIn Access Token acquired:", token);
+    // Retrieve the stored code_verifier and storedState from sessionStorage
+    const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
+    const storedState = sessionStorage.getItem("pkce_state");
 
-        // If you want to get the user's basic info:
-        fetchLinkedInUserInfo()
-          .then(userinfo => {
-            console.log("Fetched LinkedIn UserInfo:", userinfo);
-            // userinfo might have { email, name, picture, sub, ... }
-          })
-          .catch(e => console.error("Error fetching LinkedIn userinfo:", e));
-      })
-      .catch(e => console.error("Token exchange error:", e));
+    // Optional: check if 'state' matches 'storedState'
+    if (storedState && state !== storedState) {
+      console.error("State mismatch! Potential CSRF or session lost.");
+      return;
+    }
+
+    // If we have codeVerifier, let's exchange for a token
+    if (codeVerifier) {
+      exchangeCodeForToken(code, codeVerifier)
+        .then(token => {
+          linkedInAccessToken = token;
+          console.log("LinkedIn Access Token acquired:", token);
+
+          // Optionally fetch user info
+          fetchLinkedInUserInfo()
+            .then(userinfo => {
+              console.log("Fetched LinkedIn UserInfo:", userinfo);
+              // e.g., userinfo might have { name, email, picture, sub, ... }
+            })
+            .catch(e => console.error("Error fetching LinkedIn userinfo:", e));
+        })
+        .catch(e => console.error("Token exchange error:", e))
+        .finally(() => {
+          // Remove PKCE items from sessionStorage so they don't linger
+          sessionStorage.removeItem("pkce_code_verifier");
+          sessionStorage.removeItem("pkce_state");
+        });
+    } else {
+      console.error("No codeVerifier in sessionStorage. PKCE lost.");
+    }
   }
 }
 
 /****************************************************
  * 4) EXCHANGE CODE FOR ACCESS TOKEN (CLIENT-SIDE PKCE)
- *    Not recommended for production if secret is required
+ *    Not recommended in production if secret is required
  ****************************************************/
-async function exchangeCodeForToken(code) {
+async function exchangeCodeForToken(code, codeVerifier) {
   const bodyParams = new URLSearchParams({
     grant_type: "authorization_code",
     code: code,
     redirect_uri: REDIRECT_URI,
     client_id: LINKEDIN_CLIENT_ID,
     code_verifier: codeVerifier,
-    client_secret: LINKEDIN_CLIENT_SECRET
+    client_secret: LINKEDIN_CLIENT_SECRET // Not recommended to store in front-end
   });
 
   const response = await fetch(TOKEN_BASE, {
@@ -170,7 +200,7 @@ async function exchangeCodeForToken(code) {
   }
 
   const data = await response.json();
-  return data.access_token; // or data.id_token if using OIDC ID tokens
+  return data.access_token; // or data.id_token if you're using ID tokens
 }
 
 /****************************************************
@@ -180,7 +210,6 @@ async function fetchLinkedInUserInfo() {
   if (!linkedInAccessToken) {
     throw new Error("No LinkedIn access token available.");
   }
-
   const resp = await fetch("https://api.linkedin.com/v2/userinfo", {
     headers: {
       "Authorization": `Bearer ${linkedInAccessToken}`
@@ -189,35 +218,18 @@ async function fetchLinkedInUserInfo() {
   if (!resp.ok) {
     throw new Error(`UserInfo fetch failed: ${resp.status}`);
   }
-  return await resp.json();
+  return resp.json();
 }
 
 /****************************************************
  * 6) AUTO-LAYOUT SO CARDS DON'T OVERLAP
- *    This arranges a top-down hierarchy.
- *    The "highest ranking" = those with no manager.
+ *    BFS from root managers -> subordinates
  ****************************************************/
 function autoLayout() {
-  // We'll do a BFS for each "root" (person with no manager).
-  // Then place them in rows, spaced out so they don't overlap.
-  // For demonstration, each "generation" is one row down.
-  // We'll place siblings in horizontal order.
+  // 1) Identify root nodes (managerId = null)
+  const roots = people.filter(p => p.managerId == null);
 
-  // 1) Identify root nodes (managerId == null)
-  const roots = people.filter(p => !p.managerId);
-
-  // 2) We'll do a BFS from each root, assigning rows
-  let rowHeight = 150;  // vertical distance per generation
-  let colWidth = 250;   // horizontal distance per sibling
-  let cardWidth = 200;  // approximate width of each card
-
-  // We'll keep track of the "row" each node is on and the "column index" among siblings
-  // Then we'll update p.x, p.y accordingly.
-
-  // We'll maintain a queue of { personId, level, siblingIndex }
-  // We'll track how many nodes are in each level to align them horizontally.
-
-  // Step A: Build adjacency: manager -> list of subordinates
+  // Build adjacency list: manager -> [subordinateIds]
   const adjacency = {};
   people.forEach(p => {
     adjacency[p.id] = [];
@@ -228,42 +240,33 @@ function autoLayout() {
     }
   });
 
-  // Step B: BFS from each root
-  let queue = [];
-  roots.forEach((rootId, i) => {
-    // i is siblingIndex among root-level nodes
-    queue.push({ personId: rootId.id, level: 0, siblingIndex: i });
+  // BFS queue: { personId, level, siblingIndex }
+  const queue = [];
+  roots.forEach((rootP, i) => {
+    queue.push({ personId: rootP.id, level: 0, siblingIndex: i });
   });
 
-  // For convenience, group nodes by level
-  const levelsMap = {};
-
+  const levelsMap = {}; 
   while (queue.length > 0) {
     const { personId, level, siblingIndex } = queue.shift();
-
-    // Add this node to levelsMap
     if (!levelsMap[level]) levelsMap[level] = [];
     levelsMap[level].push({ personId, siblingIndex });
 
     // Enqueue children
-    const children = adjacency[personId] || [];
-    children.forEach((childId, idx) => {
-      queue.push({ personId: childId, level: level + 1, siblingIndex: idx });
+    const kids = adjacency[personId] || [];
+    kids.forEach((kId, idx) => {
+      queue.push({ personId: kId, level: level + 1, siblingIndex: idx });
     });
   }
 
-  // Step C: For each level in levelsMap, position them horizontally
-  // so they don't overlap. We'll do a simple approach: place each node
-  // in that level side by side with colWidth spacing
-  // We'll also try to center them around 0 so the tree is not forced far left.
-
-  // Actually, to avoid overlap, we just place siblingIndex * colWidth for x
-  // row * rowHeight for y
+  // Simple layout: each level is rowHeight down, siblings are spaced horizontally
+  const rowHeight = 150;
+  const colWidth = 250;
 
   Object.keys(levelsMap).forEach(levelStr => {
     const level = parseInt(levelStr);
     const nodesInLevel = levelsMap[level];
-    nodesInLevel.forEach((n, i) => {
+    nodesInLevel.forEach(n => {
       const p = people.find(x => x.id === n.personId);
       if (p) {
         p.x = n.siblingIndex * colWidth;
@@ -272,51 +275,43 @@ function autoLayout() {
     });
   });
 
-  // Step D: Shift the entire layout so it’s not negative
-  // in case siblingIndex starts from 0. Let’s find minX
+  // Shift entire layout so no negative coords
   let minX = Math.min(...people.map(p => p.x));
   if (minX < 0) {
-    people.forEach(p => {
-      p.x -= minX - 50; // a little padding
-    });
+    people.forEach(p => { p.x -= (minX - 50); });
   }
 
-  // Also ensure no negative y
   let minY = Math.min(...people.map(p => p.y));
   if (minY < 0) {
-    people.forEach(p => {
-      p.y -= minY - 50;
-    });
+    people.forEach(p => { p.y -= (minY - 50); });
   }
 
-  // Finally, update each card's DOM position
+  // Now re-render all cards
   renderAllCards();
 }
 
 /****************************************************
- * 7) RENDER ALL CARDS / CREATE THEM IF NOT EXIST
+ * 7) RENDER ALL CARDS
  ****************************************************/
 function renderAllCards() {
   const chartArea = document.getElementById('chartArea');
 
-  // We'll see which cards already exist, which ones need creation
-  // A simple approach: remove all cards from DOM and re-create them
-  // so they are placed at the updated positions
+  // Remove existing .person-card elements
   Array.from(chartArea.getElementsByClassName('person-card')).forEach(card => {
     chartArea.removeChild(card);
   });
 
+  // Create or update each person's card
   people.forEach(person => {
     createOrUpdatePersonCard(person);
   });
-  
+
   drawAllLines();
 }
 
 function createOrUpdatePersonCard(person) {
   const chartArea = document.getElementById('chartArea');
 
-  // create a new card
   const card = document.createElement('div');
   card.classList.add('person-card');
   card.style.left = `${person.x}px`;
@@ -333,21 +328,20 @@ function createOrUpdatePersonCard(person) {
     card.style.zIndex = ++currentZIndex;
   });
 
-  // Make it draggable
+  // Draggable
   makeDraggable(card, person.id);
 
   // Delete
   card.querySelector('.delete-btn').addEventListener('click', () => {
     chartArea.removeChild(card);
-    // remove from people
     people = people.filter(p => p.id !== person.id);
-    // remove subordinates' references
+    // Also remove manager references from subordinates
     people.forEach(p => {
       if (p.managerId === person.id) {
         p.managerId = null;
       }
     });
-    autoLayout(); // reflow
+    autoLayout(); // reflow the chart
   });
 
   chartArea.appendChild(card);
@@ -361,7 +355,6 @@ function makeDraggable(element, personId) {
   let isDown = false;
 
   element.addEventListener('mousedown', (e) => {
-    // Only if not clicking the Delete button
     if (e.target.classList.contains('delete-btn')) return;
     isDown = true;
     offsetX = element.offsetLeft - e.clientX;
@@ -378,8 +371,8 @@ function makeDraggable(element, personId) {
     let newLeft = e.clientX + offsetX;
     let newTop = e.clientY + offsetY;
 
-    element.style.left = newLeft + 'px';
-    element.style.top = newTop + 'px';
+    element.style.left = `${newLeft}px`;
+    element.style.top = `${newTop}px`;
 
     savePositions(personId, newLeft, newTop);
     drawAllLines();
@@ -405,9 +398,8 @@ function savePositions(personId, left, top) {
  ****************************************************/
 function drawAllLines() {
   const svg = document.getElementById('connectionSVG');
-  svg.innerHTML = ""; // Clear existing
+  svg.innerHTML = ""; // clear existing
 
-  // for each person, if they have a manager, draw a line
   people.forEach((person) => {
     if (person.managerId) {
       const manager = people.find(m => m.id === person.managerId);
@@ -443,7 +435,6 @@ function getCardCenter(personId) {
   const rect = card.getBoundingClientRect();
   const chartRect = chartArea.getBoundingClientRect();
 
-  // center of the card, relative to the chartArea
   const centerX = rect.left + rect.width / 2 - chartRect.left + chartArea.scrollLeft;
   const centerY = rect.top + rect.height / 2 - chartRect.top + chartArea.scrollTop;
   return { x: centerX, y: centerY };
