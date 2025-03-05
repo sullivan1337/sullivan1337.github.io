@@ -7,19 +7,55 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 
     reader.onload = function(e) {
         const contents = e.target.result;
-        analyzeHAR(contents);
+        analyzeFile(contents);
     };
 
     reader.readAsText(file);
 });
 
-function analyzeHAR(contents) {
-    const har = JSON.parse(contents);
-    samlRequests = har.log.entries.filter(entry => 
-        entry.request.method === 'POST' && 
-        (entry.request.postData?.text?.includes('SAMLRequest') || 
-         entry.request.postData?.text?.includes('SAMLResponse'))
-    );
+document.getElementById('analyzeRawBtn').addEventListener('click', function() {
+    analyzeRawInput();
+});
+
+document.getElementById('resetBtn').addEventListener('click', function() {
+    document.getElementById('fileInput').value = "";
+    document.getElementById('rawTextInput').value = "";
+    document.getElementById('results').textContent = "";
+    document.getElementById('decodedSAML').textContent = "";
+    document.getElementById('samlSummary').textContent = "";
+    document.getElementById('navigation').style.display = 'none';
+    samlRequests = [];
+    currentRequestIndex = 0;
+});
+
+function analyzeFile(contents) {
+    let data;
+    try {
+        data = JSON.parse(contents);
+    } catch (err) {
+        document.getElementById('results').textContent = 'Invalid JSON file.';
+        return;
+    }
+    
+    // Determine file type based on structure
+    if (data.log && data.log.entries) {
+        // HAR file format
+        samlRequests = data.log.entries.filter(entry => 
+            entry.request.method === 'POST' && 
+            (entry.request.postData?.text?.includes('SAMLRequest') || 
+             entry.request.postData?.text?.includes('SAMLResponse'))
+        );
+    } else if (data.requests) {
+        // SAML tracer export format
+        samlRequests = data.requests.filter(req => 
+            req.method === 'POST' && 
+            (req.postData?.text?.includes('SAMLRequest') || 
+             req.postData?.text?.includes('SAMLResponse'))
+        );
+    } else {
+        document.getElementById('results').textContent = 'Unsupported file format.';
+        return;
+    }
 
     if (samlRequests.length > 0) {
         document.getElementById('navigation').style.display = 'flex';
@@ -27,38 +63,69 @@ function analyzeHAR(contents) {
         updateNavigation();
         displaySAMLRequest(currentRequestIndex);
     } else {
-        document.getElementById('results').textContent = 'No SAML requests found in the HAR file.';
+        document.getElementById('results').textContent = 'No SAML requests found in the file.';
     }
+}
+
+function analyzeRawInput() {
+    const rawText = document.getElementById('rawTextInput').value.trim();
+    if (!rawText) {
+        alert("Please paste raw SAML trace/response.");
+        return;
+    }
+    let formattedXML = "";
+    try {
+        if (rawText.startsWith("<")) {
+            // Assume it's XML
+            formattedXML = formatXML(rawText);
+        } else {
+            // Assume it's URL or base64 encoded SAML
+            formattedXML = decodeAndFormatSAML(rawText);
+        }
+    } catch(e) {
+        formattedXML = "Error processing raw input.";
+    }
+    document.getElementById('decodedSAML').textContent = formattedXML;
+    const summary = getSAMLSummary(formattedXML);
+    document.getElementById('samlSummary').innerHTML = summary;
+    document.getElementById('results').textContent = "Processed raw SAML input.";
+    // Hide navigation since it's not file-based
+    document.getElementById('navigation').style.display = 'none';
 }
 
 function updateNavigation() {
     const prevButton = document.getElementById('prevRequest');
     const nextButton = document.getElementById('nextRequest');
     const currentUrl = document.getElementById('currentUrl');
-
+    const entry = samlRequests[currentRequestIndex];
+    // Use entry.request if available, otherwise use entry directly
+    const req = entry.request ? entry.request : entry;
+    
     prevButton.disabled = currentRequestIndex === 0;
     nextButton.disabled = currentRequestIndex === samlRequests.length - 1;
-    currentUrl.textContent = samlRequests[currentRequestIndex].request.url;
+    currentUrl.textContent = req.url;
 }
 
 function displaySAMLRequest(index) {
     const entry = samlRequests[index];
+    // Use entry.request if available, otherwise use entry directly
+    const req = entry.request ? entry.request : entry;
     let results = '';
     let samlResponse = '';
 
     results += `SAML Request ${index + 1}:\n`;
-    results += `URL: ${entry.request.url}\n`;
-    results += `Method: ${entry.request.method}\n`;
+    results += `URL: ${req.url}\n`;
+    results += `Method: ${req.method}\n`;
     results += 'Headers:\n';
-    entry.request.headers.forEach(header => {
+    (req.headers || req.requestHeaders).forEach(header => {
         results += `  ${header.name}: ${header.value}\n`;
     });
     results += 'Post Data:\n';
-    if (entry.request.postData && entry.request.postData.text) {
-        const decodedText = decodeURIComponent(entry.request.postData.text);
+    if (req.postData && req.postData.text) {
+        const decodedText = decodeURIComponent(req.postData.text);
         results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
         
-        // Extract SAMLResponse
+        // Extract SAMLResponse from the post data
         const match = decodedText.match(/SAMLResponse=([^&]+)/);
         if (match) {
             samlResponse = match[1];
@@ -98,9 +165,23 @@ document.getElementById('nextRequest').addEventListener('click', function() {
 });
 
 function decodeAndFormatSAML(encodedSAML) {
-    const urlDecoded = decodeURIComponent(encodedSAML);
-    const base64Decoded = atob(urlDecoded);
-    return formatXML(base64Decoded);
+    try {
+        let urlDecoded;
+        try {
+            urlDecoded = decodeURIComponent(encodedSAML);
+        } catch(e) {
+            urlDecoded = encodedSAML;
+        }
+        let base64Decoded;
+        try {
+            base64Decoded = atob(urlDecoded);
+        } catch(e) {
+            base64Decoded = urlDecoded;
+        }
+        return formatXML(base64Decoded);
+    } catch(err) {
+        return "Error decoding SAML response.";
+    }
 }
 
 function formatXML(xml) {
