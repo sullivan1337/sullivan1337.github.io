@@ -31,7 +31,7 @@
         <li>Enable <strong>"Allow to generate HAR with sensitive data"</strong>.</li>
         <li>Perform the action that triggers the SAML request.</li>
         <li>Right-click on the network log/entry and choose <strong>"Copy" > "Copy all as HAR (with sensitive content)"</strong>, or click the "export" icon and <strong>Export HAR (with sensitive data)</strong>.</li>
-        <li>Upload the file or paste the saved HAR content.</li>
+        <li>Upload the file or paste the saved HAR content into the text input area.</li>
       </ol>
     </div>
   </div>
@@ -77,8 +77,8 @@
         </div>
       </div>
       <div id="rawInputContainer" class="input-section">
-        <label for="rawTextInput"><strong>Or paste XML/JSON/base64 encoded SAML trace here:</strong></label>
-        <textarea id="rawTextInput" rows="8" placeholder="Paste XML/JSON/base64 encoded SAML trace here"></textarea>
+        <label for="rawTextInput"><strong>Or paste HAR/JSON/XML/base64 encoded SAML trace here:</strong></label>
+        <textarea id="rawTextInput" rows="8" placeholder="Paste HAR/JSON/XML/base64 encoded SAML trace here"></textarea>
         <!-- Validation status will appear here -->
         <div id="validationStatus"></div>
         <button id="analyzeRawBtn">Analyze Input</button>
