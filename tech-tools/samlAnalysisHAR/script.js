@@ -20,7 +20,7 @@ document.getElementById('themeToggle').addEventListener('click', function () {
   localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
 });
 
-// Event listeners for Help modals
+// Help modals
 document.getElementById('helpHarBtn').addEventListener('click', () => {
   document.getElementById('helpHarModal').style.display = 'block';
 });
@@ -48,7 +48,7 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   reader.readAsText(file);
 });
 
-// Drag & drop
+// Drag & drop support
 const fileDropArea = document.querySelector('.file-drop-area');
 if (fileDropArea) {
   fileDropArea.addEventListener('dragover', e => {
@@ -90,19 +90,24 @@ document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('captureTimestamp').textContent = "";
 });
 
-// Update capture timestamp from decoded SAML
+// Update capture timestamp from decoded SAML (now also checks AuthnRequest)
 function updateCaptureTimestampFromSAML(decodedSAML) {
   try {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(decodedSAML, "text/xml");
     let ts = "";
-    const response = xmlDoc.getElementsByTagName("Response")[0];
-    if (response && response.getAttribute("IssueInstant")) {
-      ts = response.getAttribute("IssueInstant");
+    const root = xmlDoc.documentElement;
+    if (root && root.localName === 'AuthnRequest' && root.getAttribute("IssueInstant")) {
+      ts = root.getAttribute("IssueInstant");
     } else {
-      const assertion = xmlDoc.getElementsByTagName("Assertion")[0];
-      if (assertion && assertion.getAttribute("IssueInstant")) {
-        ts = assertion.getAttribute("IssueInstant");
+      const response = xmlDoc.getElementsByTagName("Response")[0];
+      if (response && response.getAttribute("IssueInstant")) {
+        ts = response.getAttribute("IssueInstant");
+      } else {
+        const assertion = xmlDoc.getElementsByTagName("Assertion")[0];
+        if (assertion && assertion.getAttribute("IssueInstant")) {
+          ts = assertion.getAttribute("IssueInstant");
+        }
       }
     }
     if (ts) {
@@ -124,13 +129,11 @@ function analyzeRawInput() {
     alert("Please paste raw SAML trace/response.");
     return;
   }
-
   let validType = "";
   try {
     JSON.parse(rawText);
     validType = "JSON";
   } catch(e) {}
-
   if (!validType) {
     let parser = new DOMParser();
     let xmlDoc = parser.parseFromString(rawText, "text/xml");
@@ -144,7 +147,6 @@ function analyzeRawInput() {
       validType = "Base64";
     } catch(e) {}
   }
-
   if (validType) {
     validationStatus.textContent = `Valid ${validType} input ✓`;
     validationStatus.style.color = "limegreen";
@@ -152,21 +154,18 @@ function analyzeRawInput() {
     validationStatus.textContent = `Input not strictly valid, attempting to parse...`;
     validationStatus.style.color = "orange";
   }
-
   if (validType === "JSON") {
     try {
       analyzeFile(rawText);
       return;
     } catch(e) {}
   }
-
   let formattedXML = "";
   if (rawText.startsWith("<")) {
     formattedXML = formatXML(rawText);
   } else {
     formattedXML = decodeAndFormatSAML(rawText);
   }
-  
   document.getElementById('decodedSAML').textContent = formattedXML;
   updateCaptureTimestampFromSAML(formattedXML);
   const summary = getSAMLSummary(formattedXML);
@@ -175,13 +174,12 @@ function analyzeRawInput() {
   document.getElementById('navigation').style.display = 'none';
 }
 
-// Analyze file contents
+// Analyze file contents (HAR export, SAML-tracer export, or raw XML)
 function analyzeFile(contents) {
   let data;
   try {
     data = JSON.parse(contents);
   } catch (err) {
-    // Possibly raw XML
     if (contents.trim().startsWith("<")) {
       const formattedXML = formatXML(contents.trim());
       document.getElementById('decodedSAML').textContent = formattedXML;
@@ -196,8 +194,7 @@ function analyzeFile(contents) {
       return;
     }
   }
-  
-  // HAR
+  // HAR export
   if (data.log && data.log.entries) {
     samlRequests = data.log.entries.filter(entry => {
       if (entry.request.method !== 'POST') return false;
@@ -207,20 +204,27 @@ function analyzeFile(contents) {
               entry.request.postData.text.includes('SAMLResponse'));
     });
   }
-  // SAML-tracer
+  // SAML-tracer export
   else if (data.requests) {
     samlRequests = data.requests.filter(req => {
-      // If "saml" property is a non-empty string, treat it as valid SAML
       if (req.saml && typeof req.saml === "string" && req.saml.trim().length > 0) {
         return true;
       }
-      // Otherwise, check postData text
-      if (req.postData && typeof req.postData.text === "string") {
+      if (req.method === "POST" && req.postData && typeof req.postData.text === "string") {
         return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
       }
-      // Or check post array
-      if (req.post && Array.isArray(req.post)) {
+      if (req.method === "POST" && req.post && Array.isArray(req.post)) {
         return req.post.some(pair => {
+          if (Array.isArray(pair) && pair.length >= 2) {
+            const key = pair[0];
+            const value = pair[1];
+            return (key === 'SAMLRequest' || key === 'SAMLResponse') && !!value;
+          }
+          return false;
+        });
+      }
+      if (req.method === "GET" && req.get && Array.isArray(req.get)) {
+        return req.get.some(pair => {
           if (Array.isArray(pair) && pair.length >= 2) {
             const key = pair[0];
             const value = pair[1];
@@ -235,7 +239,6 @@ function analyzeFile(contents) {
     document.getElementById('results').textContent = 'Unsupported JSON file format.';
     return;
   }
-
   if (samlRequests.length > 0) {
     document.getElementById('navigation').style.display = 'flex';
     currentRequestIndex = samlRequests.length - 1;
@@ -253,7 +256,6 @@ function updateNavigation() {
   const currentUrl = document.getElementById('currentUrl');
   const entry = samlRequests[currentRequestIndex];
   const req = entry.request ? entry.request : entry;
-  
   prevButton.disabled = (currentRequestIndex === 0);
   nextButton.disabled = (currentRequestIndex === samlRequests.length - 1);
   currentUrl.textContent = req.url || '(no URL)';
@@ -288,8 +290,8 @@ function displaySAMLRequest(index) {
   });
   results += 'Post Data:\n';
   
-  let samlResponse = '';
-  if (req.postData?.text) {
+  let samlResponse = "";
+  if (req.postData && req.postData.text) {
     const decodedText = decodeURIComponent(req.postData.text);
     results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
     const match = decodedText.match(/SAMLResponse=([^&]+)/);
@@ -297,14 +299,28 @@ function displaySAMLRequest(index) {
       samlResponse = match[1];
     }
   }
+  // For GET, check req.get if no POST data
+  if (!samlResponse && req.method === "GET" && Array.isArray(req.get)) {
+    const samlParam = req.get.find(pair => {
+      if (Array.isArray(pair) && pair.length >= 2) {
+        const key = pair[0];
+        const value = pair[1];
+        return (key === 'SAMLRequest' || key === 'SAMLResponse') && !!value;
+      }
+      return false;
+    });
+    if (samlParam) {
+      samlResponse = samlParam[1];
+    }
+  }
   document.getElementById('results').textContent = results;
-
-  let decodedSAML = '';
-  // If there's a "saml" property, use that first
-  if (req.saml && typeof req.saml === 'string' && req.saml.trim().length > 0) {
+  
+  let decodedSAML = "";
+  // If there's a "saml" property, use it
+  if (req.saml && typeof req.saml === "string" && req.saml.trim().length > 0) {
     decodedSAML = formatXML(req.saml);
   }
-  // Otherwise, if we found a base64 SAMLResponse
+  // Otherwise, if we have a SAMLResponse parameter, decode it
   else if (samlResponse) {
     decodedSAML = decodeAndFormatSAML(samlResponse);
   } else {
@@ -317,7 +333,7 @@ function displaySAMLRequest(index) {
   document.getElementById('samlSummary').innerHTML = summary;
 }
 
-// Decode & format SAML
+// Decode & format SAML response
 function decodeAndFormatSAML(encodedSAML) {
   try {
     let decoded = encodedSAML;
@@ -354,12 +370,12 @@ function formatXML(xml) {
   return formatted.substring(1, formatted.length - 3);
 }
 
-// Generate SAML summary
+// Generate SAML summary tables
 function getSAMLSummary(xml) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xml, "text/xml");
   let summary = '';
-
+  
   function getElementByTagNames(doc, tags) {
     for (let tag of tags) {
       const elements = doc.getElementsByTagNameNS("*", tag);
@@ -367,7 +383,7 @@ function getSAMLSummary(xml) {
     }
     return null;
   }
-
+  
   function createTable(title, data) {
     let table = `<h3>${title}</h3><table>`;
     table += '<tr><th>Attribute</th><th>Value</th></tr>';
@@ -377,7 +393,7 @@ function getSAMLSummary(xml) {
     table += '</table>';
     return table;
   }
-
+  
   function createTableFromRows(title, rows, duplicateAttributes) {
     let note = "";
     if (duplicateAttributes.size > 0) {
@@ -392,67 +408,86 @@ function getSAMLSummary(xml) {
     table += '</table>';
     return table;
   }
-
-  // SAML Response
-  const response = getElementByTagNames(xmlDoc, ['Response']);
-  if (response) {
-    const responseData = {
-      'ID': response.getAttribute('ID') || '',
-      'Version': response.getAttribute('Version') || '',
-      'IssueInstant': response.getAttribute('IssueInstant') || '',
-      'Destination': response.getAttribute('Destination') || '',
-      'InResponseTo': response.getAttribute('InResponseTo') || ''
+  
+  // New branch for AuthnRequest
+  const root = xmlDoc.documentElement;
+  if (root && root.localName === 'AuthnRequest') {
+    const data = {
+      'ID': root.getAttribute('ID') || '',
+      'IssueInstant': root.getAttribute('IssueInstant') || '',
+      'Version': root.getAttribute('Version') || '',
+      'Destination': root.getAttribute('Destination') || '',
+      'AssertionConsumerServiceURL': root.getAttribute('AssertionConsumerServiceURL') || ''
     };
-    summary += createTable('SAML Response', responseData);
-  }
-
-  // SAML Assertion
-  const assertion = getElementByTagNames(xmlDoc, ['Assertion']);
-  if (assertion) {
-    const assertionData = {
-      'ID': assertion.getAttribute('ID') || '',
-      'Version': assertion.getAttribute('Version') || '',
-      'IssueInstant': assertion.getAttribute('IssueInstant') || ''
-    };
-    const issuer = getElementByTagNames(assertion, ['Issuer']);
-    if (issuer) {
-      assertionData['Issuer'] = issuer.textContent;
+    summary += createTable('SAML AuthnRequest', data);
+    const nameIDPolicy = root.getElementsByTagNameNS("*", 'NameIDPolicy')[0];
+    if (nameIDPolicy) {
+      const policyData = {
+        'AllowCreate': nameIDPolicy.getAttribute('AllowCreate') || '',
+        'Format': nameIDPolicy.getAttribute('Format') || ''
+      };
+      summary += createTable('NameIDPolicy', policyData);
     }
-    const subject = getElementByTagNames(assertion, ['Subject']);
-    if (subject) {
-      const nameID = subject.getElementsByTagNameNS("*", 'NameID')[0];
-      if (nameID) {
-        assertionData['Subject'] = nameID.textContent;
+  } else {
+    // SAML Response
+    const response = getElementByTagNames(xmlDoc, ['Response']);
+    if (response) {
+      const responseData = {
+        'ID': response.getAttribute('ID') || '',
+        'Version': response.getAttribute('Version') || '',
+        'IssueInstant': response.getAttribute('IssueInstant') || '',
+        'Destination': response.getAttribute('Destination') || '',
+        'InResponseTo': response.getAttribute('InResponseTo') || ''
+      };
+      summary += createTable('SAML Response', responseData);
+    }
+    // SAML Assertion
+    const assertion = getElementByTagNames(xmlDoc, ['Assertion']);
+    if (assertion) {
+      const assertionData = {
+        'ID': assertion.getAttribute('ID') || '',
+        'Version': assertion.getAttribute('Version') || '',
+        'IssueInstant': assertion.getAttribute('IssueInstant') || ''
+      };
+      const issuer = getElementByTagNames(assertion, ['Issuer']);
+      if (issuer) {
+        assertionData['Issuer'] = issuer.textContent;
+      }
+      const subject = getElementByTagNames(assertion, ['Subject']);
+      if (subject) {
+        const nameID = subject.getElementsByTagNameNS("*", 'NameID')[0];
+        if (nameID) {
+          assertionData['Subject'] = nameID.textContent;
+        }
+      }
+      summary += createTable('SAML Assertion', assertionData);
+    }
+    // Attribute Statement
+    const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
+    if (attributeStatement) {
+      const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
+      const rows = [];
+      const duplicateAttributes = new Set();
+      for (let attr of attributes) {
+        const name = attr.getAttribute('Name');
+        if (!name) continue;
+        const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
+        const freq = {};
+        for (let ve of valueElements) {
+          freq[ve.textContent] = (freq[ve.textContent] || 0) + 1;
+        }
+        for (let ve of valueElements) {
+          const val = ve.textContent;
+          const isDup = freq[val] > 1;
+          if (isDup) duplicateAttributes.add(name);
+          rows.push({ attribute: name, value: val, duplicate: isDup });
+        }
+      }
+      if (rows.length > 0) {
+        summary += createTableFromRows('Attribute Statement', rows, duplicateAttributes);
       }
     }
-    summary += createTable('SAML Assertion', assertionData);
   }
-
-  // Attribute Statement with duplicates
-  const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
-  if (attributeStatement) {
-    const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
-    const rows = [];
-    const duplicateAttributes = new Set();
-    for (let attr of attributes) {
-      const name = attr.getAttribute('Name');
-      if (!name) continue;
-      const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
-      const freq = {};
-      for (let ve of valueElements) {
-        freq[ve.textContent] = (freq[ve.textContent] || 0) + 1;
-      }
-      for (let ve of valueElements) {
-        const val = ve.textContent;
-        const isDup = freq[val] > 1;
-        if (isDup) duplicateAttributes.add(name);
-        rows.push({ attribute: name, value: val, duplicate: isDup });
-      }
-    }
-    if (rows.length > 0) {
-      summary += createTableFromRows('Attribute Statement', rows, duplicateAttributes);
-    }
-  }
-
+  
   return summary;
 }
