@@ -308,3 +308,13 @@
     a:hover {
     text-decoration: underline;
     }
+
+    .duplicate-note {
+        color: red;
+        font-style: italic;
+        margin-bottom: 5px;
+      }
+      
+      .duplicate-value {
+        background-color: red;
+      }

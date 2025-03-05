@@ -417,7 +417,7 @@ function getSAMLSummary(xml) {
     return null;
   }
 
-  // Updated createTable function with title attributes on cells.
+  // Create a simple table from a key/value object.
   function createTable(title, data) {
     let table = `<h3>${title}</h3><table>`;
     table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
@@ -428,12 +428,18 @@ function getSAMLSummary(xml) {
     return table;
   }
 
-  // New helper: Create a table from an array of rows (for multiple values)
-  function createTableFromRows(title, rows) {
-    let table = `<h3>${title}</h3><table>`;
+  // Create a table from an array of rows. Each row is an object: {attribute, value, duplicate}
+  // Duplicate values are highlighted.
+  function createTableFromRows(title, rows, duplicateAttributes) {
+    let note = "";
+    if (duplicateAttributes.size > 0) {
+      note = `<p class="duplicate-note">Note: Duplicate values detected for attribute(s): ${Array.from(duplicateAttributes).join(", ")}</p>`;
+    }
+    let table = `<h3>${title}</h3>${note}<table>`;
     table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
     rows.forEach(row => {
-      table += `<tr><td title="${row.attribute}">${row.attribute}</td><td title="${row.value}">${row.value}</td></tr>`;
+      let duplicateClass = row.duplicate ? " duplicate-value" : "";
+      table += `<tr><td title="${row.attribute}">${row.attribute}</td><td class="${duplicateClass}" title="${row.value}">${row.value}</td></tr>`;
     });
     table += '</table>';
     return table;
@@ -474,22 +480,35 @@ function getSAMLSummary(xml) {
     summary += createTable('SAML Assertion', assertionData);
   }
 
-  // Attribute Statement with multiple values handling
+  // Attribute Statement with duplicate detection
   const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
   if (attributeStatement) {
     const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
     let rows = [];
+    let duplicateAttributes = new Set();
     for (let attr of attributes) {
       const name = attr.getAttribute('Name');
       if (name) {
         const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
+        let valueCount = {};
+        // Count frequency of each value for this attribute
         for (let i = 0; i < valueElements.length; i++) {
-          rows.push({ attribute: name, value: valueElements[i].textContent });
+          const val = valueElements[i].textContent;
+          valueCount[val] = (valueCount[val] || 0) + 1;
+        }
+        // Create rows and mark duplicates
+        for (let i = 0; i < valueElements.length; i++) {
+          const val = valueElements[i].textContent;
+          let duplicate = valueCount[val] > 1;
+          if (duplicate) {
+            duplicateAttributes.add(name);
+          }
+          rows.push({ attribute: name, value: val, duplicate: duplicate });
         }
       }
     }
     if (rows.length > 0) {
-      summary += createTableFromRows('Attribute Statement', rows);
+      summary += createTableFromRows('Attribute Statement', rows, duplicateAttributes);
     }
   }
   return summary;
