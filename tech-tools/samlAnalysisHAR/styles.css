@@ -309,12 +309,24 @@
     text-decoration: underline;
     }
 
+    /* Table cell styling */
+    th, td {
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        text-align: left;
+        /* Allow wrapping instead of truncating text */
+        white-space: normal;
+        word-break: break-word;
+    }
+    
+    /* Duplicate value styling */
     .duplicate-note {
         color: red;
         font-style: italic;
         margin-bottom: 5px;
-      }
-      
-      .duplicate-value {
-        background-color: red;
-      }
+    }
+    
+    .duplicate-value {
+        background-color: #ffcccc;
+    }
+    
