@@ -129,11 +129,19 @@
     display: flex;
     gap: 10px;
     margin-top: 5px;
+    justify-content: center;
+  }
+  
+  .help-buttons button {
+    flex: 1;            /* All buttons share equal space */
+    text-align: center; /* Center the text */
   }
 
   .reset-btn {
     /* Center the reset button. Adjust width as needed. */
     align-self: center;
+    background-color: #f97416ce;
+    
   }
   
   /* Navigation */
@@ -259,5 +267,22 @@
   
   .close:hover {
     filter: brightness(1.2);
+  }
+  
+  .file-drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    transition: background-color var(--transition-speed);
+  }
+  
+  .file-drop-area.dragover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .custom-file-upload {
+    cursor: pointer;
+    display: block;
   }
   

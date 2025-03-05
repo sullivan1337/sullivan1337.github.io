@@ -44,7 +44,7 @@ window.addEventListener('click', (e) => {
   }
 });
 
-// File upload event handling
+// File upload event handling (traditional file picker)
 document.getElementById('fileInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -55,6 +55,34 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   };
   reader.readAsText(file);
 });
+
+// Drag and drop file upload support
+const fileDropArea = document.querySelector('.file-drop-area');
+if (fileDropArea) {
+  fileDropArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    fileDropArea.classList.add('dragover');
+  });
+  fileDropArea.addEventListener('dragleave', e => {
+    e.preventDefault();
+    fileDropArea.classList.remove('dragover');
+  });
+  fileDropArea.addEventListener('drop', e => {
+    e.preventDefault();
+    fileDropArea.classList.remove('dragover');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const fileInput = document.getElementById('fileInput');
+      fileInput.files = files;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const contents = e.target.result;
+        analyzeFile(contents);
+      };
+      reader.readAsText(files[0]);
+    }
+  });
+}
 
 // Analyze raw input event
 document.getElementById('analyzeRawBtn').addEventListener('click', function () {

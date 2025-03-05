@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SAML HAR Analyzer</title>
+  <title>SAML Analyzer</title>
   <link rel="stylesheet" href="styles.css"/>
   <!-- Optionally load a modern font -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -13,7 +13,7 @@
 <body class="dark-mode">
   <header>
     <div class="header-content">
-      <h1>SAML HAR Analyzer</h1>
+      <h1>SAML Analyzer</h1>
       <!-- Only theme toggle remains in the header -->
       <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
     </div>
@@ -46,8 +46,8 @@
         <li>If using a browser extension (such as SAML-tracer), start the extension before triggering the SAML request.</li>
         <li>Perform the action that triggers the SAML request.</li>
         <li>The extension will capture the SAML requests, look for the POST request with the "SAML" tag.</li>
-        <li>Either export the captured SAML trace to a file, copy the raw SAML XML, or base64 encoded SAMLResponse from the extension.</li>
-        <li>Then use the file upload or paste the XML/base64 into the raw input area.</li>
+        <li>Either export the captured SAML trace to a JSON file, copy the SAML XML, or copy the base64 encoded <strong>SAMLResponse</strong> from the extension.</li>
+        <li>Then use the file upload or paste the XML/base64 into the text input area.</li>
       </ol>
     </div>
   </div>
@@ -56,22 +56,25 @@
     <!-- Both input sections visible side by side -->
     <div id="inputContainer" class="input-container">
       <div id="fileInputContainer" class="input-section">
-        <label for="fileInput"><strong>Upload HAR/SAML file:</strong></label>
-        <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
+        <div class="file-drop-area">
+          <label for="fileInput" class="custom-file-upload">
+            <strong>Drag/Upload file: ( .har, .xml, .json, .txt )</strong>
+          </label>
+          <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
+        </div>
         <!-- Action buttons for help and reset -->
         <div class="action-buttons">
-            <div class="help-buttons">
-              <button id="helpHarBtn" title="How to generate a HAR file">How to Generate HAR File</button>
-              <button id="helpSamlBtn" title="How to export SAML XML">How to Export SAML XML</button>
-            </div>
-            <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Forum</button>
+          <div class="help-buttons">
+            <button id="helpHarBtn" title="How to generate a HAR file">How to Generate a HAR File</button>
+            <button id="helpSamlBtn" title="How to export SAML XML">How to Export SAML XML/base64</button>
           </div>
-          
+          <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Page</button>
+        </div>
       </div>
       <div id="rawInputContainer" class="input-section">
         <label for="rawTextInput"><strong>Or paste XML/base64 encoded SAML trace here:</strong></label>
         <textarea id="rawTextInput" rows="8" placeholder="Paste XML/base64 encoded SAML trace here"></textarea>
-        <button id="analyzeRawBtn">Analyze Raw Input</button>
+        <button id="analyzeRawBtn">Analyze text Input</button>
       </div>
     </div>
 
