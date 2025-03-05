@@ -25,9 +25,10 @@
       <span class="close" data-close="helpHarModal">&times;</span>
       <h2>How to Generate HAR Content</h2>
       <ol>
-        <li>Open your browser's Developer Tools (F12 or right-click and select "Inspect").</li>
-        <li>Navigate to the <strong>Network</strong> tab.</li>
+        <li>Open your browser's Developer Tools - F12 or right-click and select "Inspect". (<a target="_blank" href="https://developer.chrome.com/docs/devtools/network/reference#save-as-har">Chrome DevTools HAR</a>)</li>
+        <li>Navigate to the <strong>Network</strong> tab and click the top <strong>Settings</strong> Gear.</li>
         <li>Enable <strong>"Preserve log"</strong>.</li>
+        <li>Enable <strong>"Allow to generate HAR with sensitive data"</strong>.</li>
         <li>Perform the action that triggers the SAML request.</li>
         <li>Right-click on the network log/entry and choose <strong>"Copy" > "Copy all as HAR (with sensitive content)"</strong>, or click the "export" icon and <strong>Export HAR (with sensitive data)</strong>.</li>
         <li>Upload the file or paste the saved HAR content.</li>
