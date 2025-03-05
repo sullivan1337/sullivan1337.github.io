@@ -74,6 +74,11 @@
     filter: brightness(1.1);
   }
   
+  /* Specific reset button color (complementary red/orange) */
+  .reset-btn {
+    background-color: #F97316; /* A bright orange */
+  }
+  
   /* Container */
   .container {
     max-width: 1200px;
@@ -102,6 +107,26 @@
     font-weight: 500;
   }
   
+  /* File Drop Area & Custom File Picker */
+  .file-drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    transition: background-color var(--transition-speed);
+    margin-bottom: 10px;
+  }
+  
+  .file-drop-area.dragover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .custom-file-upload {
+    cursor: pointer;
+    display: block;
+  }
+  
+  /* Input elements */
   input[type="file"],
   textarea {
     background-color: var(--bg-color);
@@ -117,31 +142,25 @@
     min-height: 120px;
   }
   
-  /* Centered action buttons in left column */
+  /* Action buttons */
   .action-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
   }
-
+  
+  /* Help buttons centered and equal width */
   .help-buttons {
     display: flex;
     gap: 10px;
-    margin-top: 5px;
     justify-content: center;
+    width: 100%;
   }
   
   .help-buttons button {
-    flex: 1;            /* All buttons share equal space */
-    text-align: center; /* Center the text */
-  }
-
-  .reset-btn {
-    /* Center the reset button. Adjust width as needed. */
-    align-self: center;
-    background-color: #f97416ce;
-    
+    flex: 1;
+    text-align: center;
   }
   
   /* Navigation */
@@ -168,6 +187,12 @@
   .output-section h2 {
     margin-bottom: 10px;
     font-size: 1.1rem;
+  }
+  
+  #captureTimestamp {
+    font-size: 0.9rem;
+    color: var(--accent-color);
+    margin-left: 10px;
   }
   
   .output-box {
@@ -227,6 +252,12 @@
     border-right: 2px solid var(--text-color);
   }
   
+  /* Validation status styling */
+  #validationStatus {
+    margin-top: 5px;
+    font-weight: bold;
+  }
+  
   /* Modal */
   .modal {
     display: none;
@@ -268,21 +299,12 @@
   .close:hover {
     filter: brightness(1.2);
   }
-  
-  .file-drop-area {
-    border: 2px dashed var(--border-color);
-    border-radius: 6px;
-    padding: 20px;
-    text-align: center;
-    transition: background-color var(--transition-speed);
-  }
-  
-  .file-drop-area.dragover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .custom-file-upload {
-    cursor: pointer;
-    display: block;
-  }
-  
+
+    a {
+    color: var(--accent-color);
+    text-decoration: none;
+    }
+
+    a:hover {
+    text-decoration: underline;
+    }

@@ -51,6 +51,7 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const contents = e.target.result;
+    updateTimestamp();
     analyzeFile(contents);
   };
   reader.readAsText(file);
@@ -77,6 +78,7 @@ if (fileDropArea) {
       const reader = new FileReader();
       reader.onload = function (e) {
         const contents = e.target.result;
+        updateTimestamp();
         analyzeFile(contents);
       };
       reader.readAsText(files[0]);
@@ -99,15 +101,80 @@ document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('navigation').style.display = 'none';
   samlRequests = [];
   currentRequestIndex = 0;
+  document.getElementById('validationStatus').textContent = "";
+  document.getElementById('captureTimestamp').textContent = "";
 });
 
-// Process file contents
+// Update capture timestamp next to SAML Summary heading
+function updateTimestamp() {
+  const ts = new Date().toLocaleString();
+  document.getElementById('captureTimestamp').textContent = `Captured at: ${ts}`;
+}
+
+// Validate raw input and process accordingly
+function analyzeRawInput() {
+  const rawText = document.getElementById('rawTextInput').value.trim();
+  const validationStatus = document.getElementById('validationStatus');
+  if (!rawText) {
+    alert("Please paste raw SAML trace/response.");
+    return;
+  }
+
+  // Validate input as JSON, XML, or Base64
+  let validType = "";
+  try {
+    JSON.parse(rawText);
+    validType = "JSON";
+  } catch(e) {}
+  
+  if (!validType) {
+    let parser = new DOMParser();
+    let xmlDoc = parser.parseFromString(rawText, "text/xml");
+    if (!xmlDoc.getElementsByTagName("parsererror").length) {
+      validType = "XML";
+    }
+  }
+  
+  if (!validType) {
+    try {
+      atob(rawText);
+      validType = "Base64";
+    } catch(e) {}
+  }
+  
+  if (validType) {
+    validationStatus.textContent = `Valid ${validType} input ✓`;
+    validationStatus.style.color = "limegreen";
+  } else {
+    validationStatus.textContent = `Input not strictly valid, attempting to parse...`;
+    validationStatus.style.color = "orange";
+  }
+  
+  updateTimestamp();
+  
+  let formattedXML = "";
+  if (validType === "JSON") {
+    analyzeFile(rawText);
+    return;
+  } else if (rawText.startsWith("<")) {
+    formattedXML = formatXML(rawText);
+  } else {
+    formattedXML = decodeAndFormatSAML(rawText);
+  }
+  
+  document.getElementById('decodedSAML').textContent = formattedXML;
+  const summary = getSAMLSummary(formattedXML);
+  document.getElementById('samlSummary').innerHTML = summary;
+  document.getElementById('results').textContent = "Processed raw SAML input.";
+  document.getElementById('navigation').style.display = 'none';
+}
+
+// Process file contents (JSON or raw XML/base64)
 function analyzeFile(contents) {
   let data;
   try {
     data = JSON.parse(contents);
   } catch (err) {
-    // If not valid JSON, check if it's raw XML SAML text
     if (contents.trim().startsWith("<")) {
       const formattedXML = formatXML(contents.trim());
       document.getElementById('decodedSAML').textContent = formattedXML;
@@ -123,7 +190,6 @@ function analyzeFile(contents) {
   }
   
   if (data.log && data.log.entries) {
-    // HAR file format
     samlRequests = data.log.entries.filter(entry => 
       entry.request.method === 'POST' &&
       (
@@ -148,7 +214,6 @@ function analyzeFile(contents) {
       )
     );
   } else if (data.requests) {
-    // SAML tracer export format
     samlRequests = data.requests.filter(req => {
       if(req.method !== 'POST') return false;
       if (req.postData && typeof req.postData.text === "string") {
@@ -177,7 +242,7 @@ function analyzeFile(contents) {
     document.getElementById('results').textContent = 'Unsupported file format.';
     return;
   }
-
+  
   if (samlRequests.length > 0) {
     document.getElementById('navigation').style.display = 'flex';
     currentRequestIndex = 0;
@@ -186,32 +251,6 @@ function analyzeFile(contents) {
   } else {
     document.getElementById('results').textContent = 'No SAML requests found in the file.';
   }
-}
-
-// Analyze raw input
-function analyzeRawInput() {
-  const rawText = document.getElementById('rawTextInput').value.trim();
-  if (!rawText) {
-    alert("Please paste raw SAML trace/response.");
-    return;
-  }
-  let formattedXML = "";
-  try {
-    if (rawText.startsWith("<")) {
-      // Assume XML
-      formattedXML = formatXML(rawText);
-    } else {
-      // Assume base64 or URL-encoded SAML
-      formattedXML = decodeAndFormatSAML(rawText);
-    }
-  } catch(e) {
-    formattedXML = "Error processing raw input.";
-  }
-  document.getElementById('decodedSAML').textContent = formattedXML;
-  const summary = getSAMLSummary(formattedXML);
-  document.getElementById('samlSummary').innerHTML = summary;
-  document.getElementById('results').textContent = "Processed raw SAML input.";
-  document.getElementById('navigation').style.display = 'none';
 }
 
 // Update navigation controls
