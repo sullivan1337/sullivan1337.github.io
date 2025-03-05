@@ -33,8 +33,19 @@ function analyzeFile(contents) {
     try {
         data = JSON.parse(contents);
     } catch (err) {
-        document.getElementById('results').textContent = 'Invalid JSON file.';
-        return;
+        // If not valid JSON, check if it's raw XML SAML text
+        if (contents.trim().startsWith("<")) {
+            const formattedXML = formatXML(contents.trim());
+            document.getElementById('decodedSAML').textContent = formattedXML;
+            const summary = getSAMLSummary(formattedXML);
+            document.getElementById('samlSummary').innerHTML = summary;
+            document.getElementById('results').textContent = "Processed raw SAML input from text file.";
+            document.getElementById('navigation').style.display = 'none';
+            return;
+        } else {
+            document.getElementById('results').textContent = 'Invalid JSON file.';
+            return;
+        }
     }
     
     // Determine file type based on structure
@@ -42,16 +53,53 @@ function analyzeFile(contents) {
         // HAR file format
         samlRequests = data.log.entries.filter(entry => 
             entry.request.method === 'POST' && 
-            (entry.request.postData?.text?.includes('SAMLRequest') || 
-             entry.request.postData?.text?.includes('SAMLResponse'))
+            (
+              (entry.request.postData && typeof entry.request.postData.text === "string" && 
+               (entry.request.postData.text.includes('SAMLRequest') || entry.request.postData.text.includes('SAMLResponse')))
+              ||
+              (entry.request.post && Array.isArray(entry.request.post) && entry.request.post.some(pair => {
+                  if (pair.length >= 2) {
+                      const key = pair[0];
+                      const value = pair[1];
+                      if (key === 'SAMLResponse' || key === 'SAMLRequest') return !!value;
+                      try {
+                          let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
+                          while (decoded.length % 4 !== 0) { decoded += "="; }
+                          return atob(decoded).trim().startsWith("<saml");
+                      } catch(e) {
+                          return false;
+                      }
+                  }
+                  return false;
+              }))
+            )
         );
     } else if (data.requests) {
         // SAML tracer export format
-        samlRequests = data.requests.filter(req => 
-            req.method === 'POST' && 
-            (req.postData?.text?.includes('SAMLRequest') || 
-             req.postData?.text?.includes('SAMLResponse'))
-        );
+        samlRequests = data.requests.filter(req => {
+            if(req.method !== 'POST') return false;
+            if (req.postData && typeof req.postData.text === "string") {
+                return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
+            }
+            if (req.post && Array.isArray(req.post)) {
+                return req.post.some(pair => {
+                    if (pair.length >= 2) {
+                        const key = pair[0];
+                        const value = pair[1];
+                        if (key === 'SAMLResponse' || key === 'SAMLRequest') return !!value;
+                        try {
+                            let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
+                            while(decoded.length % 4 !== 0) { decoded += "="; }
+                            return atob(decoded).trim().startsWith("<saml");
+                        } catch(e) {
+                            return false;
+                        }
+                    }
+                    return false;
+                });
+            }
+            return false;
+        });
     } else {
         document.getElementById('results').textContent = 'Unsupported file format.';
         return;
@@ -124,12 +172,31 @@ function displaySAMLRequest(index) {
     if (req.postData && req.postData.text) {
         const decodedText = decodeURIComponent(req.postData.text);
         results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
-        
-        // Extract SAMLResponse from the post data
         const match = decodedText.match(/SAMLResponse=([^&]+)/);
         if (match) {
             samlResponse = match[1];
         }
+    } else if (req.post && Array.isArray(req.post)) {
+        req.post.forEach(pair => {
+            if (pair.length >= 2) {
+                const key = pair[0];
+                const value = pair[1];
+                results += `${key}: ${value}\n`;
+                if ((key === 'SAMLResponse' || key === 'SAMLRequest') && value) {
+                    samlResponse = value;
+                }
+                if (!samlResponse) {
+                    try {
+                        let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
+                        while(decoded.length % 4 !== 0) { decoded += "="; }
+                        const atobDecoded = atob(decoded);
+                        if (atobDecoded.trim().startsWith("<saml")) {
+                            samlResponse = value;
+                        }
+                    } catch(e) {}
+                }
+            }
+        });
     }
 
     document.getElementById('results').textContent = results;
@@ -166,17 +233,19 @@ document.getElementById('nextRequest').addEventListener('click', function() {
 
 function decodeAndFormatSAML(encodedSAML) {
     try {
-        let urlDecoded;
+        let decoded = encodedSAML;
         try {
-            urlDecoded = decodeURIComponent(encodedSAML);
-        } catch(e) {
-            urlDecoded = encodedSAML;
-        }
+            decoded = decodeURIComponent(encodedSAML);
+        } catch(e) {}
+        // Convert URL-safe base64 to standard base64
+        decoded = decoded.replace(/-/g, "+").replace(/_/g, "/");
+        // Add padding if necessary
+        while (decoded.length % 4 !== 0) { decoded += "="; }
         let base64Decoded;
         try {
-            base64Decoded = atob(urlDecoded);
+            base64Decoded = atob(decoded);
         } catch(e) {
-            base64Decoded = urlDecoded;
+            base64Decoded = decoded;
         }
         return formatXML(base64Decoded);
     } catch(err) {

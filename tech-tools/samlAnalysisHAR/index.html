@@ -8,18 +8,36 @@
 </head>
 <body>
   <div class="container">
-    <div class="header" style="display: flex; align-items: center; justify-content: space-between;">
+    <div class="header" style="display: flex; align-items: center; gap: 20px;">
       <h1>SAML HAR Analyzer</h1>
-      <button id="resetBtn">Reset</button>
+      <div class="tooltip">
+        <span class="tooltip-text">ℹ️ How to use</span>
+        <div class="tooltip-content">
+          <p>This tool analyzes SAML responses from HAR files or SAML tracer exports. All processing is done locally in your browser for privacy.</p>
+          <p><strong>How to save a HAR file:</strong></p>
+          <ol>
+            <li>Open your browser's Developer Tools (F12 or Ctrl+Shift+I)</li>
+            <li>Go to the Network tab and enable "Preserve log"</li>
+              <ul> 
+                <li>Depending on browser and app configuration, you might need to enable "Auto-open DevTools for popups" in the "Global" DevTools Settings</li>
+              </ul>
+            <li>Perform the action that triggers the SAML request</li>
+            <li>Right-click on the network output area to "Save all as HAR with content" or click the "Export HAR" download icon to save the HAR file</li>
+            <li>Upload the saved HAR file or SAML tracer export file here to analyze the results</li>
+          </ol>
+        </div>
+      </div>
     </div>
     <div id="inputContainer" style="display: flex; gap: 20px; align-items: flex-start;">
       <div id="fileInputContainer">
         <label for="fileInput"><strong>Upload HAR/SAML file:</strong></label><br>
         <input type="file" id="fileInput" accept=".har,.json,.txt">
+        <br>
+        <button id="resetBtn">Reset</button>
       </div>
       <div id="rawInputContainer" style="flex: 1;">
-        <label for="rawTextInput"><strong>Or paste raw SAML trace/response:</strong></label><br>
-        <textarea id="rawTextInput" rows="10" style="width: 100%;" placeholder="Paste raw SAML response here"></textarea>
+        <label for="rawTextInput"><strong>Or paste raw/base64 encoded SAML trace here:</strong></label><br>
+        <textarea id="rawTextInput" rows="10" style="width: 100%;" placeholder="Paste raw/base64 encoded SAML trace here"></textarea>
         <br>
         <button id="analyzeRawBtn">Analyze Raw Input</button>
       </div>
