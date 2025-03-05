@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Application Stack for Org Chart Application.
+  This stack deploys the Lambda function, API Gateway, and CloudFront distribution.
+Parameters:
+  LinkedInClientId:
+    Type: String
+    Description: "LinkedIn OAuth Client ID"
+  LinkedInClientSecret:
+    Type: String
+    Description: "LinkedIn OAuth Client Secret"
+    NoEcho: true
+  LinkedInRedirectUri:
+    Type: String
+    Default: "https://example.com/linkedin-callback"
+    Description: "Placeholder LinkedIn OAuth Redirect URI"
+Resources:
+  OrgChartLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: OrgChartLambda
+      Runtime: python3.9
+      Handler: app.lambda_handler
+      Code:
+        S3Bucket: !ImportValue OrgChartBucketName
+        S3Key: "lambda/orgchart-function.zip"
+      MemorySize: 128
+      Timeout: 10
+      Role: !ImportValue OrgChart-LambdaRoleArn
+      Environment:
+        Variables:
+          TABLE_NAME: !ImportValue OrgChart-DynamoTableName
+          SECRET_ARN: !ImportValue OrgChart-LinkedInSecretArn
+          LINKEDIN_REDIRECT_URI: !Ref LinkedInRedirectUri
+  OrgChartApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: OrgChartApi
+      EndpointConfiguration:
+        Types: [REGIONAL]
+  OrgChartApiProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref OrgChartApi
+      ParentId: !GetAtt OrgChartApi.RootResourceId
+      PathPart: "{proxy+}"
+  OrgChartApiProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref OrgChartApi
+      ResourceId: !Ref OrgChartApiProxyResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrgChartLambda.Arn}/invocations"
+  OrgChartLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrgChartLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${OrgChartApi}/*/*"
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "OrgChartApp-OAI"
+  OrgChartDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: "index.html"
+        Origins:
+          - Id: S3Origin
+            DomainName: !Join ["", [!ImportValue OrgChartBucketName, ".s3.", !Ref "AWS::Region", ".amazonaws.com"]]
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOAI}"
+            OriginPath: "/frontend"
+          - Id: ApiOrigin
+            DomainName: !Join ["", [!Ref OrgChartApi, ".execute-api.", !Ref "AWS::Region", ".amazonaws.com"]]
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+            OriginPath: "/Prod"
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+        CacheBehaviors:
+          - PathPattern: "/api/*"
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachedMethods: [GET, HEAD]
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+            MinTTL: 0
+            DefaultTTL: 0
+            MaxTTL: 0
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+Outputs:
+  CloudFrontURL:
+    Description: "CloudFront Distribution domain URL for the frontend"
+    Value: !Sub "https://${OrgChartDistribution.DomainName}"
+  ApiEndpoint:
+    Description: "API Gateway Endpoint"
+    Value: !Sub "https://${OrgChartApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

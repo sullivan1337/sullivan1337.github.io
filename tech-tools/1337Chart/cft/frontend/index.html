@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Org Chart Application</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Organization Chart</h1>
+  <div id="loginSection">
+    <button id="loginBtn">Login with LinkedIn</button>
+  </div>
+  <div id="appSection" style="display:none;">
+    <p>Welcome, <span id="userName"></span>!</p>
+    <div id="orgChart"></div>
+    <h3>Add Member</h3>
+    <input type="text" id="newName" placeholder="Name">
+    <input type="text" id="newTitle" placeholder="Title">
+    <button id="addMemberBtn">Add Member</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
