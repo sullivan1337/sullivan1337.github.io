@@ -1,59 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SAML HAR Analyzer</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- Optionally load a modern font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
 </head>
-<body>
-  <div class="container">
-    <div class="header" style="display: flex; align-items: center; gap: 20px;">
+<body class="dark-mode">
+  <header>
+    <div class="header-content">
       <h1>SAML HAR Analyzer</h1>
-      <div class="tooltip">
-        <span class="tooltip-text">ℹ️ How to use</span>
-        <div class="tooltip-content">
-          <p>This tool analyzes SAML responses from HAR files or SAML tracer exports. All processing is done locally in your browser for privacy.</p>
-          <p><strong>How to save a HAR file:</strong></p>
-          <ol>
-            <li>Open your browser's Developer Tools (F12 or Ctrl+Shift+I)</li>
-            <li>Go to the Network tab and enable "Preserve log"</li>
-              <ul> 
-                <li>Depending on browser and app configuration, you might need to enable "Auto-open DevTools for popups" in the "Global" DevTools Settings</li>
-              </ul>
-            <li>Perform the action that triggers the SAML request</li>
-            <li>Right-click on the network output area to "Save all as HAR with content" or click the "Export HAR" download icon to save the HAR file</li>
-            <li>Upload the saved HAR file or SAML tracer export file here to analyze the results</li>
-          </ol>
-        </div>
-      </div>
+      <!-- Only theme toggle remains in the header -->
+      <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
     </div>
-    <div id="inputContainer" style="display: flex; gap: 20px; align-items: flex-start;">
-      <div id="fileInputContainer">
-        <label for="fileInput"><strong>Upload HAR/SAML file:</strong></label><br>
-        <input type="file" id="fileInput" accept=".har,.json,.txt,.xml">
-        <br>
-        <button id="resetBtn">Reset</button>
+  </header>
+
+  <!-- Help Modal for HAR Generation -->
+  <div id="helpHarModal" class="modal">
+    <div class="modal-content">
+      <span class="close" data-close="helpHarModal">&times;</span>
+      <h2>How to Generate a HAR File</h2>
+      <p>To generate a HAR file:</p>
+      <ol>
+        <li>Open your browser's Developer Tools (F12 or right-click and select "Inspect").</li>
+        <li>Navigate to the <strong>Network</strong> tab.</li>
+        <li>Ensure that <strong>"Preserve log"</strong> is enabled.</li>
+        <li>Perform the action that triggers the SAML request.</li>
+        <li>Right-click in the network log and select <strong>"Save all as HAR with content"</strong> (or click the export icon).</li>
+        <li>Upload the saved HAR file using the file input on this page.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Help Modal for SAML Export -->
+  <div id="helpSamlModal" class="modal">
+    <div class="modal-content">
+      <span class="close" data-close="helpSamlModal">&times;</span>
+      <h2>How to Export SAML XML</h2>
+      <p>To export the SAML XML using a SAML tracer:</p>
+      <ol>
+        <li>If using a browser extension (such as SAML-tracer), start the extension before triggering the SAML request.</li>
+        <li>Perform the action that triggers the SAML request.</li>
+        <li>The extension will capture the SAML requests, look for the POST request with the "SAML" tag.</li>
+        <li>Either export the captured SAML trace to a file, copy the raw SAML XML, or base64 encoded SAMLResponse from the extension.</li>
+        <li>Then use the file upload or paste the XML/base64 into the raw input area.</li>
+      </ol>
+    </div>
+  </div>
+
+  <main class="container">
+    <!-- Both input sections visible side by side -->
+    <div id="inputContainer" class="input-container">
+      <div id="fileInputContainer" class="input-section">
+        <label for="fileInput"><strong>Upload HAR/SAML file:</strong></label>
+        <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
+        <!-- Action buttons for help and reset -->
+        <div class="action-buttons">
+            <div class="help-buttons">
+              <button id="helpHarBtn" title="How to generate a HAR file">How to Generate HAR File</button>
+              <button id="helpSamlBtn" title="How to export SAML XML">How to Export SAML XML</button>
+            </div>
+            <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Forum</button>
+          </div>
+          
       </div>
-      <div id="rawInputContainer" style="flex: 1;">
-        <label for="rawTextInput"><strong>Or paste raw/base64 encoded SAML trace here:</strong></label><br>
-        <textarea id="rawTextInput" rows="10" style="width: 100%;" placeholder="Paste raw/base64 encoded SAML trace here"></textarea>
-        <br>
+      <div id="rawInputContainer" class="input-section">
+        <label for="rawTextInput"><strong>Or paste XML/base64 encoded SAML trace here:</strong></label>
+        <textarea id="rawTextInput" rows="8" placeholder="Paste XML/base64 encoded SAML trace here"></textarea>
         <button id="analyzeRawBtn">Analyze Raw Input</button>
       </div>
     </div>
-    <div id="navigation" style="display: none; margin-top: 20px;">
+
+    <!-- Navigation for multiple SAML requests -->
+    <div id="navigation" class="navigation">
       <button id="prevRequest">&lt; Previous</button>
       <span id="currentUrl"></span>
       <button id="nextRequest">Next &gt;</button>
     </div>
-    <h2>Decoded SAML Summary</h2>
-    <div id="samlSummary"></div>
-    <h2>Full Decoded SAMLResponse</h2>
-    <div id="decodedSAML"></div>
-    <h2>HAR Analysis Results</h2>
-    <div id="results"></div>
-  </div>
+
+    <section class="output-section">
+      <h2>Decoded SAML Summary</h2>
+      <div id="samlSummary" class="output-box"></div>
+    </section>
+    <section class="output-section">
+      <h2>Full Decoded SAMLResponse</h2>
+      <div id="decodedSAML" class="output-box"></div>
+    </section>
+    <section class="output-section">
+      <h2>HAR Analysis Results</h2>
+      <div id="results" class="output-box"></div>
+    </section>
+  </main>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.4/standalone.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.4/parser-html.js"></script>
   <script src="script.js"></script>
