@@ -185,19 +185,19 @@
     margin-bottom: 30px;
   }
   
-  /* Table styles - no resize logic, just auto layout */
+  /* Table styles - auto layout and wrapping */
   table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto; /* Let columns size themselves automatically */
+    table-layout: auto;
   }
   
   th, td {
     border: 1px solid var(--border-color);
     padding: 8px;
     text-align: left;
-    white-space: normal;      /* Wrap lines within cells */
-    word-break: break-word;   /* Break long words if needed */
+    white-space: normal;
+    word-break: break-word;
   }
   
   /* Duplicate styling for highlight */
@@ -272,3 +272,11 @@
     display: block;
   }
   
+  a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }

@@ -20,7 +20,7 @@ document.getElementById('themeToggle').addEventListener('click', function () {
   localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
 });
 
-// Help modals
+// Event listeners for Help modals
 document.getElementById('helpHarBtn').addEventListener('click', () => {
   document.getElementById('helpHarModal').style.display = 'block';
 });
@@ -48,7 +48,7 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   reader.readAsText(file);
 });
 
-// Drag and drop
+// Drag & drop
 const fileDropArea = document.querySelector('.file-drop-area');
 if (fileDropArea) {
   fileDropArea.addEventListener('dragover', e => {
@@ -90,7 +90,7 @@ document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('captureTimestamp').textContent = "";
 });
 
-// Update capture timestamp from SAML
+// Update capture timestamp from decoded SAML
 function updateCaptureTimestampFromSAML(decodedSAML) {
   try {
     const parser = new DOMParser();
@@ -126,9 +126,11 @@ function analyzeRawInput() {
   }
 
   let validType = "";
-  // Attempt JSON
-  try { JSON.parse(rawText); validType = "JSON"; } catch(e) {}
-  // Attempt XML
+  try {
+    JSON.parse(rawText);
+    validType = "JSON";
+  } catch(e) {}
+
   if (!validType) {
     let parser = new DOMParser();
     let xmlDoc = parser.parseFromString(rawText, "text/xml");
@@ -136,7 +138,6 @@ function analyzeRawInput() {
       validType = "XML";
     }
   }
-  // Attempt Base64
   if (!validType) {
     try {
       atob(rawText);
@@ -180,7 +181,7 @@ function analyzeFile(contents) {
   try {
     data = JSON.parse(contents);
   } catch (err) {
-    // Maybe it's raw XML
+    // Possibly raw XML
     if (contents.trim().startsWith("<")) {
       const formattedXML = formatXML(contents.trim());
       document.getElementById('decodedSAML').textContent = formattedXML;
@@ -196,30 +197,48 @@ function analyzeFile(contents) {
     }
   }
   
-  // HAR or SAML tracer
+  // HAR
   if (data.log && data.log.entries) {
-    // HAR
-    samlRequests = data.log.entries.filter(entry =>
-      entry.request.method === 'POST' && 
-      ((entry.request.postData?.text?.includes('SAMLRequest') || entry.request.postData?.text?.includes('SAMLResponse')))
-    );
-  } else if (data.requests) {
-    // SAML tracer export
+    samlRequests = data.log.entries.filter(entry => {
+      if (entry.request.method !== 'POST') return false;
+      return entry.request.postData &&
+             typeof entry.request.postData.text === "string" &&
+             (entry.request.postData.text.includes('SAMLRequest') ||
+              entry.request.postData.text.includes('SAMLResponse'));
+    });
+  }
+  // SAML-tracer
+  else if (data.requests) {
     samlRequests = data.requests.filter(req => {
-      if (req.method !== 'POST') return false;
-      if (req.postData?.text?.includes('SAMLRequest') || req.postData?.text?.includes('SAMLResponse')) {
+      // If "saml" property is a non-empty string, treat it as valid SAML
+      if (req.saml && typeof req.saml === "string" && req.saml.trim().length > 0) {
         return true;
+      }
+      // Otherwise, check postData text
+      if (req.postData && typeof req.postData.text === "string") {
+        return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
+      }
+      // Or check post array
+      if (req.post && Array.isArray(req.post)) {
+        return req.post.some(pair => {
+          if (Array.isArray(pair) && pair.length >= 2) {
+            const key = pair[0];
+            const value = pair[1];
+            return (key === 'SAMLRequest' || key === 'SAMLResponse') && !!value;
+          }
+          return false;
+        });
       }
       return false;
     });
   } else {
-    document.getElementById('results').textContent = 'Unsupported file format.';
+    document.getElementById('results').textContent = 'Unsupported JSON file format.';
     return;
   }
 
   if (samlRequests.length > 0) {
     document.getElementById('navigation').style.display = 'flex';
-    currentRequestIndex = 0;
+    currentRequestIndex = samlRequests.length - 1;
     updateNavigation();
     displaySAMLRequest(currentRequestIndex);
   } else {
@@ -237,7 +256,7 @@ function updateNavigation() {
   
   prevButton.disabled = (currentRequestIndex === 0);
   nextButton.disabled = (currentRequestIndex === samlRequests.length - 1);
-  currentUrl.textContent = req.url;
+  currentUrl.textContent = req.url || '(no URL)';
 }
 
 document.getElementById('prevRequest').addEventListener('click', () => {
@@ -259,17 +278,17 @@ document.getElementById('nextRequest').addEventListener('click', () => {
 function displaySAMLRequest(index) {
   const entry = samlRequests[index];
   const req = entry.request ? entry.request : entry;
-  let results = '';
-  let samlResponse = '';
-
-  results += `SAML Request ${index + 1}:\n`;
+  
+  let results = `SAML Request ${index + 1}:\n`;
   results += `URL: ${req.url}\n`;
   results += `Method: ${req.method}\n`;
   results += 'Headers:\n';
-  (req.headers || req.requestHeaders)?.forEach(header => {
+  (req.headers || req.requestHeaders || []).forEach(header => {
     results += `  ${header.name}: ${header.value}\n`;
   });
   results += 'Post Data:\n';
+  
+  let samlResponse = '';
   if (req.postData?.text) {
     const decodedText = decodeURIComponent(req.postData.text);
     results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
@@ -280,19 +299,25 @@ function displaySAMLRequest(index) {
   }
   document.getElementById('results').textContent = results;
 
-  if (samlResponse) {
-    const decodedSAML = decodeAndFormatSAML(samlResponse);
-    document.getElementById('decodedSAML').textContent = decodedSAML;
-    updateCaptureTimestampFromSAML(decodedSAML);
-    const summary = getSAMLSummary(decodedSAML);
-    document.getElementById('samlSummary').innerHTML = summary;
-  } else {
-    document.getElementById('decodedSAML').textContent = 'No SAMLResponse found in this request.';
-    document.getElementById('samlSummary').textContent = 'No SAMLResponse found in this request.';
+  let decodedSAML = '';
+  // If there's a "saml" property, use that first
+  if (req.saml && typeof req.saml === 'string' && req.saml.trim().length > 0) {
+    decodedSAML = formatXML(req.saml);
   }
+  // Otherwise, if we found a base64 SAMLResponse
+  else if (samlResponse) {
+    decodedSAML = decodeAndFormatSAML(samlResponse);
+  } else {
+    decodedSAML = 'No SAMLResponse found in this request.';
+  }
+  
+  document.getElementById('decodedSAML').textContent = decodedSAML;
+  updateCaptureTimestampFromSAML(decodedSAML);
+  const summary = getSAMLSummary(decodedSAML);
+  document.getElementById('samlSummary').innerHTML = summary;
 }
 
-// Decode & format
+// Decode & format SAML
 function decodeAndFormatSAML(encodedSAML) {
   try {
     let decoded = encodedSAML;
@@ -329,7 +354,7 @@ function formatXML(xml) {
   return formatted.substring(1, formatted.length - 3);
 }
 
-// Summaries
+// Generate SAML summary
 function getSAMLSummary(xml) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xml, "text/xml");
@@ -403,7 +428,7 @@ function getSAMLSummary(xml) {
     summary += createTable('SAML Assertion', assertionData);
   }
 
-  // Attribute Statement
+  // Attribute Statement with duplicates
   const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
   if (attributeStatement) {
     const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
