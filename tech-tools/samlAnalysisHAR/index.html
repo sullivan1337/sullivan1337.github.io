@@ -23,14 +23,14 @@
   <div id="helpHarModal" class="modal">
     <div class="modal-content">
       <span class="close" data-close="helpHarModal">&times;</span>
-      <h2>How to Generate a HAR File</h2>
+      <h2>How to Generate a HAR Content</h2>
       <ol>
         <li>Open your browser's Developer Tools (F12 or right-click and select "Inspect").</li>
         <li>Navigate to the <strong>Network</strong> tab.</li>
         <li>Enable <strong>"Preserve log"</strong>.</li>
         <li>Perform the action that triggers the SAML request.</li>
-        <li>Right-click on the network log and choose <strong>"Save all as HAR with content"</strong> or click the export icon.</li>
-        <li>Upload the saved HAR file.</li>
+        <li>Right-click on the network log/entry and choose <strong>"Copy" > "Copy all as HAR (with sensitive content)"</strong>, or click the "export" icon and <strong>Export HAR (with sensitive data)</strong>.</li>
+        <li>Upload the file or paste the saved HAR content.</li>
       </ol>
     </div>
   </div>
@@ -69,7 +69,7 @@
         <!-- Action buttons for help and reset -->
         <div class="action-buttons">
           <div class="help-buttons">
-            <button id="helpHarBtn" title="How to generate a HAR file">How to Generate HAR File</button>
+            <button id="helpHarBtn" title="How to generate HAR content">How to Generate HAR Content</button>
             <button id="helpSamlBtn" title="How to export SAML XML">How to Export SAML XML/base64</button>
           </div>
           <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Page</button>

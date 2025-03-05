@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Theme toggle event
+// Theme toggle
 document.getElementById('themeToggle').addEventListener('click', function () {
   document.body.classList.toggle('dark-mode');
   const isDarkMode = document.body.classList.contains('dark-mode');
@@ -20,43 +20,35 @@ document.getElementById('themeToggle').addEventListener('click', function () {
   localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
 });
 
-// Event listeners for Help modals
+// Help modals
 document.getElementById('helpHarBtn').addEventListener('click', () => {
   document.getElementById('helpHarModal').style.display = 'block';
 });
-
 document.getElementById('helpSamlBtn').addEventListener('click', () => {
   document.getElementById('helpSamlModal').style.display = 'block';
 });
-
-// Close modals when clicking on the close icon
 document.querySelectorAll('.close').forEach(closeBtn => {
   closeBtn.addEventListener('click', (e) => {
     const modalId = e.target.getAttribute('data-close');
     document.getElementById(modalId).style.display = 'none';
   });
 });
-
-// Close modals if user clicks outside the modal content
 window.addEventListener('click', (e) => {
   if (e.target.classList.contains('modal')) {
     e.target.style.display = 'none';
   }
 });
 
-// File upload event handling (traditional file picker)
+// File input
 document.getElementById('fileInput').addEventListener('change', function (e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function (e) {
-    const contents = e.target.result;
-    analyzeFile(contents);
-  };
+  reader.onload = e => analyzeFile(e.target.result);
   reader.readAsText(file);
 });
 
-// Drag and drop file upload support
+// Drag and drop
 const fileDropArea = document.querySelector('.file-drop-area');
 if (fileDropArea) {
   fileDropArea.addEventListener('dragover', e => {
@@ -72,24 +64,19 @@ if (fileDropArea) {
     fileDropArea.classList.remove('dragover');
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      const fileInput = document.getElementById('fileInput');
-      fileInput.files = files;
       const reader = new FileReader();
-      reader.onload = function (e) {
-        const contents = e.target.result;
-        analyzeFile(contents);
-      };
+      reader.onload = evt => analyzeFile(evt.target.result);
       reader.readAsText(files[0]);
     }
   });
 }
 
-// Analyze raw input event
+// Analyze raw input
 document.getElementById('analyzeRawBtn').addEventListener('click', function () {
   analyzeRawInput();
 });
 
-// Reset event
+// Reset
 document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('fileInput').value = "";
   document.getElementById('rawTextInput').value = "";
@@ -103,9 +90,7 @@ document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('captureTimestamp').textContent = "";
 });
 
-// --- New: Update capture timestamp from decoded SAML ---
-// It extracts the IssueInstant from the Response element,
-// falling back to the Assertion element if necessary.
+// Update capture timestamp from SAML
 function updateCaptureTimestampFromSAML(decodedSAML) {
   try {
     const parser = new DOMParser();
@@ -131,7 +116,7 @@ function updateCaptureTimestampFromSAML(decodedSAML) {
   }
 }
 
-// Validate raw input and process accordingly
+// Validate & analyze raw input
 function analyzeRawInput() {
   const rawText = document.getElementById('rawTextInput').value.trim();
   const validationStatus = document.getElementById('validationStatus');
@@ -140,13 +125,10 @@ function analyzeRawInput() {
     return;
   }
 
-  // Validate input as JSON, XML, or Base64
   let validType = "";
-  try {
-    JSON.parse(rawText);
-    validType = "JSON";
-  } catch(e) {}
-
+  // Attempt JSON
+  try { JSON.parse(rawText); validType = "JSON"; } catch(e) {}
+  // Attempt XML
   if (!validType) {
     let parser = new DOMParser();
     let xmlDoc = parser.parseFromString(rawText, "text/xml");
@@ -154,7 +136,7 @@ function analyzeRawInput() {
       validType = "XML";
     }
   }
-
+  // Attempt Base64
   if (!validType) {
     try {
       atob(rawText);
@@ -174,9 +156,7 @@ function analyzeRawInput() {
     try {
       analyzeFile(rawText);
       return;
-    } catch(e) {
-      // Fall through to process as XML/base64
-    }
+    } catch(e) {}
   }
 
   let formattedXML = "";
@@ -194,12 +174,13 @@ function analyzeRawInput() {
   document.getElementById('navigation').style.display = 'none';
 }
 
-// Process file contents (JSON or raw XML/base64)
+// Analyze file contents
 function analyzeFile(contents) {
   let data;
   try {
     data = JSON.parse(contents);
   } catch (err) {
+    // Maybe it's raw XML
     if (contents.trim().startsWith("<")) {
       const formattedXML = formatXML(contents.trim());
       document.getElementById('decodedSAML').textContent = formattedXML;
@@ -215,52 +196,19 @@ function analyzeFile(contents) {
     }
   }
   
+  // HAR or SAML tracer
   if (data.log && data.log.entries) {
-    samlRequests = data.log.entries.filter(entry => 
-      entry.request.method === 'POST' &&
-      (
-        (entry.request.postData && typeof entry.request.postData.text === "string" &&
-         (entry.request.postData.text.includes('SAMLRequest') || entry.request.postData.text.includes('SAMLResponse')))
-        ||
-        (entry.request.post && Array.isArray(entry.request.post) && entry.request.post.some(pair => {
-          if (pair.length >= 2) {
-            const key = pair[0];
-            const value = pair[1];
-            if (key === 'SAMLResponse' || key === 'SAMLRequest') return !!value;
-            try {
-              let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
-              while (decoded.length % 4 !== 0) { decoded += "="; }
-              return atob(decoded).trim().startsWith("<saml");
-            } catch(e) {
-              return false;
-            }
-          }
-          return false;
-        }))
-      )
+    // HAR
+    samlRequests = data.log.entries.filter(entry =>
+      entry.request.method === 'POST' && 
+      ((entry.request.postData?.text?.includes('SAMLRequest') || entry.request.postData?.text?.includes('SAMLResponse')))
     );
   } else if (data.requests) {
+    // SAML tracer export
     samlRequests = data.requests.filter(req => {
-      if(req.method !== 'POST') return false;
-      if (req.postData && typeof req.postData.text === "string") {
-        return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
-      }
-      if (req.post && Array.isArray(req.post)) {
-        return req.post.some(pair => {
-          if (pair.length >= 2) {
-            const key = pair[0];
-            const value = pair[1];
-            if (key === 'SAMLResponse' || key === 'SAMLRequest') return !!value;
-            try {
-              let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
-              while(decoded.length % 4 !== 0) { decoded += "="; }
-              return atob(decoded).trim().startsWith("<saml");
-            } catch(e) {
-              return false;
-            }
-          }
-          return false;
-        });
+      if (req.method !== 'POST') return false;
+      if (req.postData?.text?.includes('SAMLRequest') || req.postData?.text?.includes('SAMLResponse')) {
+        return true;
       }
       return false;
     });
@@ -268,7 +216,7 @@ function analyzeFile(contents) {
     document.getElementById('results').textContent = 'Unsupported file format.';
     return;
   }
-  
+
   if (samlRequests.length > 0) {
     document.getElementById('navigation').style.display = 'flex';
     currentRequestIndex = 0;
@@ -279,19 +227,35 @@ function analyzeFile(contents) {
   }
 }
 
-// Update navigation controls
+// Navigation
 function updateNavigation() {
   const prevButton = document.getElementById('prevRequest');
   const nextButton = document.getElementById('nextRequest');
   const currentUrl = document.getElementById('currentUrl');
   const entry = samlRequests[currentRequestIndex];
   const req = entry.request ? entry.request : entry;
-  prevButton.disabled = currentRequestIndex === 0;
-  nextButton.disabled = currentRequestIndex === samlRequests.length - 1;
+  
+  prevButton.disabled = (currentRequestIndex === 0);
+  nextButton.disabled = (currentRequestIndex === samlRequests.length - 1);
   currentUrl.textContent = req.url;
 }
 
-// Display a specific SAML request
+document.getElementById('prevRequest').addEventListener('click', () => {
+  if (currentRequestIndex > 0) {
+    currentRequestIndex--;
+    updateNavigation();
+    displaySAMLRequest(currentRequestIndex);
+  }
+});
+document.getElementById('nextRequest').addEventListener('click', () => {
+  if (currentRequestIndex < samlRequests.length - 1) {
+    currentRequestIndex++;
+    updateNavigation();
+    displaySAMLRequest(currentRequestIndex);
+  }
+});
+
+// Display a single SAML request
 function displaySAMLRequest(index) {
   const entry = samlRequests[index];
   const req = entry.request ? entry.request : entry;
@@ -302,40 +266,20 @@ function displaySAMLRequest(index) {
   results += `URL: ${req.url}\n`;
   results += `Method: ${req.method}\n`;
   results += 'Headers:\n';
-  (req.headers || req.requestHeaders).forEach(header => {
+  (req.headers || req.requestHeaders)?.forEach(header => {
     results += `  ${header.name}: ${header.value}\n`;
   });
   results += 'Post Data:\n';
-  if (req.postData && req.postData.text) {
+  if (req.postData?.text) {
     const decodedText = decodeURIComponent(req.postData.text);
     results += prettier.format(decodedText, { parser: "html", plugins: prettierPlugins });
     const match = decodedText.match(/SAMLResponse=([^&]+)/);
     if (match) {
       samlResponse = match[1];
     }
-  } else if (req.post && Array.isArray(req.post)) {
-    req.post.forEach(pair => {
-      if (pair.length >= 2) {
-        const key = pair[0];
-        const value = pair[1];
-        results += `${key}: ${value}\n`;
-        if ((key === 'SAMLResponse' || key === 'SAMLRequest') && value) {
-          samlResponse = value;
-        }
-        if (!samlResponse) {
-          try {
-            let decoded = value.replace(/-/g, "+").replace(/_/g, "/");
-            while(decoded.length % 4 !== 0) { decoded += "="; }
-            const atobDecoded = atob(decoded);
-            if (atobDecoded.trim().startsWith("<saml")) {
-              samlResponse = value;
-            }
-          } catch(e) {}
-        }
-      }
-    });
   }
   document.getElementById('results').textContent = results;
+
   if (samlResponse) {
     const decodedSAML = decodeAndFormatSAML(samlResponse);
     document.getElementById('decodedSAML').textContent = decodedSAML;
@@ -349,23 +293,7 @@ function displaySAMLRequest(index) {
   }
 }
 
-// Navigation buttons events
-document.getElementById('prevRequest').addEventListener('click', function () {
-  if (currentRequestIndex > 0) {
-    currentRequestIndex--;
-    updateNavigation();
-    displaySAMLRequest(currentRequestIndex);
-  }
-});
-document.getElementById('nextRequest').addEventListener('click', function () {
-  if (currentRequestIndex < samlRequests.length - 1) {
-    currentRequestIndex++;
-    updateNavigation();
-    displaySAMLRequest(currentRequestIndex);
-  }
-});
-
-// Decode and format SAML response
+// Decode & format
 function decodeAndFormatSAML(encodedSAML) {
   try {
     let decoded = encodedSAML;
@@ -373,8 +301,8 @@ function decodeAndFormatSAML(encodedSAML) {
       decoded = decodeURIComponent(encodedSAML);
     } catch(e) {}
     decoded = decoded.replace(/-/g, "+").replace(/_/g, "/");
-    while (decoded.length % 4 !== 0) { decoded += "="; }
-    let base64Decoded;
+    while (decoded.length % 4 !== 0) decoded += "=";
+    let base64Decoded = "";
     try {
       base64Decoded = atob(decoded);
     } catch(e) {
@@ -386,12 +314,11 @@ function decodeAndFormatSAML(encodedSAML) {
   }
 }
 
-// Simple XML formatter
 function formatXML(xml) {
   let formatted = '';
   let indent = '';
   const tab = '    ';
-  xml.split(/>\s*</).forEach(function (node) {
+  xml.split(/>\s*</).forEach(node => {
     if (node.match(/^\/\w/)) {
       indent = indent.substring(tab.length);
     }
@@ -403,7 +330,7 @@ function formatXML(xml) {
   return formatted.substring(1, formatted.length - 3);
 }
 
-// Generate SAML summary tables
+// Summaries
 function getSAMLSummary(xml) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xml, "text/xml");
@@ -417,29 +344,29 @@ function getSAMLSummary(xml) {
     return null;
   }
 
-  // Create a simple table from a key/value object.
-  function createTable(title, data) {
-    let table = `<h3>${title}</h3><table>`;
-    table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
+  // Build a simple table with a given class if needed
+  function createTable(title, data, tableClass = "") {
+    let cls = tableClass ? ` class="${tableClass}"` : '';
+    let table = `<h3>${title}</h3><table${cls}>`;
+    table += '<tr><th><div class="resizer"></div>Attribute</th><th><div class="resizer"></div>Value</th></tr>';
     for (let [key, value] of Object.entries(data)) {
-      table += `<tr><td title="${key}">${key}</td><td title="${value}">${value}</td></tr>`;
+      table += `<tr><td>${key}</td><td>${value}</td></tr>`;
     }
     table += '</table>';
     return table;
   }
 
-  // Create a table from an array of rows. Each row is an object: {attribute, value, duplicate}
-  // Duplicate values are highlighted.
-  function createTableFromRows(title, rows, duplicateAttributes) {
+  // For an array of rows
+  function createTableFromRows(title, rows, tableClass, duplicateAttributes) {
     let note = "";
     if (duplicateAttributes.size > 0) {
-      note = `<p class="duplicate-note">Note: Duplicate values detected for attribute(s): ${Array.from(duplicateAttributes).join(", ")}</p>`;
+      note = `<p class="duplicate-note">Note: Duplicate values detected for attribute(s): ${[...duplicateAttributes].join(", ")}</p>`;
     }
-    let table = `<h3>${title}</h3>${note}<table>`;
-    table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
-    rows.forEach(row => {
-      let duplicateClass = row.duplicate ? " duplicate-value" : "";
-      table += `<tr><td title="${row.attribute}">${row.attribute}</td><td class="${duplicateClass}" title="${row.value}">${row.value}</td></tr>`;
+    let table = `<h3>${title}</h3>${note}<table class="${tableClass}">`;
+    table += '<tr><th><div class="resizer"></div>Attribute</th><th><div class="resizer"></div>Value</th></tr>';
+    rows.forEach(r => {
+      let duplicateClass = r.duplicate ? ' duplicate-value' : '';
+      table += `<tr><td>${r.attribute}</td><td class="${duplicateClass}">${r.value}</td></tr>`;
     });
     table += '</table>';
     return table;
@@ -455,7 +382,8 @@ function getSAMLSummary(xml) {
       'Destination': response.getAttribute('Destination') || '',
       'InResponseTo': response.getAttribute('InResponseTo') || ''
     };
-    summary += createTable('SAML Response', responseData);
+    // Force 30/70 for the SAML Response table
+    summary += createTable('SAML Response', responseData, 'saml-response-table');
   }
 
   // SAML Assertion
@@ -477,79 +405,101 @@ function getSAMLSummary(xml) {
         assertionData['Subject'] = nameID.textContent;
       }
     }
+    // Also default 40/60 for Assertion
     summary += createTable('SAML Assertion', assertionData);
   }
 
-  // Attribute Statement with duplicate detection
+  // Attribute Statement
   const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
   if (attributeStatement) {
     const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
-    let rows = [];
-    let duplicateAttributes = new Set();
+    const rows = [];
+    const duplicateAttributes = new Set();
     for (let attr of attributes) {
       const name = attr.getAttribute('Name');
-      if (name) {
-        const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
-        let valueCount = {};
-        // Count frequency of each value for this attribute
-        for (let i = 0; i < valueElements.length; i++) {
-          const val = valueElements[i].textContent;
-          valueCount[val] = (valueCount[val] || 0) + 1;
-        }
-        // Create rows and mark duplicates
-        for (let i = 0; i < valueElements.length; i++) {
-          const val = valueElements[i].textContent;
-          let duplicate = valueCount[val] > 1;
-          if (duplicate) {
-            duplicateAttributes.add(name);
-          }
-          rows.push({ attribute: name, value: val, duplicate: duplicate });
-        }
+      if (!name) continue;
+      const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
+      const freq = {};
+      for (let ve of valueElements) {
+        freq[ve.textContent] = (freq[ve.textContent] || 0) + 1;
+      }
+      for (let ve of valueElements) {
+        const val = ve.textContent;
+        const isDup = freq[val] > 1;
+        if (isDup) duplicateAttributes.add(name);
+        rows.push({ attribute: name, value: val, duplicate: isDup });
       }
     }
     if (rows.length > 0) {
-      summary += createTableFromRows('Attribute Statement', rows, duplicateAttributes);
+      // Force 40/60 for attribute statement
+      summary += createTableFromRows('Attribute Statement', rows, 'attribute-statement-table', duplicateAttributes);
     }
   }
+
   return summary;
 }
 
-// Add resizers to tables
+// Simplified column-resize logic
 function addTableResizers() {
   const tables = document.querySelectorAll('table');
   tables.forEach(table => {
-    const cols = table.querySelectorAll('th');
-    let totalWidth = table.offsetWidth;
-    let firstColMaxWidth = 0;
-    let secondColMaxWidth = 0;
-    table.querySelectorAll('tr').forEach(row => {
-      const cells = row.querySelectorAll('td, th');
-      if (cells.length === 2) {
-        firstColMaxWidth = Math.max(firstColMaxWidth, cells[0].scrollWidth);
-        secondColMaxWidth = Math.max(secondColMaxWidth, cells[1].scrollWidth);
+    // Force table layout
+    table.style.tableLayout = 'fixed';
+    table.style.width = '100%';
+
+    // Identify if it's the SAML Response table or the attribute statement table
+    if (table.classList.contains('saml-response-table')) {
+      // Force 30/70
+      const totalW = table.offsetWidth;
+      const col0W = Math.round(totalW * 0.3);
+      const col1W = totalW - col0W;
+      const ths = table.querySelectorAll('th');
+      if (ths.length >= 2) {
+        ths[0].style.width = col0W + 'px';
+        ths[1].style.width = col1W + 'px';
       }
-    });
-    let firstColWidth = Math.min(firstColMaxWidth, totalWidth * 0.4);
-    let secondColWidth = totalWidth - firstColWidth;
-    cols[0].style.width = `${firstColWidth}px`;
-    cols[1].style.width = `${secondColWidth}px`;
-    cols.forEach((col) => {
-      const resizer = col.querySelector('.resizer');
-      let x = 0;
-      let w = 0;
-      const mouseDownHandler = function(e) {
-        x = e.clientX;
-        const styles = window.getComputedStyle(col);
-        w = parseInt(styles.width, 10);
+    } else if (table.classList.contains('attribute-statement-table')) {
+      // Force 40/60
+      const totalW = table.offsetWidth;
+      const col0W = Math.round(totalW * 0.4);
+      const col1W = totalW - col0W;
+      const ths = table.querySelectorAll('th');
+      if (ths.length >= 2) {
+        ths[0].style.width = col0W + 'px';
+        ths[1].style.width = col1W + 'px';
+      }
+    } else {
+      // Default 40/60
+      const totalW = table.offsetWidth;
+      const col0W = Math.round(totalW * 0.4);
+      const col1W = totalW - col0W;
+      const ths = table.querySelectorAll('th');
+      if (ths.length >= 2) {
+        ths[0].style.width = col0W + 'px';
+        ths[1].style.width = col1W + 'px';
+      }
+    }
+
+    // Attach mouse events for each resizer
+    table.querySelectorAll('th').forEach(th => {
+      const resizer = th.querySelector('.resizer');
+      if (!resizer) return;
+      let startX = 0, startWidth = 0;
+
+      const mouseDownHandler = e => {
+        startX = e.clientX;
+        // The current col's width
+        const styles = window.getComputedStyle(th);
+        startWidth = parseInt(styles.width, 10);
         document.addEventListener('mousemove', mouseMoveHandler);
         document.addEventListener('mouseup', mouseUpHandler);
         resizer.classList.add('resizing');
       };
-      const mouseMoveHandler = function(e) {
-        const dx = e.clientX - x;
-        col.style.width = `${w + dx}px`;
+      const mouseMoveHandler = e => {
+        const dx = e.clientX - startX;
+        th.style.width = (startWidth + dx) + 'px';
       };
-      const mouseUpHandler = function() {
+      const mouseUpHandler = () => {
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', mouseUpHandler);
         resizer.classList.remove('resizing');

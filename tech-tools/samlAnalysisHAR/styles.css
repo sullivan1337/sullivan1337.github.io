@@ -207,19 +207,17 @@
   
   /* Table styles */
   table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
     table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
   }
   
   th, td {
     border: 1px solid var(--border-color);
     padding: 8px;
     text-align: left;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
   }
   
   th:first-child,
@@ -238,18 +236,16 @@
   }
   
   .resizer {
+    cursor: col-resize;
+    width: 6px;
+    background: transparent; /* or a slight highlight if you prefer */
     position: absolute;
     top: 0;
+    bottom: 0;
     right: 0;
-    width: 5px;
-    cursor: col-resize;
-    user-select: none;
-    height: 100%;
   }
-  
-  .resizer:hover,
   .resizing {
-    border-right: 2px solid var(--text-color);
+    border-right: 2px solid #333; /* highlight while dragging */
   }
   
   /* Validation status styling */
@@ -327,6 +323,7 @@
     }
     
     .duplicate-value {
-        background-color: #ffcccc;
+        background-color: red;
     }
+    
     
