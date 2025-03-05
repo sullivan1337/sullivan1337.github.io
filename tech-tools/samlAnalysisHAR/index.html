@@ -43,11 +43,14 @@
       <ol>
         <li>If using a SAML tracer extension, start it before triggering the SAML request. (<a target="_blank" href="https://chromewebstore.google.com/detail/saml-tracer/mpdajninpobndbfcldcmbpnnbhibjmch?hl=en">SAML-tracer</a> is a widely used option for Chrome.)</li>
         <li>Perform the action that triggers the SAML request.</li>
-        <li>The extension captures the SAML requests, look for the POST request with the "SAML" tag.</li>
-        <li>Either:</li>
-            <ol>a. Export the captured SAML trace to a JSON file (<strong>without</strong> filters and <strong>with</strong> "none" masking)</ol>
-            <ol>b. Copy the SAML XML from the <strong>SAML</strong> tab</ol>
-            <ol>c. Copy the base64 encoded <strong>SAMLResponse</strong> from the <strong>Parameters</strong> tab.</ol>
+        <li>The extension captures the SAML requests—look for the POST request with the "SAML" tag.</li>
+        <li>Either:
+          <ol type="a">
+            <li>Export the captured SAML trace to a JSON file (<strong>without</strong> filters and <strong>with</strong> "none" masking),</li>
+            <li>Copy the SAML XML from the <strong>SAML</strong> tab, or</li>
+            <li>Copy the base64 encoded <strong>SAMLResponse</strong> from the <strong>Parameters</strong> tab.</li>
+          </ol>
+        </li>
         <li>Upload the file or paste the XML (or JSON/base64) into the text input area.</li>
       </ol>
     </div>

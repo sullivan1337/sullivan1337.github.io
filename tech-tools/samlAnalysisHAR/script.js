@@ -51,7 +51,6 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
   const reader = new FileReader();
   reader.onload = function (e) {
     const contents = e.target.result;
-    updateTimestamp();
     analyzeFile(contents);
   };
   reader.readAsText(file);
@@ -78,7 +77,6 @@ if (fileDropArea) {
       const reader = new FileReader();
       reader.onload = function (e) {
         const contents = e.target.result;
-        updateTimestamp();
         analyzeFile(contents);
       };
       reader.readAsText(files[0]);
@@ -105,10 +103,32 @@ document.getElementById('resetBtn').addEventListener('click', function () {
   document.getElementById('captureTimestamp').textContent = "";
 });
 
-// Update capture timestamp next to SAML Summary heading
-function updateTimestamp() {
-  const ts = new Date().toLocaleString();
-  document.getElementById('captureTimestamp').textContent = `Captured at: ${ts}`;
+// --- New: Update capture timestamp from decoded SAML ---
+// It extracts the IssueInstant from the Response element,
+// falling back to the Assertion element if necessary.
+function updateCaptureTimestampFromSAML(decodedSAML) {
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(decodedSAML, "text/xml");
+    let ts = "";
+    const response = xmlDoc.getElementsByTagName("Response")[0];
+    if (response && response.getAttribute("IssueInstant")) {
+      ts = response.getAttribute("IssueInstant");
+    } else {
+      const assertion = xmlDoc.getElementsByTagName("Assertion")[0];
+      if (assertion && assertion.getAttribute("IssueInstant")) {
+        ts = assertion.getAttribute("IssueInstant");
+      }
+    }
+    if (ts) {
+      const displayTime = new Date(ts).toLocaleString();
+      document.getElementById('captureTimestamp').textContent = `Captured at: ${displayTime}`;
+    } else {
+      document.getElementById('captureTimestamp').textContent = "";
+    }
+  } catch(e) {
+    document.getElementById('captureTimestamp').textContent = "";
+  }
 }
 
 // Validate raw input and process accordingly
@@ -126,7 +146,7 @@ function analyzeRawInput() {
     JSON.parse(rawText);
     validType = "JSON";
   } catch(e) {}
-  
+
   if (!validType) {
     let parser = new DOMParser();
     let xmlDoc = parser.parseFromString(rawText, "text/xml");
@@ -134,14 +154,14 @@ function analyzeRawInput() {
       validType = "XML";
     }
   }
-  
+
   if (!validType) {
     try {
       atob(rawText);
       validType = "Base64";
     } catch(e) {}
   }
-  
+
   if (validType) {
     validationStatus.textContent = `Valid ${validType} input ✓`;
     validationStatus.style.color = "limegreen";
@@ -149,20 +169,25 @@ function analyzeRawInput() {
     validationStatus.textContent = `Input not strictly valid, attempting to parse...`;
     validationStatus.style.color = "orange";
   }
-  
-  updateTimestamp();
-  
-  let formattedXML = "";
+
   if (validType === "JSON") {
-    analyzeFile(rawText);
-    return;
-  } else if (rawText.startsWith("<")) {
+    try {
+      analyzeFile(rawText);
+      return;
+    } catch(e) {
+      // Fall through to process as XML/base64
+    }
+  }
+
+  let formattedXML = "";
+  if (rawText.startsWith("<")) {
     formattedXML = formatXML(rawText);
   } else {
     formattedXML = decodeAndFormatSAML(rawText);
   }
   
   document.getElementById('decodedSAML').textContent = formattedXML;
+  updateCaptureTimestampFromSAML(formattedXML);
   const summary = getSAMLSummary(formattedXML);
   document.getElementById('samlSummary').innerHTML = summary;
   document.getElementById('results').textContent = "Processed raw SAML input.";
@@ -178,6 +203,7 @@ function analyzeFile(contents) {
     if (contents.trim().startsWith("<")) {
       const formattedXML = formatXML(contents.trim());
       document.getElementById('decodedSAML').textContent = formattedXML;
+      updateCaptureTimestampFromSAML(formattedXML);
       const summary = getSAMLSummary(formattedXML);
       document.getElementById('samlSummary').innerHTML = summary;
       document.getElementById('results').textContent = "Processed raw SAML input from text file.";
@@ -313,6 +339,7 @@ function displaySAMLRequest(index) {
   if (samlResponse) {
     const decodedSAML = decodeAndFormatSAML(samlResponse);
     document.getElementById('decodedSAML').textContent = decodedSAML;
+    updateCaptureTimestampFromSAML(decodedSAML);
     const summary = getSAMLSummary(decodedSAML);
     document.getElementById('samlSummary').innerHTML = summary;
     addTableResizers();
@@ -381,6 +408,7 @@ function getSAMLSummary(xml) {
   const parser = new DOMParser();
   const xmlDoc = parser.parseFromString(xml, "text/xml");
   let summary = '';
+
   function getElementByTagNames(doc, tags) {
     for (let tag of tags) {
       const elements = doc.getElementsByTagNameNS("*", tag);
@@ -388,15 +416,30 @@ function getSAMLSummary(xml) {
     }
     return null;
   }
+
+  // Updated createTable function with title attributes on cells.
   function createTable(title, data) {
     let table = `<h3>${title}</h3><table>`;
     table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
     for (let [key, value] of Object.entries(data)) {
-      table += `<tr><td>${key}</td><td>${value}</td></tr>`;
+      table += `<tr><td title="${key}">${key}</td><td title="${value}">${value}</td></tr>`;
     }
     table += '</table>';
     return table;
   }
+
+  // New helper: Create a table from an array of rows (for multiple values)
+  function createTableFromRows(title, rows) {
+    let table = `<h3>${title}</h3><table>`;
+    table += '<tr><th>Attribute<div class="resizer"></div></th><th>Value<div class="resizer"></div></th></tr>';
+    rows.forEach(row => {
+      table += `<tr><td title="${row.attribute}">${row.attribute}</td><td title="${row.value}">${row.value}</td></tr>`;
+    });
+    table += '</table>';
+    return table;
+  }
+
+  // SAML Response
   const response = getElementByTagNames(xmlDoc, ['Response']);
   if (response) {
     const responseData = {
@@ -408,6 +451,8 @@ function getSAMLSummary(xml) {
     };
     summary += createTable('SAML Response', responseData);
   }
+
+  // SAML Assertion
   const assertion = getElementByTagNames(xmlDoc, ['Assertion']);
   if (assertion) {
     const assertionData = {
@@ -428,18 +473,24 @@ function getSAMLSummary(xml) {
     }
     summary += createTable('SAML Assertion', assertionData);
   }
+
+  // Attribute Statement with multiple values handling
   const attributeStatement = getElementByTagNames(xmlDoc, ['AttributeStatement']);
   if (attributeStatement) {
     const attributes = attributeStatement.getElementsByTagNameNS("*", 'Attribute');
-    const attributeData = {};
+    let rows = [];
     for (let attr of attributes) {
       const name = attr.getAttribute('Name');
-      const value = attr.getElementsByTagNameNS("*", 'AttributeValue')[0];
-      if (name && value) {
-        attributeData[name] = value.textContent;
+      if (name) {
+        const valueElements = attr.getElementsByTagNameNS("*", 'AttributeValue');
+        for (let i = 0; i < valueElements.length; i++) {
+          rows.push({ attribute: name, value: valueElements[i].textContent });
+        }
       }
     }
-    summary += createTable('Attribute Statement', attributeData);
+    if (rows.length > 0) {
+      summary += createTableFromRows('Attribute Statement', rows);
+    }
   }
   return summary;
 }
