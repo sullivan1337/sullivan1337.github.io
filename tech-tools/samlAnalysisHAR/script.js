@@ -286,7 +286,6 @@ function displaySAMLRequest(index) {
     updateCaptureTimestampFromSAML(decodedSAML);
     const summary = getSAMLSummary(decodedSAML);
     document.getElementById('samlSummary').innerHTML = summary;
-    addTableResizers();
   } else {
     document.getElementById('decodedSAML').textContent = 'No SAMLResponse found in this request.';
     document.getElementById('samlSummary').textContent = 'No SAMLResponse found in this request.';
@@ -344,11 +343,9 @@ function getSAMLSummary(xml) {
     return null;
   }
 
-  // Build a simple table with a given class if needed
-  function createTable(title, data, tableClass = "") {
-    let cls = tableClass ? ` class="${tableClass}"` : '';
-    let table = `<h3>${title}</h3><table${cls}>`;
-    table += '<tr><th><div class="resizer"></div>Attribute</th><th><div class="resizer"></div>Value</th></tr>';
+  function createTable(title, data) {
+    let table = `<h3>${title}</h3><table>`;
+    table += '<tr><th>Attribute</th><th>Value</th></tr>';
     for (let [key, value] of Object.entries(data)) {
       table += `<tr><td>${key}</td><td>${value}</td></tr>`;
     }
@@ -356,14 +353,13 @@ function getSAMLSummary(xml) {
     return table;
   }
 
-  // For an array of rows
-  function createTableFromRows(title, rows, tableClass, duplicateAttributes) {
+  function createTableFromRows(title, rows, duplicateAttributes) {
     let note = "";
     if (duplicateAttributes.size > 0) {
       note = `<p class="duplicate-note">Note: Duplicate values detected for attribute(s): ${[...duplicateAttributes].join(", ")}</p>`;
     }
-    let table = `<h3>${title}</h3>${note}<table class="${tableClass}">`;
-    table += '<tr><th><div class="resizer"></div>Attribute</th><th><div class="resizer"></div>Value</th></tr>';
+    let table = `<h3>${title}</h3>${note}<table>`;
+    table += '<tr><th>Attribute</th><th>Value</th></tr>';
     rows.forEach(r => {
       let duplicateClass = r.duplicate ? ' duplicate-value' : '';
       table += `<tr><td>${r.attribute}</td><td class="${duplicateClass}">${r.value}</td></tr>`;
@@ -382,8 +378,7 @@ function getSAMLSummary(xml) {
       'Destination': response.getAttribute('Destination') || '',
       'InResponseTo': response.getAttribute('InResponseTo') || ''
     };
-    // Force 30/70 for the SAML Response table
-    summary += createTable('SAML Response', responseData, 'saml-response-table');
+    summary += createTable('SAML Response', responseData);
   }
 
   // SAML Assertion
@@ -405,7 +400,6 @@ function getSAMLSummary(xml) {
         assertionData['Subject'] = nameID.textContent;
       }
     }
-    // Also default 40/60 for Assertion
     summary += createTable('SAML Assertion', assertionData);
   }
 
@@ -431,80 +425,9 @@ function getSAMLSummary(xml) {
       }
     }
     if (rows.length > 0) {
-      // Force 40/60 for attribute statement
-      summary += createTableFromRows('Attribute Statement', rows, 'attribute-statement-table', duplicateAttributes);
+      summary += createTableFromRows('Attribute Statement', rows, duplicateAttributes);
     }
   }
 
   return summary;
-}
-
-// Simplified column-resize logic
-function addTableResizers() {
-  const tables = document.querySelectorAll('table');
-  tables.forEach(table => {
-    // Force table layout
-    table.style.tableLayout = 'fixed';
-    table.style.width = '100%';
-
-    // Identify if it's the SAML Response table or the attribute statement table
-    if (table.classList.contains('saml-response-table')) {
-      // Force 30/70
-      const totalW = table.offsetWidth;
-      const col0W = Math.round(totalW * 0.3);
-      const col1W = totalW - col0W;
-      const ths = table.querySelectorAll('th');
-      if (ths.length >= 2) {
-        ths[0].style.width = col0W + 'px';
-        ths[1].style.width = col1W + 'px';
-      }
-    } else if (table.classList.contains('attribute-statement-table')) {
-      // Force 40/60
-      const totalW = table.offsetWidth;
-      const col0W = Math.round(totalW * 0.4);
-      const col1W = totalW - col0W;
-      const ths = table.querySelectorAll('th');
-      if (ths.length >= 2) {
-        ths[0].style.width = col0W + 'px';
-        ths[1].style.width = col1W + 'px';
-      }
-    } else {
-      // Default 40/60
-      const totalW = table.offsetWidth;
-      const col0W = Math.round(totalW * 0.4);
-      const col1W = totalW - col0W;
-      const ths = table.querySelectorAll('th');
-      if (ths.length >= 2) {
-        ths[0].style.width = col0W + 'px';
-        ths[1].style.width = col1W + 'px';
-      }
-    }
-
-    // Attach mouse events for each resizer
-    table.querySelectorAll('th').forEach(th => {
-      const resizer = th.querySelector('.resizer');
-      if (!resizer) return;
-      let startX = 0, startWidth = 0;
-
-      const mouseDownHandler = e => {
-        startX = e.clientX;
-        // The current col's width
-        const styles = window.getComputedStyle(th);
-        startWidth = parseInt(styles.width, 10);
-        document.addEventListener('mousemove', mouseMoveHandler);
-        document.addEventListener('mouseup', mouseUpHandler);
-        resizer.classList.add('resizing');
-      };
-      const mouseMoveHandler = e => {
-        const dx = e.clientX - startX;
-        th.style.width = (startWidth + dx) + 'px';
-      };
-      const mouseUpHandler = () => {
-        document.removeEventListener('mousemove', mouseMoveHandler);
-        document.removeEventListener('mouseup', mouseUpHandler);
-        resizer.classList.remove('resizing');
-      };
-      resizer.addEventListener('mousedown', mouseDownHandler);
-    });
-  });
 }

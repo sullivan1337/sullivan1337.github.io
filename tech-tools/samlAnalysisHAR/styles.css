@@ -74,11 +74,6 @@
     filter: brightness(1.1);
   }
   
-  /* Specific reset button color (complementary red/orange) */
-  .reset-btn {
-    background-color: #F97316; /* A bright orange */
-  }
-  
   /* Container */
   .container {
     max-width: 1200px;
@@ -107,26 +102,6 @@
     font-weight: 500;
   }
   
-  /* File Drop Area & Custom File Picker */
-  .file-drop-area {
-    border: 2px dashed var(--border-color);
-    border-radius: 6px;
-    padding: 20px;
-    text-align: center;
-    transition: background-color var(--transition-speed);
-    margin-bottom: 10px;
-  }
-  
-  .file-drop-area.dragover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
-  
-  .custom-file-upload {
-    cursor: pointer;
-    display: block;
-  }
-  
-  /* Input elements */
   input[type="file"],
   textarea {
     background-color: var(--bg-color);
@@ -161,6 +136,11 @@
   .help-buttons button {
     flex: 1;
     text-align: center;
+  }
+  
+  /* Specific reset button color (complementary red/orange) */
+  .reset-btn {
+    background-color: #F97316;
   }
   
   /* Navigation */
@@ -205,53 +185,30 @@
     margin-bottom: 30px;
   }
   
-  /* Table styles */
+  /* Table styles - no resize logic, just auto layout */
   table {
-    table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
+    table-layout: auto; /* Let columns size themselves automatically */
   }
   
   th, td {
     border: 1px solid var(--border-color);
     padding: 8px;
     text-align: left;
-    white-space: normal;
-    word-break: break-word;
+    white-space: normal;      /* Wrap lines within cells */
+    word-break: break-word;   /* Break long words if needed */
   }
   
-  th:first-child,
-  td:first-child {
-    width: 30%;
+  /* Duplicate styling for highlight */
+  .duplicate-note {
+    color: red;
+    font-style: italic;
+    margin-bottom: 5px;
   }
   
-  th:last-child,
-  td:last-child {
-    width: 70%;
-  }
-  
-  th {
-    background-color: var(--container-color);
-    position: relative;
-  }
-  
-  .resizer {
-    cursor: col-resize;
-    width: 6px;
-    background: transparent; /* or a slight highlight if you prefer */
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-  }
-  .resizing {
-    border-right: 2px solid #333; /* highlight while dragging */
-  }
-  
-  /* Validation status styling */
-  #validationStatus {
-    margin-top: 5px;
-    font-weight: bold;
+  .duplicate-value {
+    background-color: red;
   }
   
   /* Modal */
@@ -295,35 +252,23 @@
   .close:hover {
     filter: brightness(1.2);
   }
-
-    a {
-    color: var(--accent-color);
-    text-decoration: none;
-    }
-
-    a:hover {
-    text-decoration: underline;
-    }
-
-    /* Table cell styling */
-    th, td {
-        border: 1px solid var(--border-color);
-        padding: 8px;
-        text-align: left;
-        /* Allow wrapping instead of truncating text */
-        white-space: normal;
-        word-break: break-word;
-    }
-    
-    /* Duplicate value styling */
-    .duplicate-note {
-        color: red;
-        font-style: italic;
-        margin-bottom: 5px;
-    }
-    
-    .duplicate-value {
-        background-color: red;
-    }
-    
-    
+  
+  /* File drop area styling */
+  .file-drop-area {
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    transition: background-color var(--transition-speed);
+    margin-bottom: 10px;
+  }
+  
+  .file-drop-area.dragover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .custom-file-upload {
+    cursor: pointer;
+    display: block;
+  }
+  
