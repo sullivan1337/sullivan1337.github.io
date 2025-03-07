@@ -2,7 +2,7 @@
 let diffParts = [];
 let origLines = [], newLines = [];
 
-// Light/dark mode setup from your existing site
+// Light/dark mode (from your existing site)
 document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('themeToggle');
   const savedTheme = localStorage.getItem('theme');
@@ -34,6 +34,7 @@ function handleFileUpload(fileInput, textArea) {
   const reader = new FileReader();
   reader.onload = () => {
     textArea.value = reader.result;
+    performDiff();
   };
   reader.readAsText(file);
 }
@@ -41,9 +42,7 @@ file1El.addEventListener('change', () => handleFileUpload(file1El, text1El));
 file2El.addEventListener('change', () => handleFileUpload(file2El, text2El));
 
 // Diff option elements
-const compareBtn = document.getElementById('compareBtn');
 const copyBtn = document.getElementById('copyBtn');
-const downloadBtn = document.getElementById('downloadBtn');
 const viewModeRadios = document.getElementsByName('viewMode');
 const ignoreSpaceEl = document.getElementById('ignore-space');
 const ignoreCaseEl = document.getElementById('ignore-case');
@@ -52,6 +51,27 @@ const summaryEl = document.getElementById('summary');
 const diffOutputEl = document.getElementById('diffOutput');
 const inlineDiffEl = document.getElementById('inline-diff');
 const sideBySideDiffEl = document.getElementById('side-by-side-diff');
+
+/**
+ * Returns an object with highlighted HTML strings for the original and modified text,
+ * using Diff.diffWords to compute word-level differences.
+ */
+function getHighlightedDiff(original, modified) {
+  const wordDiff = Diff.diffWords(original, modified);
+  let originalHtml = '';
+  let modifiedHtml = '';
+  wordDiff.forEach(part => {
+    if (part.added) {
+      modifiedHtml += `<span class="inner-added">${part.value}</span>`;
+    } else if (part.removed) {
+      originalHtml += `<span class="inner-removed">${part.value}</span>`;
+    } else {
+      originalHtml += part.value;
+      modifiedHtml += part.value;
+    }
+  });
+  return { originalHtml, modifiedHtml };
+}
 
 // Main diff function using jsdiff
 function performDiff() {
@@ -102,6 +122,7 @@ function performDiff() {
     }
 
     if (part.removed && i + 1 < diffParts.length && diffParts[i + 1].added) {
+      // Modified block (removed followed by added)
       const removedLines = lines;
       const addedLines = diffParts[i + 1].value.split('\n');
       if (addedLines[addedLines.length - 1] === '') {
@@ -112,29 +133,57 @@ function performDiff() {
         const origLine = k < removedLines.length ? origLines[oldIndex + k] : '';
         const newLine = k < addedLines.length ? newLines[newIndex + k] : '';
         const row = document.createElement('tr');
-        if (origLine !== '' && newLine !== '') {
-          row.className = 'changed';
-        }
+
         const oldCell = document.createElement('td');
-        oldCell.className = 'old removed';
-        oldCell.textContent = origLine;
+        oldCell.className = 'old';
         const newCell = document.createElement('td');
-        newCell.className = 'new added';
-        newCell.textContent = newLine;
+        newCell.className = 'new';
+
+        // If both lines exist and differ, compute inner diff highlighting
+        if (origLine && newLine && origLine !== newLine) {
+          const highlighted = getHighlightedDiff(origLine, newLine);
+          oldCell.innerHTML = highlighted.originalHtml;
+          newCell.innerHTML = highlighted.modifiedHtml;
+        } else {
+          oldCell.textContent = origLine;
+          newCell.textContent = newLine;
+        }
+
+        // Apply diff-specific classes
+        if (origLine !== '' && newLine !== '') {
+          row.classList.add('changed');
+          oldCell.classList.add('removed');
+          newCell.classList.add('added');
+        } else if (origLine === '' && newLine !== '') {
+          row.classList.add('added');
+          newCell.classList.add('added');
+        } else if (origLine !== '' && newLine === '') {
+          row.classList.add('removed');
+          oldCell.classList.add('removed');
+        }
         row.appendChild(oldCell);
         row.appendChild(newCell);
         tbody.appendChild(row);
 
-        if (origLine !== '') {
+        // Inline diff: output two lines for modified block with inner highlighting
+        if (origLine) {
           const lineDiv = document.createElement('div');
           lineDiv.className = 'diff-line removed';
-          lineDiv.textContent = '- ' + origLine;
+          if (origLine && newLine && origLine !== newLine) {
+            lineDiv.innerHTML = '- ' + getHighlightedDiff(origLine, newLine).originalHtml;
+          } else {
+            lineDiv.textContent = '- ' + origLine;
+          }
           inlineDiffEl.appendChild(lineDiv);
         }
-        if (newLine !== '') {
+        if (newLine) {
           const lineDiv = document.createElement('div');
           lineDiv.className = 'diff-line added';
-          lineDiv.textContent = '+ ' + newLine;
+          if (origLine && newLine && origLine !== newLine) {
+            lineDiv.innerHTML = '+ ' + getHighlightedDiff(origLine, newLine).modifiedHtml;
+          } else {
+            lineDiv.textContent = '+ ' + newLine;
+          }
           inlineDiffEl.appendChild(lineDiv);
         }
       }
@@ -147,7 +196,7 @@ function performDiff() {
       }
       oldIndex += removedLines.length;
       newIndex += addedLines.length;
-      i++;
+      i++; // Skip the added part already processed
     } else if (part.removed) {
       lines.forEach(() => {
         const row = document.createElement('tr');
@@ -225,14 +274,16 @@ function performDiff() {
   diffOutputEl.classList.toggle('hide-unchanged', showChangesEl.checked);
 }
 
-compareBtn.addEventListener('click', performDiff);
+// Auto-update diff on input events
+text1El.addEventListener('input', performDiff);
+text2El.addEventListener('input', performDiff);
+ignoreSpaceEl.addEventListener('change', performDiff);
+ignoreCaseEl.addEventListener('change', performDiff);
+showChangesEl.addEventListener('change', () => {
+  diffOutputEl.classList.toggle('hide-unchanged', showChangesEl.checked);
+});
 
-ignoreSpaceEl.addEventListener('change', () => {
-  if (text1El.value || text2El.value) performDiff();
-});
-ignoreCaseEl.addEventListener('change', () => {
-  if (text1El.value || text2El.value) performDiff();
-});
+// Toggle between side-by-side and inline view
 viewModeRadios.forEach(radio => {
   radio.addEventListener('change', () => {
     if (radio.checked) {
@@ -246,11 +297,8 @@ viewModeRadios.forEach(radio => {
     }
   });
 });
-showChangesEl.addEventListener('change', () => {
-  diffOutputEl.classList.toggle('hide-unchanged', showChangesEl.checked);
-});
 
-// Copy diff to clipboard
+// Copy diff output to clipboard (unified diff text format)
 copyBtn.addEventListener('click', () => {
   let diffText = '';
   let oIndex = 0, nIndex = 0;
@@ -287,42 +335,4 @@ copyBtn.addEventListener('click', () => {
     document.execCommand('copy');
     document.body.removeChild(tempTextArea);
   }
-});
-
-// Download diff output as text file
-downloadBtn.addEventListener('click', () => {
-  let diffText = '';
-  let oIndex = 0, nIndex = 0;
-  diffParts.forEach(part => {
-    let lines = part.value.split('\n');
-    if (lines[lines.length - 1] === '') lines.pop();
-    if (part.added) {
-      lines.forEach(() => {
-        diffText += '+ ' + newLines[nIndex] + '\n';
-        nIndex++;
-      });
-    } else if (part.removed) {
-      lines.forEach(() => {
-        diffText += '- ' + origLines[oIndex] + '\n';
-        oIndex++;
-      });
-    } else {
-      lines.forEach(() => {
-        if (!showChangesEl.checked) {
-          diffText += '  ' + origLines[oIndex] + '\n';
-        }
-        oIndex++;
-        nIndex++;
-      });
-    }
-  });
-  const blob = new Blob([diffText], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'diff_output.txt';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 });

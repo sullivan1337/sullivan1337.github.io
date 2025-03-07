@@ -262,3 +262,16 @@ body.dark-mode #side-by-side-diff tr.unchanged td {
 body.dark-mode #side-by-side-diff td.old {
     border-right: 1px solid var(--border-color);
 }
+
+/* New: Inner diff highlighting for exact changes (optimized for dark mode) */
+.inner-added {
+    background-color: #007700; /* Darker green */
+    color: #ffffff;
+    font-weight: bold;
+}
+.inner-removed {
+    background-color: #990000; /* Darker red */
+    color: #ffffff;
+    font-weight: bold;
+}
+

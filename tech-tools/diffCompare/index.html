@@ -23,12 +23,12 @@
     <!-- Input section for left/right text comparison -->
     <div class="input-container">
       <div class="input-section">
-        <label for="text1"><strong>Original Text / JSON</strong></label>
+        <label for="text1"><strong>Original</strong></label>
         <textarea id="text1" rows="8" placeholder="Enter or paste original text here..."></textarea>
         <input type="file" id="file1" accept=".json,.txt"/>
       </div>
       <div class="input-section">
-        <label for="text2"><strong>Modified Text / JSON</strong></label>
+        <label for="text2"><strong>Modified</strong></label>
         <textarea id="text2" rows="8" placeholder="Enter or paste modified text here..."></textarea>
         <input type="file" id="file2" accept=".json,.txt"/>
       </div>
@@ -42,10 +42,8 @@
       </div>
       <label><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
       <label><input type="checkbox" id="ignore-case"> Ignore case</label>
-      <label><input type="checkbox" id="show-changes"> Show only changes</label>
-      <button id="compareBtn" title="Compare">Compare</button>
+      <label><input type="checkbox" id="show-changes" checked> Show only changes</label>
       <button id="copyBtn" title="Copy diff output">Copy Diff</button>
-      <button id="downloadBtn" title="Download diff output">Download Diff</button>
     </div>
 
     <!-- Diff summary -->
@@ -63,4 +61,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
