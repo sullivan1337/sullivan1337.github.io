@@ -1,0 +1,264 @@
+/* Base font and color variables */
+:root {
+    --bg-dark: #1f1f1f;
+    --bg-light: #f9f9f9;
+    --container-dark: #2c2c2c;
+    --container-light: #ffffff;
+    --text-dark: #e2e2e2;
+    --text-light: #333333;
+    --accent-dark: #6366F1;
+    --accent-light: #4F46E5;
+    --border-dark: #444444;
+    --border-light: #cccccc;
+    --transition-speed: 0.3s;
+}
+
+/* Dark mode by default */
+body.dark-mode {
+    --bg-color: var(--bg-dark);
+    --container-color: var(--container-dark);
+    --text-color: var(--text-dark);
+    --accent-color: var(--accent-dark);
+    --border-color: var(--border-dark);
+}
+
+/* Light mode variables */
+body:not(.dark-mode) {
+    --bg-color: var(--bg-light);
+    --container-color: var(--container-light);
+    --text-color: var(--text-light);
+    --accent-color: var(--accent-light);
+    --border-color: var(--border-light);
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Header */
+header {
+    background-color: var(--container-color);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header-content h1 {
+    font-size: 1.4rem;
+    margin: 0;
+}
+header button {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    font-size: 0.9rem;
+    outline: none;
+}
+header button:hover {
+    filter: brightness(1.1);
+}
+
+/* Container - full width responsiveness */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: var(--container-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Input container layout using grid */
+.input-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+.input-section {
+    display: flex;
+    flex-direction: column;
+}
+label {
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+input[type="file"],
+textarea {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+textarea {
+    min-height: 120px;
+}
+
+/* Controls (buttons and toggles) */
+.controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+.controls label {
+    font-size: 0.9rem;
+}
+.controls button {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    font-size: 0.9rem;
+}
+.controls button:hover {
+    filter: brightness(1.1);
+}
+
+/* Summary of diff changes */
+.summary {
+    padding: 10px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Diff output styling */
+.diff-view {
+    white-space: pre-wrap;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin-bottom: 30px;
+}
+
+/* Inline diff styles */
+#inline-diff .diff-line {
+    display: block;
+    padding: 2px 4px;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+#inline-diff .diff-line.added {
+    background-color: #e6ffed;
+    color: #042b0d;
+}
+#inline-diff .diff-line.removed {
+    background-color: #ffeef0;
+    color: #5a1a1a;
+}
+#inline-diff .diff-line.unchanged {
+    color: #666;
+}
+
+/* Side-by-side diff styles */
+#side-by-side-diff table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+#side-by-side-diff th, #side-by-side-diff td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: left;
+    white-space: normal;
+    word-break: break-word;
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+#side-by-side-diff td.old {
+    width: 50%;
+    border-right: 1px solid var(--border-color);
+}
+#side-by-side-diff td.new {
+    width: 50%;
+}
+#side-by-side-diff tr.added td.new,
+#side-by-side-diff td.added {
+    background-color: #e6ffed;
+    color: #042b0d;
+}
+#side-by-side-diff tr.removed td.old,
+#side-by-side-diff td.removed {
+    background-color: #ffeef0;
+    color: #5a1a1a;
+}
+#side-by-side-diff tr.unchanged td {
+    color: #666;
+}
+/* Hide unchanged lines when toggled */
+.hide-unchanged tr.unchanged,
+.hide-unchanged .diff-line.unchanged {
+    display: none;
+}
+
+/* Dark mode adjustments */
+body.dark-mode {
+    background-color: var(--bg-color);
+}
+body.dark-mode input[type="file"],
+body.dark-mode textarea {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+body.dark-mode .controls {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+body.dark-mode .summary {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+body.dark-mode #inline-diff .diff-line.added {
+    background-color: #223b22;
+    color: #c7ffcd;
+}
+body.dark-mode #inline-diff .diff-line.removed {
+    background-color: #3b2222;
+    color: #ffcdcd;
+}
+body.dark-mode #inline-diff .diff-line.unchanged {
+    color: #888;
+}
+body.dark-mode #side-by-side-diff tr.added td.new,
+body.dark-mode #side-by-side-diff td.added {
+    background-color: #223b22;
+    color: #c7ffcd;
+}
+body.dark-mode #side-by-side-diff tr.removed td.old,
+body.dark-mode #side-by-side-diff td.removed {
+    background-color: #3b2222;
+    color: #ffcdcd;
+}
+body.dark-mode #side-by-side-diff tr.unchanged td {
+    color: #888;
+}
+body.dark-mode #side-by-side-diff td.old {
+    border-right: 1px solid var(--border-color);
+}
