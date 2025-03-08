@@ -1,0 +1,246 @@
+/* Global Theme Variables */
+:root {
+    --bg-dark: #1f1f1f;          /* Overall background for dark mode */
+    --bg-light: #f9f9f9;         /* Overall background for light mode */
+    --container-dark: #2c2c2c;    /* Header & form container in dark mode */
+    --container-light: #ffffff;  /* Form container in light mode */
+    --text-dark: #e2e2e2;
+    --text-light: #333333;
+    --accent-dark: #6366F1;       /* Purple accent for dark mode */
+    --accent-light: #4F46E5;      /* Purple accent for light mode */
+    --remove-orange: #F97316;     /* Orange for Remove buttons */
+    --border-dark: #444444;
+    --border-light: #cccccc;
+    --transition-speed: 0.3s;
+  }
+  
+  /* Dark Mode (default) */
+  body.dark-mode {
+    --bg-color: var(--bg-dark);
+    --container-color: var(--container-dark);
+    --text-color: var(--text-dark);
+    --accent-color: var(--accent-dark);
+    --border-color: var(--border-dark);
+  }
+  
+  /* Light Mode */
+  body:not(.dark-mode) {
+    --bg-color: var(--bg-light);
+    --container-color: var(--container-light);
+    --text-color: var(--text-light);
+    --accent-color: var(--accent-light);
+    --border-color: var(--border-light);
+  }
+  
+  /* Base Styles */
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+  
+  /* Header */
+  header {
+    background-color: var(--container-color);
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Ensures title left, toggle right */
+    width: 100%;
+  }
+  .header-content h1 {
+    margin: 0;
+    font-size: 1.5em;
+  }
+  #themeToggle {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color var(--transition-speed);
+  }
+  #themeToggle:hover {
+    filter: brightness(1.1);
+  }
+  
+  /* Container for the form */
+  .container {
+    max-width: 1150px;
+    margin: 70px auto 0 auto; /* leave space for header */
+    padding: 20px;
+    background-color: var(--container-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* Form & Input Styles */
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  .form-check {
+    display: block;
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  .form-check-input {
+    position: absolute;
+    margin-top: 0.3rem;
+    margin-left: -1.25rem;
+  }
+  .form-check-label {
+    margin-left: 0.25rem;
+  }
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    display: block;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--text-color);
+    background-color: var(--container-color);
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    transition: border-color 0.15s ease-in-out;
+  }
+  input[type="text"]::placeholder,
+  input[type="password"]::placeholder,
+  textarea::placeholder {
+    color: var(--text-color);
+    opacity: 0.7;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 0.2rem rgba(99,102,241,0.25);
+  }
+  input[type="checkbox"] {
+    margin: 0.3rem;
+  }
+  
+  /* Button Styles */
+  button {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    user-select: none;
+    color: #fff;
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    filter: brightness(1.1);
+  }
+  .btn-block {
+    display: block;
+    width: 100%;
+  }
+  .mb-2 {
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Layout Utilities */
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+  .col-md-12 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+  .d-flex {
+    display: flex;
+  }
+  .justify-content-between {
+    justify-content: space-between;
+  }
+  .align-items-center {
+    align-items: center;
+  }
+  
+  /* Preformatted Text */
+  pre {
+    background-color: var(--container-color);
+    border: 1px solid var(--border-color);
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+  
+  /* Footer */
+  footer {
+    background-color: var(--container-color);
+    color: var(--text-color);
+    text-align: center;
+    padding: 0.5rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 767px) {
+    .col-md-6 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
+  
+  /* Additional Styles for Remove Buttons */
+  .btn-danger {
+    background-color: #F97316;
+    color: white;
+    border: none;
+  }
+  
+  /* (Keep any additional utility classes if needed) */
+  a {
+    color: var(--accent-color);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }

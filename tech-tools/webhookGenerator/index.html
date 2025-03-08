@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Webhook Generator</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body class="dark-mode">
+    <!-- Header with site title and light/dark toggle on far right -->
+    <header>
+      <div class="header-content">
+        <h1>Webhook Generator</h1>
+        <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      </div>
+    </header>
+    
+    <div class="container">
+      <form id="webhook-form">
+        <div class="row">
+          <div class="col-md-6">
+            <br>
+            <div class="form-group">
+              <label for="url"><strong>Webhook URL:</strong></label>
+              <input type="text" class="form-control" id="url" placeholder="Enter webhook URL">
+            </div>
+            <div class="form-group">
+              <label for="content"><strong>Request Body:</strong> ( passed as '-d' )</label>
+              <textarea class="form-control" id="content" rows="10" placeholder="Enter body content passed as '-d'
+(usually formatted JSON)"></textarea>
+            </div>
+            <div class="form-group form-check">
+              <input type="checkbox" id="validate-json" checked>
+              <label for="validate-json"><strong>Validate JSON</strong></label>    
+            </div>
+          </div>
+          <div class="col-md-6">
+            <h4>Authentication:<span style="font-weight: normal;"> ( passed as '-H' )</span></h4>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="authentication" id="auth-none" value="none" checked>
+              <label class="form-check-label" for="auth-none">None</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="authentication" id="auth-basic" value="basic">
+              <label class="form-check-label" for="auth-basic">Basic ( <a href="https://decodebase64.com/" target="_blank">base64</a> encoded )</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="authentication" id="auth-token" value="token">
+              <label class="form-check-label" for="auth-token">Token</label>
+            </div>
+            <div id="authentication-inputs">
+              <div class="form-group" id="basic-auth" style="display:none;">
+                <label for="basic-username">Username:</label>
+                <input type="text" class="form-control" id="basic-username" placeholder="Enter username">
+                <label for="basic-password">Password:</label>
+                <input type="password" class="form-control" id="basic-password" placeholder="Enter password">
+              </div>
+              <div class="form-group" id="token-auth" style="display:none;">
+                <label for="token">Token:</label>
+                <input type="text" class="form-control" id="token" placeholder="Enter token">
+              </div>
+            </div>
+            <hr>
+            <h4>Headers:</h4> 
+            <div id="headers-container"></div>
+            <button type="button" class="btn btn-primary mb-2" id="add-header">Add Header</button>
+          </div>
+        </div>
+      </form>
+      
+      <div class="col-md-12">
+        <form id="generated-form">
+          <button type="submit" class="btn btn-success btn-block">Generate Webhook</button>
+          <h3>curl Command to POST Webhook:</h3>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <button type="button" class="btn btn-primary" id="copy-curl">Copy</button>
+          </div>
+          <pre id="curl-output"></pre>
+          <hr>
+          <h4>Full Webhook JSON:</h4>
+          <pre id="output"></pre>
+        </form>
+      </div>
+    </div>
+    
+    <script src="./script.js"></script>
+  </body>
+</html>
