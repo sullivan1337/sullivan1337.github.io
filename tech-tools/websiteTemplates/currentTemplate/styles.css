@@ -54,6 +54,14 @@ header {
     font-size: 1.4rem;
     margin: 0;
 }
+
+/* New: Header buttons container to align Reset and Theme Toggle to the right */
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 header button {
     background-color: var(--accent-color);
     color: #fff;
@@ -66,6 +74,22 @@ header button {
     outline: none;
 }
 header button:hover {
+    filter: brightness(1.1);
+}
+
+/* Reset button styling (orange, matching the Webhook Generator) */
+.btn-reset {
+    background-color: #F97316;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    font-size: 0.9rem;
+    outline: none;
+}
+.btn-reset:hover {
     filter: brightness(1.1);
 }
 

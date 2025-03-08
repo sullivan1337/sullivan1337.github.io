@@ -54,6 +54,14 @@ header {
     font-size: 1.4rem;
     margin: 0;
 }
+
+/* If you want the reset + theme toggle side by side with consistent spacing */
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Header button styling (same as Webhook Generator) */
 header button {
     background-color: var(--accent-color);
     color: #fff;
@@ -66,6 +74,14 @@ header button {
     outline: none;
 }
 header button:hover {
+    filter: brightness(1.1);
+}
+
+/* Reset button styled like Webhook Generator's orange button */
+.reset-btn {
+    background-color: #F97316;
+}
+.reset-btn:hover {
     filter: brightness(1.1);
 }
 
@@ -143,7 +159,7 @@ textarea {
 .controls button:hover {
     filter: brightness(1.1);
 }
-/* Reset button on far right */
+/* Reset button on far right inside .controls */
 .controls .reset-btn {
     background-color: #F97316;
     margin-left: auto;

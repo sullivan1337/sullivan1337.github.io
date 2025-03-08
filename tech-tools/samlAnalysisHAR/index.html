@@ -14,8 +14,11 @@
   <header>
     <div class="header-content">
       <h1>SAML Analyzer</h1>
-      <!-- Only theme toggle remains in the header -->
-      <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      <!-- Added reset button to header along with theme toggle -->
+      <div class="header-buttons">
+        <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Page</button>
+        <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      </div>
     </div>
   </header>
 
@@ -67,13 +70,12 @@
           </label>
           <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
         </div>
-        <!-- Action buttons for help and reset -->
+        <!-- Action buttons for help; reset button removed from here -->
         <div class="action-buttons">
           <div class="help-buttons">
             <button id="helpHarBtn" title="How to generate HAR content">How to Generate HAR Content</button>
             <button id="helpSamlBtn" title="How to export SAML XML">How to Export SAML XML/base64</button>
           </div>
-          <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Page</button>
         </div>
       </div>
       <div id="rawInputContainer" class="input-section">

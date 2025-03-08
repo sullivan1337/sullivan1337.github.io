@@ -14,7 +14,10 @@
   <header>
     <div class="header-content">
       <h1>JSON/Text Diff Tool</h1>
-      <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      <div class="header-buttons">
+        <button id="resetBtn" class="reset-btn" title="Reset">Reset Page</button>
+        <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      </div>
     </div>
   </header>
   <main class="container">
@@ -43,7 +46,6 @@
       <label><input type="checkbox" id="ignore-case"> Ignore case</label>
       <label><input type="checkbox" id="show-changes" checked> Show only changes</label>
       <button id="copyBtn" title="Copy diff output">Copy Diff</button>
-      <button id="resetBtn" class="reset-btn" title="Reset">Reset</button>
     </div>
     <!-- Summary area (no total line count here) -->
     <div id="summary" class="summary"></div>
