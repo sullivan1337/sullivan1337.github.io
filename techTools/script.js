@@ -63,8 +63,10 @@ function showIframe(src) {
     document.getElementById('content-frame').onload = function() {
       try {
         if (this.contentDocument && this.contentDocument.body) {
-          // If the sub–app does not specify a background, set it to a light color
-          if (!this.contentDocument.body.style.backgroundColor) {
+          // Get the computed background color
+          const computedBg = window.getComputedStyle(this.contentDocument.body).backgroundColor;
+          // Only force a light background if the computed background is transparent
+          if (computedBg === 'rgba(0, 0, 0, 0)' || computedBg === 'transparent') {
             this.contentDocument.body.style.backgroundColor = "#f9f9f9";
           }
         }
@@ -72,5 +74,6 @@ function showIframe(src) {
         console.error(e);
       }
     };
+    
   });
   
