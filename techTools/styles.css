@@ -48,10 +48,10 @@ nav::-webkit-scrollbar {
 }
 .home-icon {
   cursor: pointer;
-  font-size: 1.5em;  /* Increased font size */
+  font-size: 1.3em;  /* Increased font size */
   border: 1px solid var(--border-color);
   background-color: var(--accent-color);
-  padding: 10px 20px;  /* More vertical (and horizontal) padding */
+  padding: 8px 15px;  /* More vertical (and horizontal) padding */
   border-radius: 4px;
   color: #fff;
 }
