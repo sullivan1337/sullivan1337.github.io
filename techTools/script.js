@@ -58,5 +58,19 @@ function showIframe(src) {
   // On page load, generate dynamic tool tiles
   document.addEventListener('DOMContentLoaded', () => {
     generateToolList();
+    
+    // When the iframe loads a sub-app, force a light background if not set
+    document.getElementById('content-frame').onload = function() {
+      try {
+        if (this.contentDocument && this.contentDocument.body) {
+          // If the sub–app does not specify a background, set it to a light color
+          if (!this.contentDocument.body.style.backgroundColor) {
+            this.contentDocument.body.style.backgroundColor = "#f9f9f9";
+          }
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
   });
   

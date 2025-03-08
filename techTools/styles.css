@@ -2,7 +2,7 @@
 :root {
     --bg-color: #1f1f1f;          /* Overall page background */
     --container-color: #2c2c2c;     /* Header & nav background */
-    --light-container: #f9f9f9;     /* Landing page (light background) */
+    --light-container: #f9f9f9;     /* Landing page background */
     --text-color: #e2e2e2;
     --light-text: #333333;
     --accent-color: #6366F1;        /* Purple accent */
@@ -170,7 +170,8 @@
     transform: translateY(-5px);
   }
   
-  /* Iframe for Sub-Pages (let sub–apps define their own background) */
+  /* Iframe for Sub-Pages */
+  /* Remove any background override so sub–apps use their own styling */
   iframe {
     width: 100%;
     height: 100%;
@@ -190,7 +191,7 @@
     width: 400%;
     height: 600px;
     border: 1px solid var(--border-color);
-    border-radius: 32px;
+    border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transform: scale(0.25);
     transform-origin: top left;
