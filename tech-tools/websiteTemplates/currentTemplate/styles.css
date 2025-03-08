@@ -1,0 +1,102 @@
+/* Base font and color variables */
+:root {
+    --bg-dark: #1f1f1f;
+    --bg-light: #f9f9f9;
+    --container-dark: #2c2c2c;
+    --container-light: #ffffff;
+    --text-dark: #e2e2e2;
+    --text-light: #333333;
+    --accent-dark: #6366F1;
+    --accent-light: #4F46E5;
+    --border-dark: #444444;
+    --border-light: #cccccc;
+    --transition-speed: 0.3s;
+}
+
+/* Dark mode by default */
+body.dark-mode {
+    --bg-color: var(--bg-dark);
+    --container-color: var(--container-dark);
+    --text-color: var(--text-dark);
+    --accent-color: var(--accent-dark);
+    --border-color: var(--border-dark);
+}
+
+/* Light mode */
+body:not(.dark-mode) {
+    --bg-color: var(--bg-light);
+    --container-color: var(--container-light);
+    --text-color: var(--text-light);
+    --accent-color: var(--accent-light);
+    --border-color: var(--border-light);
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Header */
+header {
+    background-color: var(--container-color);
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.header-content h1 {
+    font-size: 1.4rem;
+    margin: 0;
+}
+header button {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed);
+    font-size: 0.9rem;
+    outline: none;
+}
+header button:hover {
+    filter: brightness(1.1);
+}
+
+/* Main container */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: var(--container-color);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Content section */
+.content {
+    margin-bottom: 20px;
+}
+.content h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+}
+.content p {
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        margin: 10px;
+        padding: 10px;
+    }
+}
