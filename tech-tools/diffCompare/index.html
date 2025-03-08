@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>JSON/Text Diff Tool</title>
   <link rel="stylesheet" href="styles.css"/>
-  <!-- Optionally load a modern font -->
+  <!-- Load Roboto font -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
@@ -17,46 +17,42 @@
       <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
     </div>
   </header>
-
-  <!-- Main container always honors full browser width -->
   <main class="container">
-    <!-- Input section for left/right text comparison -->
+    <!-- Input sections with text area, file upload, and line count -->
     <div class="input-container">
       <div class="input-section">
         <label for="text1"><strong>Original</strong></label>
         <textarea id="text1" rows="8" placeholder="Enter or paste original text here..."></textarea>
         <input type="file" id="file1" accept=".json,.txt"/>
+        <div id="lineCount1" class="line-count"></div>
       </div>
       <div class="input-section">
         <label for="text2"><strong>Modified</strong></label>
         <textarea id="text2" rows="8" placeholder="Enter or paste modified text here..."></textarea>
         <input type="file" id="file2" accept=".json,.txt"/>
+        <div id="lineCount2" class="line-count"></div>
       </div>
     </div>
-
-    <!-- Diff options and action buttons -->
+    <!-- Controls row with view mode toggles, options, copy button, and reset button -->
     <div class="controls">
-      <div class="view-mode-toggle">
-        <label><input type="radio" name="viewMode" value="side" checked> Side-by-Side</label>
-        <label><input type="radio" name="viewMode" value="inline"> Inline</label>
+      <div class="view-toggle">
+        <button id="inlineViewBtn">Inline View</button>
+        <button id="sideViewBtn" class="active">Side-by-Side View</button>
       </div>
       <label><input type="checkbox" id="ignore-space"> Ignore whitespace</label>
       <label><input type="checkbox" id="ignore-case"> Ignore case</label>
       <label><input type="checkbox" id="show-changes" checked> Show only changes</label>
       <button id="copyBtn" title="Copy diff output">Copy Diff</button>
+      <button id="resetBtn" class="reset-btn" title="Reset">Reset</button>
     </div>
-
-    <!-- Diff summary -->
+    <!-- Summary area (no total line count here) -->
     <div id="summary" class="summary"></div>
-
-    <!-- Diff output sections -->
+    <!-- Diff output containers -->
     <div id="diffOutput">
       <div id="inline-diff" class="diff-view"></div>
       <div id="side-by-side-diff" class="diff-view"></div>
     </div>
   </main>
-
-  <!-- Load jsdiff library and main script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/4.0.2/diff.min.js"></script>
   <script src="script.js"></script>
 </body>

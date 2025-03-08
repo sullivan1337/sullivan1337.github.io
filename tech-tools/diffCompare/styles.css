@@ -22,7 +22,7 @@ body.dark-mode {
     --border-color: var(--border-dark);
 }
 
-/* Light mode variables */
+/* Light mode */
 body:not(.dark-mode) {
     --bg-color: var(--bg-light);
     --container-color: var(--container-light);
@@ -69,7 +69,7 @@ header button:hover {
     filter: brightness(1.1);
 }
 
-/* Container - full width responsiveness */
+/* Main container */
 .container {
     width: 100%;
     max-width: 1200px;
@@ -95,8 +95,8 @@ label {
     margin-bottom: 6px;
     font-weight: 500;
 }
-input[type="file"],
-textarea {
+textarea,
+input[type="file"] {
     background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
@@ -107,13 +107,19 @@ textarea {
 }
 textarea {
     min-height: 120px;
+    margin-bottom: 5px;
+}
+.line-count {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 3px;
 }
 
-/* Controls (buttons and toggles) */
+/* Controls styling */
 .controls {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
     padding: 10px;
     margin-bottom: 20px;
@@ -137,12 +143,58 @@ textarea {
 .controls button:hover {
     filter: brightness(1.1);
 }
+/* Reset button on far right */
+.controls .reset-btn {
+    background-color: #F97316;
+    margin-left: auto;
+}
 
-/* Summary of diff changes */
+/* View toggle buttons */
+.view-toggle {
+    display: flex;
+    gap: 5px;
+}
+.view-toggle button {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+}
+.view-toggle button.active {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+/* Summary styling */
 .summary {
     padding: 10px;
-    font-weight: bold;
     margin-bottom: 10px;
+    font-weight: bold;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.summary-item {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+}
+.summary-item.added {
+    background-color: #e6ffed;
+    color: #042b0d;
+}
+.summary-item.removed {
+    background-color: #ffeef0;
+    color: #5a1a1a;
+}
+.summary-item.modified {
+    background-color: #f0f0f0;
+    color: #333;
 }
 
 /* Diff output styling */
@@ -158,11 +210,22 @@ textarea {
 
 /* Inline diff styles */
 #inline-diff .diff-line {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 2px 4px;
     white-space: pre;
     font-family: monospace;
     font-size: 0.9rem;
+}
+#inline-diff .inline-line-number {
+    min-width: var(--line-num-width);
+    width: 1px;
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 5px;
+    color: #888;
+    font-family: monospace;
+    font-size: 0.85rem;
 }
 #inline-diff .diff-line.added {
     background-color: #e6ffed;
@@ -182,21 +245,28 @@ textarea {
     border-collapse: collapse;
     table-layout: auto;
 }
-#side-by-side-diff th, #side-by-side-diff td {
-    border: 1px solid var(--border-color);
+#side-by-side-diff td {
     padding: 8px;
-    text-align: left;
-    white-space: normal;
-    word-break: break-word;
+    border: 1px solid var(--border-color);
     font-family: monospace;
     font-size: 0.9rem;
+    white-space: pre;
+}
+#side-by-side-diff td.line-number {
+    min-width: var(--line-num-width);
+    width: 1px;
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 5px;
+    color: #888;
+    font-family: monospace;
+    font-size: 0.85rem;
 }
 #side-by-side-diff td.old {
-    width: 50%;
-    border-right: 1px solid var(--border-color);
+    width: 40%;
 }
 #side-by-side-diff td.new {
-    width: 50%;
+    width: 40%;
 }
 #side-by-side-diff tr.added td.new,
 #side-by-side-diff td.added {
@@ -221,8 +291,8 @@ textarea {
 body.dark-mode {
     background-color: var(--bg-color);
 }
-body.dark-mode input[type="file"],
-body.dark-mode textarea {
+body.dark-mode textarea,
+body.dark-mode input[type="file"] {
     background-color: var(--bg-color);
     color: var(--text-color);
     border: 1px solid var(--border-color);
@@ -259,19 +329,18 @@ body.dark-mode #side-by-side-diff td.removed {
 body.dark-mode #side-by-side-diff tr.unchanged td {
     color: #888;
 }
-body.dark-mode #side-by-side-diff td.old {
+body.dark-mode #side-by-side-diff td.line-number {
     border-right: 1px solid var(--border-color);
 }
 
 /* New: Inner diff highlighting for exact changes (optimized for dark mode) */
 .inner-added {
-    background-color: #007700; /* Darker green */
+    background-color: #007700;
     color: #ffffff;
     font-weight: bold;
 }
 .inner-removed {
-    background-color: #990000; /* Darker red */
+    background-color: #990000;
     color: #ffffff;
     font-weight: bold;
 }
-
