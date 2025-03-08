@@ -1,0 +1,225 @@
+/* Global Theme Variables */
+:root {
+    --bg-color: #1f1f1f;          /* Overall page background */
+    --container-color: #2c2c2c;     /* Header & nav background */
+    --light-container: #f9f9f9;     /* Landing page (light background) */
+    --text-color: #e2e2e2;
+    --light-text: #333333;
+    --accent-color: #6366F1;        /* Purple accent */
+    --border-color: #444444;
+    --transition-speed: 0.3s;
+  }
+  
+  /* Base Styles */
+  body {
+    font-family: 'Montserrat', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+  }
+  
+  /* Header */
+  header {
+    background-color: var(--container-color);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    border-bottom: 1px solid var(--border-color);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+  }
+  .header-content {
+    width: 100%;
+  }
+  .header-content h1 {
+    margin: 0;
+    font-size: 1.2em;
+  }
+  
+  /* Navigation */
+  nav {
+    background-color: var(--container-color);
+    height: calc(100vh - 50px); /* full height minus header */
+    position: fixed;
+    left: 0;
+    top: 50px;
+    width: 225px;
+    overflow-y: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+  }
+  nav::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Home Icon */
+  .home-icon-container {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .home-icon {
+    cursor: pointer;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    background-color: var(--accent-color);
+    padding: 4px 6px;
+    border-radius: 4px;
+    color: #fff;
+  }
+  .home-icon:hover {
+    filter: brightness(1.1);
+  }
+  
+  /* Navigation Sections */
+  nav .tech-section {
+    border: 1px solid var(--border-color);
+    background-color: var(--container-color);
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 4px;
+  }
+  nav h3 {
+    color: var(--text-color);
+    margin: 0 0 5px 0;
+    font-size: 1em;
+  }
+  
+  /* Divider between sections */
+  .nav-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 10px 0;
+  }
+  
+  /* Nav Buttons */
+  nav button {
+    display: block;
+    width: calc(100% - 8px);
+    margin: 5px auto;
+    padding: 5px 6px;
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    text-align: left;
+    transition: background-color var(--transition-speed);
+  }
+  nav button:hover {
+    filter: brightness(1.1);
+  }
+  
+  /* Main Content Area */
+  main {
+    position: fixed;
+    left: 225px;
+    top: 50px;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  /* Landing Page with light background */
+  #landing-page {
+    background-color: var(--light-container);
+    color: var(--light-text);
+    padding: 20px;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  
+  /* Dynamic Tool Grid */
+  .tool-category {
+    margin-bottom: 20px;
+  }
+  .tool-category h3 {
+    margin: 0 0 10px 0;
+    color: var(--light-text);
+    font-size: 1.5em;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 5px;
+  }
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+  }
+  .tool-tile {
+    background-color: var(--accent-color);
+    color: #fff;
+    padding: 20px;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: 100%;
+  }
+  .tool-tile:hover {
+    filter: brightness(1.1);
+    transform: translateY(-5px);
+  }
+  
+  /* Iframe for Sub-Pages (let sub–apps define their own background) */
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+  }
+  
+  /* Preview Containers for Tiles */
+  .tool-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+  .tool-preview {
+    width: 400%;
+    height: 600px;
+    border: 1px solid var(--border-color);
+    border-radius: 32px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transform: scale(0.25);
+    transform-origin: top left;
+    margin-right: -300%;
+    margin-bottom: -450px;
+    pointer-events: auto;
+    transition: transform var(--transition-speed);
+  }
+  .preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    background: transparent;
+    z-index: 10;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    nav {
+      display: none;
+    }
+    main {
+      left: 0;
+    }
+    .tool-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
