@@ -1,89 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Webhook Generator</title>
-    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css">
-  </head>
-  <body class="dark-mode">
-    <!-- Header with site title and light/dark toggle on far right -->
-    <header>
-      <div class="header-content">
-        <h1>Webhook Generator</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Webhook Generator</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- Load Roboto font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body class="dark-mode">
+  <header>
+    <div class="header-content">
+      <h1>Webhook Generator</h1>
+      <div class="header-buttons">
+        <button id="resetBtn" title="Reset" class="btn-reset">Reset</button>
         <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
       </div>
-    </header>
-    
-    <div class="container">
+    </div>
+  </header>
+  <main class="container">
+    <!-- Webhook Generator Content -->
+    <section class="content">
       <form id="webhook-form">
-        <div class="row">
-          <div class="col-md-6">
-            <br>
+        <!-- Two-column layout with extra spacing -->
+        <div class="webhook-row top-row">
+          <div class="webhook-col">
             <div class="form-group">
               <label for="url"><strong>Webhook URL:</strong></label>
-              <input type="text" class="form-control" id="url" placeholder="Enter webhook URL">
+              <input type="text" id="url" placeholder="Enter webhook URL" class="form-control">
             </div>
             <div class="form-group">
               <label for="content"><strong>Request Body:</strong> ( passed as '-d' )</label>
-              <textarea class="form-control" id="content" rows="10" placeholder="Enter body content passed as '-d'
-(usually formatted JSON)"></textarea>
+              <textarea id="content" placeholder="Enter body content (usually JSON)" class="form-control"></textarea>
             </div>
-            <div class="form-group form-check">
+            <div class="form-group inline">
               <input type="checkbox" id="validate-json" checked>
-              <label for="validate-json"><strong>Validate JSON</strong></label>    
+              <label for="validate-json"><strong>Validate JSON</strong></label>
             </div>
           </div>
-          <div class="col-md-6">
-            <h4>Authentication:<span style="font-weight: normal;"> ( passed as '-H' )</span></h4>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="authentication" id="auth-none" value="none" checked>
-              <label class="form-check-label" for="auth-none">None</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="authentication" id="auth-basic" value="basic">
-              <label class="form-check-label" for="auth-basic">Basic ( <a href="https://decodebase64.com/" target="_blank">base64</a> encoded )</label>
-            </div>
-            <div class="form-check">
-              <input class="form-check-input" type="radio" name="authentication" id="auth-token" value="token">
-              <label class="form-check-label" for="auth-token">Token</label>
+          <div class="webhook-col">
+            <h4>Authentication: <span style="font-weight: normal;">( passed as '-H' )</span></h4>
+            <div class="auth-options">
+              <label class="auth-option">
+                <input type="radio" name="authentication" id="auth-none" value="none" checked>
+                None
+              </label>
+              <label class="auth-option">
+                <input type="radio" name="authentication" id="auth-basic" value="basic">
+                Basic (<a href="https://decodebase64.com/" target="_blank">base64</a> encoded)
+              </label>
+              <label class="auth-option">
+                <input type="radio" name="authentication" id="auth-token" value="token">
+                Token
+              </label>
             </div>
             <div id="authentication-inputs">
               <div class="form-group" id="basic-auth" style="display:none;">
                 <label for="basic-username">Username:</label>
-                <input type="text" class="form-control" id="basic-username" placeholder="Enter username">
+                <input type="text" id="basic-username" placeholder="Enter username" class="form-control">
                 <label for="basic-password">Password:</label>
-                <input type="password" class="form-control" id="basic-password" placeholder="Enter password">
+                <input type="password" id="basic-password" placeholder="Enter password" class="form-control">
               </div>
               <div class="form-group" id="token-auth" style="display:none;">
                 <label for="token">Token:</label>
-                <input type="text" class="form-control" id="token" placeholder="Enter token">
+                <input type="text" id="token" placeholder="Enter token" class="form-control">
               </div>
             </div>
             <hr>
-            <h4>Headers:</h4> 
+            <h4>Headers:</h4>
             <div id="headers-container"></div>
-            <button type="button" class="btn btn-primary mb-2" id="add-header">Add Header</button>
+            <button type="button" id="add-header">Add Header</button>
           </div>
         </div>
       </form>
-      
-      <div class="col-md-12">
-        <form id="generated-form">
-          <button type="submit" class="btn btn-success btn-block">Generate Webhook</button>
-          <h3>curl Command to POST Webhook:</h3>
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <button type="button" class="btn btn-primary" id="copy-curl">Copy</button>
-          </div>
-          <pre id="curl-output"></pre>
-          <hr>
-          <h4>Full Webhook JSON:</h4>
-          <pre id="output"></pre>
-        </form>
-      </div>
-    </div>
-    
-    <script src="./script.js"></script>
-  </body>
+      <form id="generated-form">
+        <button type="submit" id="generateBtn">Generate Webhook</button>
+        <h3>curl Command to POST Webhook:</h3>
+        <button type="button" id="copy-curl">Copy</button>
+        <pre id="curl-output"></pre>
+        <hr>
+        <h4>Full Webhook JSON:</h4>
+        <button type="button" id="copy-json">Copy</button>
+        <pre id="output"></pre>
+      </form>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
 </html>
