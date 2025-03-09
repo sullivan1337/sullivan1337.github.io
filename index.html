@@ -14,8 +14,11 @@
         <span class="home-icon" onclick="showLandingPage()">🏠 Home</span>
       </div>
       <div class="tech-section">
-        <h3 onclick="toggleSection('tech-tools')"><a href="./techTools/">Tech Tools</a> <span id="tech-tools-toggle" class="toggle-symbol">-</span></h3>
-        <div id="tech-tools" class="section-content">
+        <h3 onclick="toggleSection('tech-tools')">
+          <a class="tech-link" href="./techTools/">Tech Tools</a> 
+          <span id="tech-tools-toggle" class="toggle-symbol">-</span>
+        </h3>
+                <div id="tech-tools" class="section-content">
           <button onclick="showIframe('./tech-tools/g-toolbox/apps/har_analyzer/index.htm');">G-Toolbox (HAR)</button>
           <button onclick="showIframe('./tech-tools/samlAnalysisHAR/index.html');">SAML/HAR Analyzer</button>
           <button onclick="showIframe('./tech-tools/CyberChefv10.4/CyberChef_v10.4.0.html');">CyberChef</button>
@@ -43,7 +46,7 @@
     
     <main>
       <div id="landing-page">
-        <h2>Welcome to sullivan1337's GitHub Projects:</h2>
+        <h2>Welcome to <a href="https://github.com/sullivan1337" target="_blank">sullivan1337's</a> GitHub Projects:</h2>
 
         <div id="dynamic-tool-list">
           <div class="tool-category">
@@ -61,7 +64,7 @@
 
     <footer>
       <div class="footer-info">
-        <p>Latest Commits: <span id="lastCommits"></span> | Latest GitHub Actions: <span id="githubActions"></span> | <a href="https://github.com/sullivan1337" target="_blank">github.com/sullivan1337</a></p>
+        <p>Latest Commits: <span id="lastCommits"></span> | Latest GitHub Actions: <span id="githubActions"></span></p>
         <button class="close-footer" onclick="hideFooter()">X</button>
       </div>
     </footer>

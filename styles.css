@@ -306,13 +306,12 @@ a:hover {
     object-fit: contain; /* Ensure the image fits within the constraints */
 }
 
-/* Link styling */
-a {
+h3 a.tech-link {
     color: white;
     text-decoration: none;
   }
-  a:hover {
-    color: white;
+  
+  h3 a.tech-link:hover {
     text-decoration: underline;
   }
   
