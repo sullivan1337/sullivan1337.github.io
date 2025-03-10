@@ -182,15 +182,13 @@ async function exchangeCodeForToken(code, codeVerifier) {
     code: code,
     redirect_uri: REDIRECT_URI,
     client_id: LINKEDIN_CLIENT_ID,
-    code_verifier: codeVerifier,
-    client_secret: LINKEDIN_CLIENT_SECRET // Not recommended to store in front-end
+    code_verifier: codeVerifier
+    // client_secret is omitted for public client usage
   });
 
   const response = await fetch(TOKEN_BASE, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: bodyParams.toString()
   });
 
@@ -198,10 +196,10 @@ async function exchangeCodeForToken(code, codeVerifier) {
     const respText = await response.text();
     throw new Error(`Token request failed: ${respText}`);
   }
-
   const data = await response.json();
-  return data.access_token; // or data.id_token if you're using ID tokens
+  return data.access_token;
 }
+
 
 /****************************************************
  * 5) FETCH USERINFO FROM LINKEDIN OIDC
