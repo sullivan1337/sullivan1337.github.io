@@ -1,485 +1,398 @@
-/****************************************************
- * 1) GLOBAL VARIABLES & STORAGE
- ****************************************************/
-let people = []; 
-// Each person: { id, name, title, image, managerId, x, y }
+// 1337Chart script – handles org chart initialization, LinkedIn API, and UI events
 
-let currentZIndex = 1;
-let linkedInAccessToken = null;
-
-// If your LinkedIn Dev App uses “openid, profile, email”
+// LinkedIn OAuth credentials
 const LINKEDIN_CLIENT_ID = "78qsr9zwrk1nou";
-const LINKEDIN_CLIENT_SECRET = "WPL_AP1.JS2imcsb02toiK1D.Uul9zw==";
+const LINKEDIN_CLIENT_SECRET = "WPL_AP1.JS2imcsb02toiK1D.Uul9zw=="; // (for reference; in client-side OAuth implicit flow, only the client ID is used)
 
-// Your GitHub Pages redirect
-const REDIRECT_URI = "https://sullivan1337.github.io/tech-tools/1337Chart/index.html";
+let linkedInAccessToken = null;
+const linkedInAuthUrl = "https://www.linkedin.com/oauth/v2/authorization";
+const linkedInRedirectUri = window.location.href.replace(/[#?].*$/, "");
+const linkedInScopes = ["r_liteprofile", "r_basicprofile"];
 
-// OIDC scopes
-const LINKEDIN_SCOPES = "openid%20profile%20email";
-
-// Endpoints
-const AUTH_BASE = "https://www.linkedin.com/oauth/v2/authorization";
-const TOKEN_BASE = "https://www.linkedin.com/oauth/v2/accessToken";
-
-// We'll store codeVerifier and stateParam in sessionStorage
-// so they persist across page reload
-/****************************************************
- * 2) ON DOM CONTENT LOADED
- ****************************************************/
-document.addEventListener('DOMContentLoaded', () => {
-  const btnAddEntry = document.getElementById('btnAddEntry');
-  const entryModal = document.getElementById('entryModal');
-  const closeModal = document.getElementById('closeModal');
-  const btnSubmitEntry = document.getElementById('btnSubmitEntry');
-  const btnLinkedInOAuth = document.getElementById('btnLinkedInOAuth');
-
-  // 1) See if we're returning from LinkedIn with code=...
-  checkForLinkedInRedirect();
-
-  // 2) Show "Add Person" modal
-  btnAddEntry.addEventListener('click', () => {
-    populateManagerSelect();
-    entryModal.style.display = 'block';
-  });
-
-  // 3) Close the modal
-  closeModal.addEventListener('click', () => {
-    entryModal.style.display = 'none';
-    clearModalFields();
-  });
-
-  window.addEventListener('click', (e) => {
-    if (e.target === entryModal) {
-      entryModal.style.display = 'none';
-      clearModalFields();
-    }
-  });
-
-  // 4) Submit the "Add Person" form
-  btnSubmitEntry.addEventListener('click', () => {
-    const linkedInLink = document.getElementById('linkedinLink').value.trim();
-    const nameInput = document.getElementById('nameInput').value.trim();
-    const titleInput = document.getElementById('titleInput').value.trim();
-    const imageInput = document.getElementById('imageInput').value.trim();
-    const managerSelect = document.getElementById('managerSelect').value;
-
-    let personName = nameInput || "John Doe";
-    let personTitle = titleInput || "Sample Title";
-    let personImage = imageInput || "https://via.placeholder.com/60";
-
-    // If they provided a LinkedIn link but we can't actually fetch arbitrary user data
-    // (LinkedIn API doesn't allow searching for other members),
-    // we do a mock name if we have no real token usage.
-    if (linkedInLink && !linkedInAccessToken) {
-      personName = "LinkedIn (mock)";
-      personTitle = "Fetched Title (mock)";
-    }
-
-    // Create the new person
-    const newPerson = {
-      id: Date.now(),
-      name: personName,
-      title: personTitle,
-      image: personImage,
-      managerId: managerSelect ? parseInt(managerSelect, 10) : null,
-      x: 0, 
-      y: 0
-    };
-
-    people.push(newPerson);
-
-    // Auto-layout so new cards don't overlap
-    autoLayout();
-
-    entryModal.style.display = 'none';
-    clearModalFields();
-    drawAllLines();
-  });
-
-  // 5) Initiate LinkedIn OIDC (PKCE) flow
-  btnLinkedInOAuth.addEventListener('click', async () => {
-    // Generate code_verifier and code_challenge
-    const codeVerifier = generateRandomString(50);
-    const codeChallenge = await sha256ToBase64Url(codeVerifier);
-    // Generate random state
-    const stateParam = generateRandomString(16);
-
-    // ***** STORE IN SESSION STORAGE *****
-    sessionStorage.setItem("pkce_code_verifier", codeVerifier);
-    sessionStorage.setItem("pkce_state", stateParam);
-
-    // Build auth URL
-    const authUrl = `${AUTH_BASE}?response_type=code&client_id=${LINKEDIN_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-      `&scope=${LINKEDIN_SCOPES}&state=${stateParam}` +
-      `&code_challenge=${codeChallenge}&code_challenge_method=S256`;
-
-    // Redirect to LinkedIn
-    window.location.href = authUrl;
-  });
-});
-
-/****************************************************
- * 3) CHECK FOR LINKEDIN REDIRECT (OIDC)
- ****************************************************/
-function checkForLinkedInRedirect() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get('code');
-  const state = urlParams.get('state');
-  const error = urlParams.get('error');
-  const errorDesc = urlParams.get('error_description');
-
-  if (error) {
-    console.log("LinkedIn OAuth error:", error, errorDesc);
-    return;
+// Check URL fragment for LinkedIn access token (implicit flow)
+if (window.location.hash && window.location.hash.includes("access_token")) {
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  linkedInAccessToken = params.get("access_token");
+  if (linkedInAccessToken) {
+    localStorage.setItem("linkedInToken", linkedInAccessToken);
   }
-
-  if (code && state) {
-    // Retrieve the stored code_verifier and storedState from sessionStorage
-    const codeVerifier = sessionStorage.getItem("pkce_code_verifier");
-    const storedState = sessionStorage.getItem("pkce_state");
-
-    // Optional: check if 'state' matches 'storedState'
-    if (storedState && state !== storedState) {
-      console.error("State mismatch! Potential CSRF or session lost.");
-      return;
-    }
-
-    // If we have codeVerifier, let's exchange for a token
-    if (codeVerifier) {
-      exchangeCodeForToken(code, codeVerifier)
-        .then(token => {
-          linkedInAccessToken = token;
-          console.log("LinkedIn Access Token acquired:", token);
-
-          // Optionally fetch user info
-          fetchLinkedInUserInfo()
-            .then(userinfo => {
-              console.log("Fetched LinkedIn UserInfo:", userinfo);
-              // e.g., userinfo might have { name, email, picture, sub, ... }
-            })
-            .catch(e => console.error("Error fetching LinkedIn userinfo:", e));
-        })
-        .catch(e => console.error("Token exchange error:", e))
-        .finally(() => {
-          // Remove PKCE items from sessionStorage so they don't linger
-          sessionStorage.removeItem("pkce_code_verifier");
-          sessionStorage.removeItem("pkce_state");
-        });
-    } else {
-      console.error("No codeVerifier in sessionStorage. PKCE lost.");
-    }
-  }
+  history.replaceState({}, document.title, window.location.pathname);
+}
+if (!linkedInAccessToken) {
+  linkedInAccessToken = localStorage.getItem("linkedInToken");
 }
 
-/****************************************************
- * 4) EXCHANGE CODE FOR ACCESS TOKEN (CLIENT-SIDE PKCE)
- *    Not recommended in production if secret is required
- ****************************************************/
-async function exchangeCodeForToken(code, codeVerifier) {
-  const bodyParams = new URLSearchParams({
-    grant_type: "authorization_code",
-    code: code,
-    redirect_uri: REDIRECT_URI,
-    client_id: LINKEDIN_CLIENT_ID,
-    code_verifier: codeVerifier,
-    client_secret: LINKEDIN_CLIENT_SECRET // Not recommended to store in front-end
-  });
-
-  const response = await fetch(TOKEN_BASE, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: bodyParams.toString()
-  });
-
-  if (!response.ok) {
-    const respText = await response.text();
-    throw new Error(`Token request failed: ${respText}`);
+let myDiagram;
+function initDiagram() {
+  // Ensure that CycleMode is defined (if not, define a basic fallback)
+  if (!go.CycleMode) {
+    go.CycleMode = { DestinationTree: "destinationTree" };
   }
 
-  const data = await response.json();
-  return data.access_token; // or data.id_token if you're using ID tokens
-}
-
-/****************************************************
- * 5) FETCH USERINFO FROM LINKEDIN OIDC
- ****************************************************/
-async function fetchLinkedInUserInfo() {
-  if (!linkedInAccessToken) {
-    throw new Error("No LinkedIn access token available.");
-  }
-  const resp = await fetch("https://api.linkedin.com/v2/userinfo", {
-    headers: {
-      "Authorization": `Bearer ${linkedInAccessToken}`
-    }
-  });
-  if (!resp.ok) {
-    throw new Error(`UserInfo fetch failed: ${resp.status}`);
-  }
-  return resp.json();
-}
-
-/****************************************************
- * 6) AUTO-LAYOUT SO CARDS DON'T OVERLAP
- *    BFS from root managers -> subordinates
- ****************************************************/
-function autoLayout() {
-  // 1) Identify root nodes (managerId = null)
-  const roots = people.filter(p => p.managerId == null);
-
-  // Build adjacency list: manager -> [subordinateIds]
-  const adjacency = {};
-  people.forEach(p => {
-    adjacency[p.id] = [];
-  });
-  people.forEach(p => {
-    if (p.managerId) {
-      adjacency[p.managerId].push(p.id);
-    }
+  const $ = go.GraphObject.make;
+  myDiagram = $(go.Diagram, "myDiagramDiv", {
+    initialAutoScale: go.Diagram.UniformToFill,  // scale to fill container
+    contentAlignment: go.Spot.Top,
+    maxSelectionCount: 1,
+    validCycle: go.CycleMode.DestinationTree,      // enforce tree structure
+    "undoManager.isEnabled": true
   });
 
-  // BFS queue: { personId, level, siblingIndex }
-  const queue = [];
-  roots.forEach((rootP, i) => {
-    queue.push({ personId: rootP.id, level: 0, siblingIndex: i });
-  });
+  // Use a TreeLayout for arranging nodes
+  myDiagram.layout = $(go.TreeLayout, { angle: 90, layerSpacing: 35 });
 
-  const levelsMap = {}; 
-  while (queue.length > 0) {
-    const { personId, level, siblingIndex } = queue.shift();
-    if (!levelsMap[level]) levelsMap[level] = [];
-    levelsMap[level].push({ personId, siblingIndex });
-
-    // Enqueue children
-    const kids = adjacency[personId] || [];
-    kids.forEach((kId, idx) => {
-      queue.push({ personId: kId, level: level + 1, siblingIndex: idx });
-    });
+  // Helper to prevent a node from being dropped onto itself or its descendant
+  function mayWorkFor(node, boss) {
+    if (!(node instanceof go.Node)) return false;
+    if (node === boss) return false;
+    return !boss.isInTreeOf(node);
   }
 
-  // Simple layout: each level is rowHeight down, siblings are spaced horizontally
-  const rowHeight = 150;
-  const colWidth = 250;
-
-  Object.keys(levelsMap).forEach(levelStr => {
-    const level = parseInt(levelStr);
-    const nodesInLevel = levelsMap[level];
-    nodesInLevel.forEach(n => {
-      const p = people.find(x => x.id === n.personId);
-      if (p) {
-        p.x = n.siblingIndex * colWidth;
-        p.y = level * rowHeight;
-      }
-    });
-  });
-
-  // Shift entire layout so no negative coords
-  let minX = Math.min(...people.map(p => p.x));
-  if (minX < 0) {
-    people.forEach(p => { p.x -= (minX - 50); });
-  }
-
-  let minY = Math.min(...people.map(p => p.y));
-  if (minY < 0) {
-    people.forEach(p => { p.y -= (minY - 50); });
-  }
-
-  // Now re-render all cards
-  renderAllCards();
-}
-
-/****************************************************
- * 7) RENDER ALL CARDS
- ****************************************************/
-function renderAllCards() {
-  const chartArea = document.getElementById('chartArea');
-
-  // Remove existing .person-card elements
-  Array.from(chartArea.getElementsByClassName('person-card')).forEach(card => {
-    chartArea.removeChild(card);
-  });
-
-  // Create or update each person's card
-  people.forEach(person => {
-    createOrUpdatePersonCard(person);
-  });
-
-  drawAllLines();
-}
-
-function createOrUpdatePersonCard(person) {
-  const chartArea = document.getElementById('chartArea');
-
-  const card = document.createElement('div');
-  card.classList.add('person-card');
-  card.style.left = `${person.x}px`;
-  card.style.top = `${person.y}px`;
-
-  card.innerHTML = `
-    <img src="${person.image}" alt="Person image" />
-    <div class="person-name">${person.name}</div>
-    <div class="person-title">${person.title}</div>
-    <button class="delete-btn">Delete</button>
-  `;
-
-  card.addEventListener('mousedown', () => {
-    card.style.zIndex = ++currentZIndex;
-  });
-
-  // Draggable
-  makeDraggable(card, person.id);
-
-  // Delete
-  card.querySelector('.delete-btn').addEventListener('click', () => {
-    chartArea.removeChild(card);
-    people = people.filter(p => p.id !== person.id);
-    // Also remove manager references from subordinates
-    people.forEach(p => {
-      if (p.managerId === person.id) {
-        p.managerId = null;
-      }
-    });
-    autoLayout(); // reflow the chart
-  });
-
-  chartArea.appendChild(card);
-}
-
-/****************************************************
- * 8) DRAG & DROP + LINE RE-DRAW
- ****************************************************/
-function makeDraggable(element, personId) {
-  let offsetX, offsetY;
-  let isDown = false;
-
-  element.addEventListener('mousedown', (e) => {
-    if (e.target.classList.contains('delete-btn')) return;
-    isDown = true;
-    offsetX = element.offsetLeft - e.clientX;
-    offsetY = element.offsetTop - e.clientY;
-    element.style.zIndex = ++currentZIndex;
-
-    document.addEventListener('mousemove', mouseMoveHandler);
-    document.addEventListener('mouseup', mouseUpHandler);
-  });
-
-  function mouseMoveHandler(e) {
-    e.preventDefault();
-    if (!isDown) return;
-    let newLeft = e.clientX + offsetX;
-    let newTop = e.clientY + offsetY;
-
-    element.style.left = `${newLeft}px`;
-    element.style.top = `${newTop}px`;
-
-    savePositions(personId, newLeft, newTop);
-    drawAllLines();
-  }
-
-  function mouseUpHandler() {
-    isDown = false;
-    document.removeEventListener('mousemove', mouseMoveHandler);
-    document.removeEventListener('mouseup', mouseUpHandler);
-  }
-}
-
-function savePositions(personId, left, top) {
-  const idx = people.findIndex(p => p.id === personId);
-  if (idx > -1) {
-    people[idx].x = left;
-    people[idx].y = top;
-  }
-}
-
-/****************************************************
- * 9) DRAW CONNECTION LINES
- ****************************************************/
-function drawAllLines() {
-  const svg = document.getElementById('connectionSVG');
-  svg.innerHTML = ""; // clear existing
-
-  people.forEach((person) => {
-    if (person.managerId) {
-      const manager = people.find(m => m.id === person.managerId);
-      if (manager) {
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("class", "org-connection");
-
-        const managerCenter = getCardCenter(manager.id);
-        const personCenter = getCardCenter(person.id);
-
-        if (managerCenter && personCenter) {
-          line.setAttribute("x1", managerCenter.x);
-          line.setAttribute("y1", managerCenter.y);
-          line.setAttribute("x2", personCenter.x);
-          line.setAttribute("y2", personCenter.y);
-          svg.appendChild(line);
+  myDiagram.nodeTemplate = $(
+    go.Node, "Auto",
+    { 
+      deletable: false,  
+      mouseDrop: function(e, node) {
+        const draggedNode = myDiagram.selection.first();
+        if (mayWorkFor(draggedNode, node)) {
+          const link = draggedNode.findTreeParentLink();
+          if (link !== null) {
+            link.fromNode = node;
+          } else {
+            myDiagram.toolManager.linkingTool.insertLink(node, node.port, draggedNode, draggedNode.port);
+          }
         }
       }
+    },
+    $(go.Shape, "RoundedRectangle",
+      { fill: "#ffffff", stroke: "#cccccc", strokeWidth: 1 }
+    ),
+    $(go.Panel, "Horizontal", { padding: 5, margin: 3 },
+      $(go.Panel, "Spot",
+        { margin: new go.Margin(0, 5, 0, 0) },
+        $(go.Shape, "Circle", { desiredSize: new go.Size(50, 50), fill: "#999", strokeWidth: 0 }),
+        $(go.Picture,
+          { desiredSize: new go.Size(50, 50) },
+          new go.Binding("source", "pic", findImage)
+        )
+      ),
+      $(go.Panel, "Table",
+        { defaultAlignment: go.Spot.Left },
+        $(go.TextBlock,
+          {
+            row: 0, font: "bold 14px sans-serif", stroke: "#333",
+            editable: true, isMultiline: false,
+            minSize: new go.Size(10, 16)
+          },
+          new go.Binding("text", "name").makeTwoWay()
+        ),
+        $(go.TextBlock,
+          {
+            row: 1, font: "12px sans-serif", stroke: "#555",
+            editable: true, isMultiline: false,
+            minSize: new go.Size(10, 14)
+          },
+          new go.Binding("text", "title").makeTwoWay()
+        ),
+        $(go.TextBlock,
+          {
+            row: 2, font: "11px sans-serif", stroke: "#777",
+            editable: true, isMultiline: false,
+            minSize: new go.Size(10, 12)
+          },
+          new go.Binding("text", "company").makeTwoWay()
+        )
+      )
+    ),
+    $("TreeExpanderButton",
+      {
+        alignment: go.Spot.Bottom,
+        alignmentFocus: go.Spot.Center,
+        visible: false
+      },
+      new go.Binding("visible", "isTreeLeaf", function(leaf) { return !leaf; }).ofObject()
+    ),
+    {
+      contextMenu: $(
+        "ContextMenu",
+        $(
+          "ContextMenuButton",
+          $(go.TextBlock, "Add Employee"),
+          {
+            click: function(e, button) {
+              const node = button.part.adornedPart;
+              if (!node) return;
+              addEmployee(node.data.key);
+            }
+          }
+        ),
+        $(
+          "ContextMenuButton",
+          $(go.TextBlock, "Remove Role"),
+          {
+            click: function(e, button) {
+              const node = button.part.adornedPart;
+              if (!node) return;
+              myDiagram.startTransaction("remove role");
+              const parentData = myDiagram.model.findNodeDataForKey(node.data.parent);
+              myDiagram.model.removeNodeData(node.data);
+              if (parentData) {
+                const childNodes = myDiagram.findTreeChildrenNodes(node);
+                while (childNodes.next()) {
+                  const child = childNodes.value;
+                  myDiagram.model.setParentKeyForNodeData(child.data, parentData.key);
+                }
+              }
+              myDiagram.commitTransaction("remove role");
+            }
+          }
+        ),
+        $(
+          "ContextMenuButton",
+          $(go.TextBlock, "Remove Department"),
+          {
+            click: function(e, button) {
+              const node = button.part.adornedPart;
+              if (!node) return;
+              myDiagram.startTransaction("remove department");
+              myDiagram.removeParts(node.findTreeParts());
+              myDiagram.commitTransaction("remove department");
+            }
+          }
+        )
+      )
+    }
+  );
+
+  // Define a basic tree model
+  myDiagram.model = new go.TreeModel();
+  myDiagram.model.addNodeData({
+    key: 1, name: "Root Person", title: "CEO", company: "My Company", pic: ""
+  });
+
+  // Ensure new nodes get unique keys
+  myDiagram.model.makeUniqueKeyFunction = function(model, data) {
+    let key = data.key || model.nodeDataArray.length + 1;
+    while (model.findNodeDataForKey(key)) key++;
+    data.key = key;
+    return key;
+  };
+}
+
+// Helper to select an image source or generate an avatar
+function findImage(pic) {
+  if (!pic) {
+    return generateAvatar(this.part.data.name || "");
+  }
+  if (pic.startsWith("data:") || pic.startsWith("http")) {
+    return pic;
+  }
+  return pic;
+}
+
+// Generate an avatar (canvas-based) using initials from a name
+function generateAvatar(name) {
+  const initials = name.split(" ").map(n => n[0] || "").join("").toUpperCase().substring(0, 2);
+  const canvas = document.createElement("canvas");
+  const size = 64;
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2, 0, 2 * Math.PI);
+  ctx.closePath();
+  ctx.fillStyle = "#777";
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 28px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(initials || "?", size/2, size/2);
+  return canvas.toDataURL("image/png");
+}
+
+function addEmployee(managerKey) {
+  myDiagram.startTransaction("add employee");
+  const newNode = {
+    key: undefined,
+    name: "New Person",
+    title: "Title",
+    company: "",
+    pic: "",
+    parent: managerKey
+  };
+  myDiagram.model.addNodeData(newNode);
+  myDiagram.commitTransaction("add employee");
+  const newNodeData = myDiagram.findNodeForData(newNode);
+  if (newNodeData) {
+    myDiagram.select(newNodeData);
+    myDiagram.commandHandler.scrollToPart(newNodeData);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initDiagram();
+
+  const addDialog = document.getElementById("addDialog");
+  const btnAdd = document.getElementById("btnAdd");
+  const btnLinkedIn = document.getElementById("btnLinkedIn");
+  const btnImport = document.getElementById("btnImport");
+  const btnExport = document.getElementById("btnExport");
+  const fileInput = document.getElementById("fileInput");
+  const addForm = document.getElementById("addForm");
+  const liProfileUrl = document.getElementById("liProfileUrl");
+  const btnFetchLinkedIn = document.getElementById("btnFetchLinkedIn");
+  const fetchStatus = document.getElementById("fetchStatus");
+  const nameInput = document.getElementById("personName");
+  const titleInput = document.getElementById("personTitle");
+  const compInput = document.getElementById("personCompany");
+  const photoInput = document.getElementById("personPhoto");
+  const btnAddPerson = document.getElementById("btnAddPerson");
+  const btnCancel = document.getElementById("btnCancel");
+
+  btnAdd.addEventListener("click", () => {
+    liProfileUrl.value = "";
+    nameInput.value = "";
+    titleInput.value = "";
+    compInput.value = "";
+    photoInput.value = "";
+    fetchStatus.textContent = "";
+    addDialog.showModal();
+  });
+
+  btnCancel.addEventListener("click", () => {
+    addDialog.close();
+  });
+
+  btnLinkedIn.addEventListener("click", () => {
+    const state = Math.random().toString(36).substring(2);
+    const authURL = `${linkedInAuthUrl}?response_type=token&client_id=${LINKEDIN_CLIENT_ID}` +
+                    `&redirect_uri=${encodeURIComponent(linkedInRedirectUri)}` +
+                    `&scope=${linkedInScopes.join("%20")}&state=${state}`;
+    window.location.href = authURL;
+  });
+
+  btnFetchLinkedIn.addEventListener("click", () => {
+    if (!linkedInAccessToken) {
+      fetchStatus.textContent = "Please log in with LinkedIn first.";
+      fetchStatus.style.color = "red";
+      return;
+    }
+    fetchStatus.textContent = "Fetching from LinkedIn...";
+    fetchStatus.style.color = "black";
+    const profileUrl = liProfileUrl.value.trim();
+    // For this demo, we fetch the current user’s profile
+    fetch("https://api.linkedin.com/v2/me?projection=(localizedFirstName,localizedLastName,localizedHeadline,profilePicture(displayImage~:playableStreams))", {
+      headers: { "Authorization": "Bearer " + linkedInAccessToken }
+    })
+    .then(response => response.json())
+    .then(data => {
+      let fullName = "";
+      if (data.localizedFirstName) fullName += data.localizedFirstName + " ";
+      if (data.localizedLastName) fullName += data.localizedLastName;
+      nameInput.value = fullName.trim();
+      if (data.localizedHeadline) {
+        const headline = data.localizedHeadline;
+        const atIndex = headline.indexOf(" at ");
+        if (atIndex > 0) {
+          titleInput.value = headline.substring(0, atIndex);
+          compInput.value = headline.substring(atIndex + 4);
+        } else {
+          titleInput.value = headline;
+          compInput.value = "";
+        }
+      }
+      if (data.profilePicture && data.profilePicture["displayImage~"]) {
+        const imgRecords = data.profilePicture["displayImage~"].elements;
+        if (imgRecords && imgRecords.length > 0) {
+          const identifiers = imgRecords[imgRecords.length - 1].identifiers;
+          if (identifiers && identifiers.length > 0) {
+            photoInput.dataset.url = identifiers[0].identifier;
+          }
+        }
+      }
+      fetchStatus.textContent = "LinkedIn data fetched. You can review and add.";
+      fetchStatus.style.color = "green";
+    })
+    .catch(err => {
+      console.error("LinkedIn fetch error:", err);
+      fetchStatus.textContent = "Failed to fetch from LinkedIn.";
+      fetchStatus.style.color = "red";
+    });
+  });
+
+  photoInput.addEventListener("change", () => {
+    const file = photoInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        photoInput.dataset.url = reader.result;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      delete photoInput.dataset.url;
     }
   });
-}
 
-function getCardCenter(personId) {
-  const chartArea = document.getElementById('chartArea');
-  const card = Array.from(chartArea.getElementsByClassName('person-card'))
-                    .find(el => {
-                      const left = parseInt(el.style.left, 10);
-                      const top = parseInt(el.style.top, 10);
-                      return people.some(p => p.id === personId && p.x === left && p.y === top);
-                    });
-  if (!card) return null;
-
-  const rect = card.getBoundingClientRect();
-  const chartRect = chartArea.getBoundingClientRect();
-
-  const centerX = rect.left + rect.width / 2 - chartRect.left + chartArea.scrollLeft;
-  const centerY = rect.top + rect.height / 2 - chartRect.top + chartArea.scrollTop;
-  return { x: centerX, y: centerY };
-}
-
-/****************************************************
- * 10) HELPER FUNCTIONS: PKCE, ETC.
- ****************************************************/
-function generateRandomString(n) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  let randomString = '';
-  for (let i = 0; i < n; i++) {
-    randomString += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return randomString;
-}
-
-async function sha256ToBase64Url(str) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  let base64 = btoa(String.fromCharCode(...hashArray));
-  base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return base64;
-}
-
-/****************************************************
- * 11) MISC
- ****************************************************/
-function clearModalFields() {
-  document.getElementById('linkedinLink').value = "";
-  document.getElementById('nameInput').value = "";
-  document.getElementById('titleInput').value = "";
-  document.getElementById('imageInput').value = "";
-  document.getElementById('managerSelect').value = "";
-}
-
-function populateManagerSelect() {
-  const managerSelect = document.getElementById('managerSelect');
-  managerSelect.innerHTML = `<option value="">-- None --</option>`;
-  people.forEach((p) => {
-    const opt = document.createElement('option');
-    opt.value = p.id;
-    opt.text = p.name;
-    managerSelect.appendChild(opt);
+  addForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nameVal = nameInput.value.trim() || "(Unnamed)";
+    const titleVal = titleInput.value.trim() || "";
+    const compVal = compInput.value.trim() || "";
+    let picVal = "";
+    if (photoInput.dataset.url) {
+      picVal = photoInput.dataset.url;
+    }
+    myDiagram.startTransaction("add new person");
+    const newNodeData = {
+      key: undefined,
+      name: nameVal,
+      title: titleVal,
+      company: compVal,
+      pic: picVal,
+      parent: undefined
+    };
+    myDiagram.model.addNodeData(newNodeData);
+    myDiagram.commitTransaction("add new person");
+    addDialog.close();
   });
-}
+
+  btnImport.addEventListener("click", () => {
+    fileInput.click();
+  });
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const json = reader.result;
+        myDiagram.model = go.Model.fromJson(json);
+        myDiagram.model.makeUniqueKeyFunction = function(model, data) {
+          let key = data.key || model.nodeDataArray.length + 1;
+          while (model.findNodeDataForKey(key)) key++;
+          data.key = key;
+          return key;
+        };
+        alert("Organization chart loaded from JSON.");
+      } catch (err) {
+        alert("Failed to load JSON: " + err);
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  btnExport.addEventListener("click", () => {
+    const jsonData = myDiagram.model.toJson();
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    a.href = url;
+    a.download = "orgchart.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+});

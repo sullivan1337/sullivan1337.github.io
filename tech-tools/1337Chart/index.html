@@ -2,57 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Org Chart Demo (LinkedIn OIDC + Auto Layout)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1337Chart – Org Chart Builder</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Include GoJS library from CDN -->
+  <script src="https://unpkg.com/gojs@2.2.16/release/go.js"></script>
 </head>
 <body>
   <header>
-    <h1>The Org</h1>
-    <div class="header-controls">
-      <!-- This button initiates PKCE-based LinkedIn OIDC in the client. -->
-      <button id="btnLinkedInOAuth">Sign in with LinkedIn</button>
-      <!-- Add a new person -->
-      <button id="btnAddEntry">Add Person</button>
+    <h1>1337Chart Org Chart</h1>
+    <div class="toolbar">
+      <button id="btnAdd">Add Person</button>
+      <button id="btnLinkedIn">LinkedIn Login</button>
+      <button id="btnImport">Import JSON</button>
+      <button id="btnExport">Export JSON</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none;" />
     </div>
   </header>
 
-  <!-- Modal for adding a new entry -->
-  <div id="entryModal" class="modal">
-    <div class="modal-content">
-      <span id="closeModal" class="close">&times;</span>
-      <h2>Add a Person</h2>
+  <div id="myDiagramDiv" class="diagram-container"></div>
 
-      <!-- If user is authenticated, we can fetch their info from userinfo -->
-      <label for="linkedinLink">LinkedIn Profile (optional):</label>
-      <input type="text" id="linkedinLink" placeholder="https://www.linkedin.com/in/someone" />
-
-      <hr />
-
-      <p>Or manually provide details:</p>
-      <label for="nameInput">Name:</label>
-      <input type="text" id="nameInput" placeholder="Name"/>
-
-      <label for="titleInput">Title:</label>
-      <input type="text" id="titleInput" placeholder="Title"/>
-
-      <label for="imageInput">Image URL:</label>
-      <input type="text" id="imageInput" placeholder="https://example.com/image.jpg"/>
-
-      <label for="managerSelect">Manager (optional):</label>
-      <select id="managerSelect">
-        <option value="">-- None --</option>
-      </select>
-
-      <button id="btnSubmitEntry">Create</button>
-    </div>
-  </div>
-
-  <main id="chartArea">
-    <!-- SVG for drawing manager-subordinate lines -->
-    <svg id="connectionSVG" width="100%" height="100%"></svg>
-    <!-- Draggable cards will be appended here dynamically on top of the SVG -->
-  </main>
+  <dialog id="addDialog">
+    <form method="dialog" id="addForm">
+      <h3>Add Person</h3>
+      <label>
+        LinkedIn Profile URL (optional):<br/>
+        <input type="url" id="liProfileUrl" placeholder="https://www.linkedin.com/in/username/">
+      </label>
+      <button type="button" id="btnFetchLinkedIn">Fetch from LinkedIn</button>
+      <br/><small id="fetchStatus" class="status-msg"></small><br/><br/>
+      <label>Name:<br/><input type="text" id="personName" required></label><br/>
+      <label>Title:<br/><input type="text" id="personTitle" required></label><br/>
+      <label>Company:<br/><input type="text" id="personCompany"></label><br/>
+      <label>Photo:<br/><input type="file" id="personPhoto" accept="image/*"></label><br/>
+      <div class="dialog-buttons">
+        <button type="submit" id="btnAddPerson">Add to Chart</button>
+        <button type="button" id="btnCancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="script.js"></script>
 </body>
