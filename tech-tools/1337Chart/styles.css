@@ -41,7 +41,7 @@ body {
     background: #ffffff;
     border: 1px solid #ccc;
   }
-  /* Dialog (modal) styles */
+  /* Dialog styles */
   dialog#addDialog {
     width: 90%;
     max-width: 400px;
