@@ -11,58 +11,58 @@
     --border-dark: #444444;
     --border-light: #cccccc;
     --transition-speed: 0.3s;
-}
-
-/* Dark mode by default */
-body.dark-mode {
+  }
+  
+  /* Dark mode by default */
+  body.dark-mode {
     --bg-color: var(--bg-dark);
     --container-color: var(--container-dark);
     --text-color: var(--text-dark);
     --accent-color: var(--accent-dark);
     --border-color: var(--border-dark);
-}
-
-/* Light mode */
-body:not(.dark-mode) {
+  }
+  
+  /* Light mode */
+  body:not(.dark-mode) {
     --bg-color: var(--bg-light);
     --container-color: var(--container-light);
     --text-color: var(--text-light);
     --accent-color: var(--accent-light);
     --border-color: var(--border-light);
-}
-
-body {
+  }
+  
+  body {
     font-family: 'Roboto', sans-serif;
     margin: 0;
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color var(--transition-speed), color var(--transition-speed);
-}
-
-/* Header */
-header {
+  }
+  
+  /* Header */
+  header {
     background-color: var(--container-color);
     padding: 15px 20px;
     border-bottom: 1px solid var(--border-color);
-}
-.header-content {
+  }
+  .header-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-}
-.header-content h1 {
+  }
+  .header-content h1 {
     font-size: 1.4rem;
     margin: 0;
-}
-
-/* New: Header buttons container to align Reset and Theme Toggle to the right */
-.header-buttons {
+  }
+  
+  /* Header buttons container (for Reset + Theme Toggle) */
+  .header-buttons {
     display: flex;
-    align-items: center;
     gap: 10px;
-}
-
-header button {
+  }
+  
+  /* Common button styling (same as your Webhook Generator) */
+  button {
     background-color: var(--accent-color);
     color: #fff;
     border: none;
@@ -72,29 +72,19 @@ header button {
     transition: background-color var(--transition-speed);
     font-size: 0.9rem;
     outline: none;
-}
-header button:hover {
+  }
+  button:hover {
     filter: brightness(1.1);
-}
-
-/* Reset button styling (orange, matching the Webhook Generator) */
-.btn-reset {
+  }
+  
+  /* Reset button matches your orange Webhook style */
+  .reset-btn {
     background-color: #F97316;
-    color: #fff;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color var(--transition-speed);
-    font-size: 0.9rem;
-    outline: none;
-}
-.btn-reset:hover {
-    filter: brightness(1.1);
-}
-
-/* Main container */
-.container {
+    /* Inherits same padding, font-size, and border-radius from above button rules */
+  }
+  
+  /* Main container */
+  .container {
     width: 100%;
     max-width: 1200px;
     margin: 20px auto;
@@ -102,25 +92,26 @@ header button:hover {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-/* Content section */
-.content {
+  }
+  
+  /* Content section */
+  .content {
     margin-bottom: 20px;
-}
-.content h2 {
+  }
+  .content h2 {
     font-size: 1.2rem;
     margin-bottom: 10px;
-}
-.content p {
+  }
+  .content p {
     font-size: 1rem;
     line-height: 1.5;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
     .container {
-        margin: 10px;
-        padding: 10px;
+      margin: 10px;
+      padding: 10px;
     }
-}
+  }
+  
