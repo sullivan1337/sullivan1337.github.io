@@ -100,6 +100,35 @@ nav button {
     height: 30px; /* Set button height to 30px for left navigation buttons only */
 }
 
+/* 1. NAV sidebar version (short, clipped height) */
+nav .wrapped-button {
+    height: 30px;
+    line-height: 14px;
+    overflow: hidden;
+    white-space: normal;
+    padding-top: 2px;
+    padding-bottom: 0; /* prevents visual clipping on second line */
+    font-size: 0.85em;
+}
+
+/* 2. MAIN content version (auto-resizing height) */
+main .wrapped-button {
+    white-space: normal;
+    line-height: 1.2em;
+    padding: 8px 6px;
+    min-height: 48px;
+    height: auto;
+    overflow: visible;
+    font-size: 1em;
+}
+
+.wrapped-button .subtext {
+    display: block;
+    font-size: 0.7em;
+    opacity: 0.8;
+}
+
+
 button {
     display: block;
     width: calc(100% - 8px);
