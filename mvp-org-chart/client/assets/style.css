@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+#chart-container {
+    width: 100%;
+    height: 90vh;
+    overflow: hidden;
+}
+
+#jsonBox {
+    width: 700px;
+    height: 90px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    border: 1px solid #444;
+    border-radius: 0.375rem;
+    background-color: #2d2d2d;
+    color: #ffffff;
+    resize: none;
+}
+
+.node {
+    cursor: pointer;
+}
+
+.node rect {
+    stroke: #555;
+    stroke-width: 1px;
+}
+
+.node text {
+    fill: #ffffff;
+    font-family: 'Inter', sans-serif;
+}
+
+.link {
+    fill: none;
+    stroke: #555;
+    stroke-width: 1px;
+}
+
+.editForm {
+    position: absolute;
+    background: #2d2d2d;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    color: #ffffff;
+}
+
+.editForm input, .editForm select {
+    display: block;
+    margin: 5px 0;
+    width: 200px;
+    background-color: #1e1e1e;
+    color: #ffffff;
+    border: 1px solid #555;
+    padding: 5px;
+}
+
+.bu-flag {
+    stroke: #ffffff;
+    stroke-width: 1px;
+}
+
+.bu-text {
+    font-size: 10px;
+    fill: #ffffff;
+    font-weight: bold;
+}
+
+.expand-collapse, .edit-button {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.close-button {
+    float: right;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.linkedin-link {
+    fill: #0077b5;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.company-title {
+    font-size: 18px;
+    font-weight: bold;
+    fill: #ffffff;
+}
+
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.color-picker div {
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.color-picker div:hover {
+    border: 2px solid white;
+}
