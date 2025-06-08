@@ -70,6 +70,10 @@ function update(source) {
                 d._children = null;
             }
             update(d);
+        })
+        .on('contextmenu', (event, d) => {
+            event.preventDefault();
+            openAddForm(event, d);
         });
 
         function calculateNodeSize(d) {
@@ -120,6 +124,14 @@ function update(source) {
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .text(d => d.data.buText);
+
+    nodeEnter.append('image')
+        .attr('class','member-photo')
+        .attr('width',50)
+        .attr('height',50)
+        .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
+        .attr('y', d => -calculateNodeSize(d).height / 2 + 30)
+        .attr('href', d => d.data.photo || 'https://via.placeholder.com/80');
 
     // Name text
     nodeEnter.append('text')
@@ -239,6 +251,11 @@ function update(source) {
             .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
             .attr('y', d => -calculateNodeSize(d).height / 2 + 18)
             .text(d => d.data.buText);
+
+        nodeUpdate.select('.member-photo')
+            .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
+            .attr('y', d => -calculateNodeSize(d).height / 2 + 30)
+            .attr('href', d => d.data.photo || 'https://via.placeholder.com/80');
         
 
     nodeUpdate.selectAll('text')
@@ -361,6 +378,11 @@ function editNode(event, d) {
         .attr("placeholder", "LinkedIn URL")
         .attr("value", d.data.linkedin);
 
+    const photoInput = form.append("input")
+        .attr("type", "text")
+        .attr("placeholder", "Photo URL")
+        .attr("value", d.data.photo || "");
+
     const buTextInput = form.append("input")
         .attr("type", "text")
         .attr("placeholder", "BU Text")
@@ -393,8 +415,9 @@ function editNode(event, d) {
         d.data.email = emailInput.property("value");
         d.data.phone = phoneInput.property("value");
         d.data.linkedin = linkedinInput.property("value");
+        d.data.photo = photoInput.property("value");
         d.data.buText = buTextInput.property("value");
-        api("PUT","/api/members/"+d.data.id,{name:d.data.name,title:d.data.title,email:d.data.email,phone:d.data.phone,linkedin:d.data.linkedin,bu_text:d.data.buText,bu_color:d.data.buColor,parent_id:d.parent?d.parent.data.id:null});
+        api("PUT","/api/members/"+d.data.id,{name:d.data.name,title:d.data.title,email:d.data.email,phone:d.data.phone,linkedin:d.data.linkedin,photo:d.data.photo,bu_text:d.data.buText,bu_color:d.data.buColor,parent_id:d.parent?d.parent.data.id:null});
         update(d);
         updateJSON();
     }
@@ -405,13 +428,14 @@ function editNode(event, d) {
     emailInput.on("input", updateNodeData);
     phoneInput.on("input", updateNodeData);
     linkedinInput.on("input", updateNodeData);
+    photoInput.on("input", updateNodeData);
     buTextInput.on("input", updateNodeData);
 
     form.append("button")
         .text("Add Child")
         .on("click", async () => {
             if (!d.data.children) d.data.children = [];
-            const newChild = {name:"New Employee",title:"New Title",email:"email@example.com",phone:"(123) 456-7890",linkedin:"https://www.linkedin.com/in/newemployee",bu_text:"NEW",bu_color:standardColors[0],parent_id:d.data.id};
+            const newChild = {name:"New Employee",title:"New Title",email:"email@example.com",phone:"(123) 456-7890",linkedin:"https://www.linkedin.com/in/newemployee",photo:"https://via.placeholder.com/80",bu_text:"NEW",bu_color:standardColors[0],parent_id:d.data.id};
             const res = await api("POST","/api/members", newChild);
             const saved = await res.json();
             newChild.id = saved.id;
@@ -450,6 +474,95 @@ function editNode(event, d) {
     });
 }
 
+function findNodeById(obj, id){
+    if(obj.id === id) return obj;
+    if(obj.children){
+        for(const c of obj.children){
+            const r = findNodeById(c,id);
+            if(r) return r;
+        }
+    }
+    return null;
+}
+
+function openAddForm(event, parent) {
+    const form = d3.select("body").append("div")
+        .attr("class", "editForm")
+        .style("left", (event.pageX + 10) + "px")
+        .style("top", (event.pageY - 25) + "px");
+
+    form.append("span")
+        .attr("class", "close-button")
+        .html("&times;")
+        .on("click", () => form.remove());
+
+    const nameInput = form.append("input").attr("type","text").attr("placeholder","Name");
+    const titleInput = form.append("input").attr("type","text").attr("placeholder","Title");
+    const emailInput = form.append("input").attr("type","text").attr("placeholder","Email");
+    const phoneInput = form.append("input").attr("type","text").attr("placeholder","Phone");
+    const linkedinInput = form.append("input").attr("type","text").attr("placeholder","LinkedIn URL");
+    const photoInput = form.append("input").attr("type","text").attr("placeholder","Photo URL");
+    const buTextInput = form.append("input").attr("type","text").attr("placeholder","BU Text");
+
+    const managerSelect = form.append("select");
+    managerSelect.append("option").attr("value","" ).text("No Manager");
+    d3.hierarchy(data).descendants().forEach(n=>{
+        managerSelect.append("option").attr("value",n.data.id).text(n.data.name);
+    });
+    if(parent) managerSelect.property("value", parent.data.id);
+
+    let selectedColor = standardColors[0];
+    const colorPicker = form.append("div").attr("class","color-picker");
+    standardColors.forEach(color=>{
+        colorPicker.append("div")
+            .style("background-color",color)
+            .on("click",function(){
+                selectedColor=color;
+                colorPicker.selectAll("div").style("border","none");
+                d3.select(this).style("border","2px solid white");
+            });
+    });
+
+    form.append("button")
+        .text("Add")
+        .on("click", async ()=>{
+            const newNode = {
+                name:nameInput.property('value'),
+                title:titleInput.property('value'),
+                email:emailInput.property('value'),
+                phone:phoneInput.property('value'),
+                linkedin:linkedinInput.property('value'),
+                photo:photoInput.property('value') || 'https://via.placeholder.com/80',
+                bu_text:buTextInput.property('value'),
+                bu_color:selectedColor,
+                parent_id:managerSelect.property('value') || null
+            };
+            const res = await api('POST','/api/members', newNode);
+            const saved = await res.json();
+            newNode.id = saved.id;
+            newNode.buText = newNode.bu_text;
+            newNode.buColor = newNode.bu_color;
+            if(newNode.parent_id){
+                const parentNode = findNodeById(data, parseInt(newNode.parent_id));
+                if(!parentNode.children) parentNode.children=[];
+                parentNode.children.push(newNode);
+            }else{
+                data = newNode;
+            }
+            root = d3.hierarchy(data);
+            update(root);
+            updateJSON();
+            form.remove();
+        });
+
+    d3.select("body").on("click.addForm", function(){
+        if(d3.event && !form.node().contains(d3.event.target)){
+            form.remove();
+            d3.select("body").on("click.addForm", null);
+        }
+    });
+}
+
 const zoom = d3.zoom()
     .scaleExtent([0.1, 3])
     .on("zoom", (event) => {
@@ -478,3 +591,4 @@ window.initChart = function(initialData){
     update(root);
     updateJSON();
 };
+window.openAddForm = openAddForm;

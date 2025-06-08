@@ -55,9 +55,9 @@ app.get('/api/org-chart', authMiddleware, async (req,res)=>{
 
 app.post('/api/members', authMiddleware, async (req,res)=>{
   const orgId = req.user.org_id;
-  const {parent_id,name,title,email,phone,linkedin,bu_text,bu_color} = req.body;
-  const result = await db.run(`INSERT INTO members (org_id,parent_id,name,title,email,phone,linkedin,bu_text,bu_color) VALUES (?,?,?,?,?,?,?,?,?)`,
-    orgId,parent_id,name,title,email,phone,linkedin,bu_text,bu_color);
+  const {parent_id,name,title,email,phone,linkedin,photo,bu_text,bu_color} = req.body;
+  const result = await db.run(`INSERT INTO members (org_id,parent_id,name,title,email,phone,linkedin,photo,bu_text,bu_color) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    orgId,parent_id,name,title,email,phone,linkedin,photo,bu_text,bu_color);
   const member = await db.get('SELECT * FROM members WHERE id=?', result.lastID);
   res.json(member);
 });
@@ -67,9 +67,9 @@ app.put('/api/members/:id', authMiddleware, async (req,res)=>{
   const id = req.params.id;
   const m = await db.get('SELECT * FROM members WHERE id=? AND org_id=?', id, orgId);
   if(!m) return res.sendStatus(404);
-  const {name,title,email,phone,linkedin,bu_text,bu_color,parent_id} = req.body;
-  await db.run(`UPDATE members SET name=?, title=?, email=?, phone=?, linkedin=?, bu_text=?, bu_color=?, parent_id=? WHERE id=?`,
-    name,title,email,phone,linkedin,bu_text,bu_color,parent_id,id);
+  const {name,title,email,phone,linkedin,photo,bu_text,bu_color,parent_id} = req.body;
+  await db.run(`UPDATE members SET name=?, title=?, email=?, phone=?, linkedin=?, photo=?, bu_text=?, bu_color=?, parent_id=? WHERE id=?`,
+    name,title,email,phone,linkedin,photo,bu_text,bu_color,parent_id,id);
   const member = await db.get('SELECT * FROM members WHERE id=?', id);
   res.json(member);
 });
@@ -89,8 +89,8 @@ app.post('/api/import', authMiddleware, async (req,res)=>{
   if(!members) return res.status(400).send('No members');
   await db.run('DELETE FROM members WHERE org_id=?', orgId);
   function insert(node,parent){
-    return db.run(`INSERT INTO members (org_id,parent_id,name,title,email,phone,linkedin,bu_text,bu_color) VALUES (?,?,?,?,?,?,?,?,?)`,
-      orgId,parent,node.name,node.title,node.email,node.phone,node.linkedin,node.bu_text,node.bu_color)
+    return db.run(`INSERT INTO members (org_id,parent_id,name,title,email,phone,linkedin,photo,bu_text,bu_color) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+      orgId,parent,node.name,node.title,node.email,node.phone,node.linkedin,node.photo,node.bu_text,node.bu_color)
       .then(r=>{
         node.children && node.children.forEach(child=>insert(child,r.lastID));
       });

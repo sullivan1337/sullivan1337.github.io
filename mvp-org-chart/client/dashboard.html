@@ -9,11 +9,15 @@
 </head>
 <body class="bg-gray-900 text-white">
     <div class="p-4 flex justify-between items-center bg-gray-800">
-        <h1 class="text-lg">Org Chart</h1>
+        <div class="flex items-center gap-4">
+            <h1 id="companyName" class="text-lg">Org Chart</h1>
+            <button id="addRoot" class="bg-blue-500 px-2 py-1 rounded">Add Member</button>
+            <button id="toggleJson" class="bg-gray-600 px-2 py-1 rounded">JSON</button>
+        </div>
         <button id="logout" class="bg-red-500 px-3 py-1 rounded">Logout</button>
     </div>
     <div id="chart-container"></div>
-    <textarea id="jsonBox" class="m-4" placeholder="JSON representation"></textarea>
+    <textarea id="jsonBox" class="m-4" placeholder="JSON representation" style="display:none"></textarea>
     <script src="/assets/script.js"></script>
     <script>
     const token = localStorage.getItem('token');
@@ -22,6 +26,7 @@
         const res = await fetch('/api/org-chart', { headers:{ 'Authorization': 'Bearer '+token }});
         if(res.ok){
             const json = await res.json();
+            document.getElementById('companyName').innerText = json.company;
             window.orgData = json;
             window.initChart(json); // we'll expose a function in script.js to init
         }else if(res.status===401){
@@ -30,6 +35,13 @@
         }
     }
     document.getElementById('logout').onclick = ()=>{ localStorage.removeItem('token'); window.location.href='/login.html'; };
+    document.getElementById('toggleJson').onclick = ()=>{
+        const b = document.getElementById('jsonBox');
+        b.style.display = b.style.display === 'none' ? 'block' : 'none';
+    };
+    document.getElementById('addRoot').onclick = (e)=>{
+        if(window.openAddForm) window.openAddForm(e, null);
+    };
     fetchData();
     </script>
 </body>

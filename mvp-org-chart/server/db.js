@@ -26,11 +26,18 @@ export async function init() {
       email TEXT,
       phone TEXT,
       linkedin TEXT,
+      photo TEXT,
       bu_text TEXT,
       bu_color TEXT,
       FOREIGN KEY(org_id) REFERENCES organizations(id),
       FOREIGN KEY(parent_id) REFERENCES members(id)
   )`);
+  // add photo column if coming from an older schema
+  try {
+    await db.run('ALTER TABLE members ADD COLUMN photo TEXT');
+  } catch (e) {
+    // column already exists
+  }
 
   // seed data if tables empty
   const orgs = await db.all('SELECT id FROM organizations');
@@ -43,21 +50,21 @@ export async function init() {
     await db.run('INSERT INTO users (email, password, org_id) VALUES (?,?,?)', 'user@globex.com', hash, 2);
 
     // seed members for org 1
-    const ceo = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, NULL, 'Luke Warm', 'VP Marketing/Sales','lwarm@example.com','(234) 555-6789','https://www.linkedin.com/in/lukewarm','MGT','#0000FF')`);
+    const ceo = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, NULL, 'Luke Warm', 'VP Marketing/Sales','lwarm@example.com','(234) 555-6789','https://www.linkedin.com/in/lukewarm','https://via.placeholder.com/80','MGT','#0000FF')`);
     const ceoId = ceo.lastID;
-    const sales = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, ?, 'Meg Meehan Hoffa', 'Sales','mhoffa@example.com','(234) 555-6789','https://www.linkedin.com/in/megmeehan','SAL','#800080')`, ceoId);
+    const sales = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, ?, 'Meg Meehan Hoffa', 'Sales','mhoffa@example.com','(234) 555-6789','https://www.linkedin.com/in/megmeehan','https://via.placeholder.com/80','SAL','#800080')`, ceoId);
     const salesId = sales.lastID;
-    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, ?, 'Dot Stubadd', 'Sales Rep','dstubadd@example.com','(234) 555-6789','https://www.linkedin.com/in/dotstubadd','SAL','#800080')`, salesId);
-    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, ?, 'Lotta B. Essen', 'Sales Rep','lessen@example.com','(234) 555-6789','https://www.linkedin.com/in/lottabessen','SAL','#800080')`, salesId);
-    const marketing = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, ?, 'Al Ligori', 'Marketing','aligori@example.com','(234) 555-6789','https://www.linkedin.com/in/alligori','MKT','#008000')`, ceoId);
+    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, ?, 'Dot Stubadd', 'Sales Rep','dstubadd@example.com','(234) 555-6789','https://www.linkedin.com/in/dotstubadd','https://via.placeholder.com/80','SAL','#800080')`, salesId);
+    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, ?, 'Lotta B. Essen', 'Sales Rep','lessen@example.com','(234) 555-6789','https://www.linkedin.com/in/lottabessen','https://via.placeholder.com/80','SAL','#800080')`, salesId);
+    const marketing = await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, ?, 'Al Ligori', 'Marketing','aligori@example.com','(234) 555-6789','https://www.linkedin.com/in/alligori','https://via.placeholder.com/80','MKT','#008000')`, ceoId);
     const marketingId = marketing.lastID;
-    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, bu_text, bu_color)
-      VALUES (1, ?, 'April Lynn Parris', 'Events Mgr','aparris@example.com','(234) 555-6789','https://www.linkedin.com/in/aprilparris','MKT','#008000')`, marketingId);
+    await db.run(`INSERT INTO members (org_id, parent_id, name, title, email, phone, linkedin, photo, bu_text, bu_color)
+      VALUES (1, ?, 'April Lynn Parris', 'Events Mgr','aparris@example.com','(234) 555-6789','https://www.linkedin.com/in/aprilparris','https://via.placeholder.com/80','MKT','#008000')`, marketingId);
   }
 }
 

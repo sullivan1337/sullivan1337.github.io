@@ -123,3 +123,7 @@ body, html {
 .color-picker div:hover {
     border: 2px solid white;
 }
+
+.member-photo {
+    border-radius: 9999px;
+}
