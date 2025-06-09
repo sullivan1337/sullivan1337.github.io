@@ -108,3 +108,70 @@ test('add second root member', async () => {
     await new Promise(r => server.on('exit', r));
   }
 });
+
+test('update member color', async () => {
+  const server = await startServer();
+  try {
+    await new Promise(r => setTimeout(r, 100));
+    const loginRes = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@acme.com', password: 'password' })
+    });
+    const { token } = await loginRes.json();
+    const addRes = await fetch('http://localhost:3000/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: 'ColorTest', parent_id: null })
+    });
+    const added = await addRes.json();
+    const putRes = await fetch(`http://localhost:3000/api/members/${added.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        name: 'ColorTest',
+        bu_color: '#123456',
+        parent_id: null
+      })
+    });
+    assert.equal(putRes.status, 200);
+    const chartRes = await fetch('http://localhost:3000/api/org-chart', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const chart = await chartRes.json();
+    const node = chart.children ? chart.children.find(c => c.id === added.id) : null;
+    assert.equal(node.bu_color, '#123456');
+  } finally {
+    server.kill();
+    await new Promise(r => server.on('exit', r));
+  }
+});
+
+test('import org chart', async () => {
+  const server = await startServer();
+  try {
+    await new Promise(r => setTimeout(r, 100));
+    const loginRes = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@acme.com', password: 'password' })
+    });
+    const { token } = await loginRes.json();
+    const orgData = { name: 'RootImport', children: [{ name: 'ChildImport' }] };
+    const res = await fetch('http://localhost:3000/api/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ members: orgData, company: 'ImportCo' })
+    });
+    assert.equal(res.status, 201);
+    const chartRes = await fetch('http://localhost:3000/api/org-chart', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const chart = await chartRes.json();
+    assert.equal(chart.name, 'RootImport');
+    assert.equal(chart.company, 'ImportCo');
+  } finally {
+    server.kill();
+    await new Promise(r => server.on('exit', r));
+  }
+});

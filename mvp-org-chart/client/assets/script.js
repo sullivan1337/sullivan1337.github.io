@@ -85,6 +85,7 @@ const dragBehavior = d3.drag()
     .on('end', dragEnded);
 
 function update(source) {
+    if(!root) return;
     const treeData = tree(root);
 
     const nodes = treeData.descendants();
@@ -544,15 +545,19 @@ function nodeMenu(event, node){
         .style('top', event.pageY+'px');
     menu.append('div').text('Add Subordinate').on('click',()=>{ menu.remove(); openAddForm(event,node);});
     menu.append('div').text('Edit').on('click',()=>{ menu.remove(); editNode(event,node);});
-menu.append('div').text('Delete').on('click',async()=>{
+    menu.append('div').text('Delete').on('click',async()=>{
         menu.remove();
-        await api('DELETE','/api/members/'+node.data.id);
+        if(node.data.id){
+            await api('DELETE','/api/members/'+node.data.id);
+        } else {
+            return;
+        }
         if(node.parent){
             const idx=node.parent.children.indexOf(node);
             node.parent.children.splice(idx,1);
         } else {
             const res = await api('GET','/api/org-chart');
-            data = res.ok ? await res.json() : {};
+            data = res.ok ? normalizeKeys(await res.json()) : {};
         }
         root = d3.hierarchy(data);
         root.x0 = width/2;
@@ -723,8 +728,23 @@ window.addEventListener('resize', () => {
 });
 
 
+function normalizeKeys(obj){
+    if(Array.isArray(obj.children)){
+        obj.children.forEach(normalizeKeys);
+    }
+    if(obj.bu_color){
+        obj.buColor = obj.bu_color;
+        delete obj.bu_color;
+    }
+    if(obj.bu_text){
+        obj.buText = obj.bu_text;
+        delete obj.bu_text;
+    }
+    return obj;
+}
+
 window.initChart = function(initialData){
-    data = initialData;
+    data = normalizeKeys(initialData);
     companyTitle.text(data.company);
     root = d3.hierarchy(data);
     root.x0 = width / 2;
