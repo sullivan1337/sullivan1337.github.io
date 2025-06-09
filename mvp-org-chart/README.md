@@ -12,6 +12,7 @@ A minimal multi-tenant organizational chart SaaS prototype built with Node.js, S
 - Right-click to edit or add members
 - Drag nodes to change managers
 - Rename the organization directly from the dashboard
+- Upload member photos with a simple cropping modal
 
 ## Quick Start
 

@@ -424,6 +424,18 @@ function editNode(event, d) {
         .attr("type", "text")
         .attr("placeholder", "Photo URL")
         .attr("value", d.data.photo || "");
+    const uploadInput = form.append("input")
+        .attr("type","file")
+        .attr("accept","image/*");
+    let uploadedImage = null;
+    uploadInput.on('change', function(){
+        const file = this.files[0];
+        if(file){
+            const reader = new FileReader();
+            reader.onload = e=>openCropper(e.target.result, data=>{ uploadedImage=data; photoInput.property('value',''); updateNodeData(); });
+            reader.readAsDataURL(file);
+        }
+    });
 
     const buTextInput = form.append("input")
         .attr("type", "text")
@@ -457,7 +469,7 @@ function editNode(event, d) {
         d.data.email = emailInput.property("value");
         d.data.phone = phoneInput.property("value");
         d.data.linkedin = linkedinInput.property("value");
-        d.data.photo = photoInput.property("value");
+        d.data.photo = uploadedImage || photoInput.property("value") || null;
         d.data.buText = buTextInput.property("value");
         api("PUT","/api/members/"+d.data.id,{name:d.data.name,title:d.data.title,email:d.data.email,phone:d.data.phone,linkedin:d.data.linkedin,photo:d.data.photo,bu_text:d.data.buText,bu_color:d.data.buColor,parent_id:d.parent?d.parent.data.id:null});
         update(d);
@@ -473,26 +485,16 @@ function editNode(event, d) {
     photoInput.on("input", updateNodeData);
     buTextInput.on("input", updateNodeData);
 
-    form.append("button")
-        .text("Add Child")
-        .on("click", async () => {
-            if (!d.data.children) d.data.children = [];
-            const newChild = {name:"New Employee",title:"New Title",email:"email@example.com",phone:"(123) 456-7890",linkedin:"https://www.linkedin.com/in/newemployee",photo:"https://via.placeholder.com/80",bu_text:"NEW",bu_color:standardColors[0],parent_id:d.data.id};
-            const res = await api("POST","/api/members", newChild);
-            const saved = await res.json();
-            newChild.id = saved.id;
-            newChild.buText = newChild.bu_text;
-            newChild.buColor = newChild.bu_color;
-            d.data.children.push(newChild);
-            if (!d.children) d.children = [];
-            d.children.push(d3.hierarchy(newChild));
-            update(root);
-            updateJSON();
+    const actions = form.append('div').attr('class','actions');
+    actions.append("button")
+        .text("Add Subordinate")
+        .on("click", () => {
             d3.select('.form-overlay').remove();
             activeForm = null;
+            openAddForm(event, d);
         });
 
-    form.append("button")
+    actions.append("button")
         .text("Delete")
         .on("click", async () => {
             await api("DELETE","/api/members/"+d.data.id);
@@ -503,8 +505,13 @@ function editNode(event, d) {
                     d.parent.children = d.parent.children.filter(child => child !== d);
                 }
                 update(root);
-                updateJSON();
+            } else {
+                data = {};
+                root = d3.hierarchy(data);
+                root.x0 = width / 2;
+                root.y0 = 0;
             }
+            updateJSON();
             d3.select('.form-overlay').remove();
             activeForm = null;
         });
@@ -528,9 +535,9 @@ function nodeMenu(event, node){
         .attr('class','contextMenu')
         .style('left', event.pageX+'px')
         .style('top', event.pageY+'px');
-    menu.append('div').text('Add Child').on('click',()=>{ menu.remove(); openAddForm(event,node);});
+    menu.append('div').text('Add Subordinate').on('click',()=>{ menu.remove(); openAddForm(event,node);});
     menu.append('div').text('Edit').on('click',()=>{ menu.remove(); editNode(event,node);});
-    menu.append('div').text('Delete').on('click',async()=>{ menu.remove(); await api('DELETE','/api/members/'+node.data.id); if(node.parent){ const idx=node.parent.children.indexOf(node); node.parent.children.splice(idx,1); } update(root); updateJSON();});
+    menu.append('div').text('Delete').on('click',async()=>{ menu.remove(); await api('DELETE','/api/members/'+node.data.id); if(node.parent){ const idx=node.parent.children.indexOf(node); node.parent.children.splice(idx,1); update(root); } else { data={}; root=d3.hierarchy(data); root.x0=width/2; root.y0=0; } updateJSON();});
     d3.select('body').on('click.context',function(){ if(d3.event && !menu.node().contains(d3.event.target)){ menu.remove(); d3.select('body').on('click.context',null);} });
 }
 
@@ -553,6 +560,16 @@ function openAddForm(event, parent) {
     const phoneInput = form.append("input").attr("type","text").attr("placeholder","Phone");
     const linkedinInput = form.append("input").attr("type","text").attr("placeholder","LinkedIn URL");
     const photoInput = form.append("input").attr("type","text").attr("placeholder","Photo URL");
+    const uploadInput = form.append("input").attr("type","file").attr("accept","image/*");
+    let uploadedImage = null;
+    uploadInput.on("change", function(){
+        const file = this.files[0];
+        if(file){
+            const reader = new FileReader();
+            reader.onload = e=>openCropper(e.target.result, data=>{ uploadedImage=data; photoInput.property('value',''); });
+            reader.readAsDataURL(file);
+        }
+    });
     const buTextInput = form.append("input").attr("type","text").attr("placeholder","BU Text");
 
     const managerSelect = form.append("select");
@@ -583,7 +600,7 @@ function openAddForm(event, parent) {
                 email:emailInput.property('value'),
                 phone:phoneInput.property('value'),
                 linkedin:linkedinInput.property('value'),
-                photo:photoInput.property('value') || 'https://via.placeholder.com/80',
+                photo: uploadedImage || photoInput.property('value') || null,
                 bu_text:buTextInput.property('value'),
                 bu_color:selectedColor,
                 parent_id:managerSelect.property('value') || null
@@ -608,6 +625,22 @@ function openAddForm(event, parent) {
         });
 
     // overlay click handled in createOverlayForm
+}
+
+function openCropper(src, cb){
+    const overlay = d3.select('body').append('div').attr('id','cropOverlay').attr('class','crop-overlay');
+    const box = overlay.append('div').attr('class','crop-box');
+    const img = box.append('img').attr('id','cropImg').attr('src',src);
+    const btns = box.append('div').style('margin-top','10px');
+    let cropper = new Cropper(img.node(), {aspectRatio:1, viewMode:1});
+    btns.append('button').text('Save').on('click',()=>{
+        const canvas = cropper.getCroppedCanvas({width:80,height:80});
+        const dataUrl = canvas.toDataURL('image/png');
+        cropper.destroy();
+        overlay.remove();
+        cb(dataUrl);
+    });
+    btns.append('button').text('Cancel').on('click',()=>{ cropper.destroy(); overlay.remove(); });
 }
 
 function dragStarted(event, d){
