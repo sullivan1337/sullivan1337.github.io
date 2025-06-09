@@ -10,6 +10,7 @@ const standardColors = [
 ];
 
 let data = {};
+let activeForm = null;
 
 function getToken(){
     return localStorage.getItem("token");
@@ -366,6 +367,7 @@ document.getElementById('jsonBox').addEventListener('change', function() {
 });
 
 function editNode(event, d) {
+    d3.selectAll('.editForm').remove();
     const form = d3.select("body").append("div")
         .attr("class", "editForm")
         .style("left", (event.pageX + 10) + "px")
@@ -520,6 +522,7 @@ function nodeMenu(event, node){
 }
 
 function openAddForm(event, parent) {
+    d3.selectAll('.editForm').remove();
     const form = d3.select("body").append("div")
         .attr("class", "editForm")
         .style("left", (event.pageX + 10) + "px")
@@ -659,3 +662,9 @@ window.initChart = function(initialData){
     updateJSON();
 };
 window.openAddForm = openAddForm;
+window.updateCompany = function(name){
+    data.company = name;
+    if(root) root.data.company = name;
+    companyTitle.text(name);
+    updateJSON();
+};

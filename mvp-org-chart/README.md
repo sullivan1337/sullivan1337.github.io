@@ -7,10 +7,11 @@ A minimal multi-tenant organizational chart SaaS prototype built with Node.js, S
 - JWT based authentication
 - Separate organizations (tenants) with their own members
 - CRUD API for members and full chart retrieval
-- Import/export modal with PNG and PPTX download
+- Import/export modal with PNG, PPTX and Google Slides export
 - Tailwind powered login and dashboard
 - Right-click to edit or add members
 - Drag nodes to change managers
+- Rename the organization directly from the dashboard
 
 ## Quick Start
 

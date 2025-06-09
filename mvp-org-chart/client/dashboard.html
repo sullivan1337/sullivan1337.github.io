@@ -80,7 +80,7 @@
     };
     document.getElementById('pptBtn').onclick = ()=>{
         const svgEl = document.querySelector('#chart-container svg');
-        saveSvgAsPng(svgEl).then((uri)=>{
+        svgAsPngUri(svgEl).then(uri=>{
             const ppt = new PptxGenJS();
             const slide = ppt.addSlide();
             slide.addImage({data:uri,x:0.5,y:0.5,w:9,h:5});
@@ -89,16 +89,15 @@
     };
     document.getElementById('gslideBtn').onclick = ()=>{
         const svgEl = document.querySelector('#chart-container svg');
-        saveSvgAsPng(svgEl).then(uri=>{
-            const a = document.createElement('a');
-            a.href = uri;
-            a.download = 'chart.png';
-            a.click();
+        svgAsPngUri(svgEl).then(async uri=>{
+            await navigator.clipboard.writeText(uri);
             window.open('https://docs.google.com/presentation/u/0/create','_blank');
         });
     };
     document.getElementById('companyName').addEventListener('change', async ()=>{
-        await api('PUT','/api/org',{name:document.getElementById('companyName').value});
+        const name = document.getElementById('companyName').value;
+        await api('PUT','/api/org',{name});
+        if(window.updateCompany) window.updateCompany(name);
     });
     document.getElementById('addRoot').onclick = (e)=>{
         if(window.openAddForm) window.openAddForm(e, null);
