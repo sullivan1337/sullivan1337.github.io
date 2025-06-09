@@ -123,11 +123,22 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
   if(!url) return res.status(400).send('url required');
   try {
     const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
-    await new Promise((resolve, reject)=>{
-      execFile('curl', ['-L', '--compressed', '-A', 'Mozilla/5.0', url, '-o', tmp], (err)=>{
-        if(err) reject(err); else resolve();
-      });
-    });
+    async function fetchPage(u){
+      try {
+        await new Promise((resolve, reject)=>{
+          execFile('curl', ['-L', '--compressed', '-A', 'Mozilla/5.0', u, '-o', tmp], err => err ? reject(err) : resolve());
+        });
+      } catch(e){
+        return false;
+      }
+      return true;
+    }
+
+    let ok = await fetchPage(url);
+    if(!ok){
+      const proxy = 'https://r.jina.ai/' + url;
+      await fetchPage(proxy);
+    }
     const html = await fs.promises.readFile(tmp,'utf8');
     await fs.promises.unlink(tmp);
     function meta(prop){

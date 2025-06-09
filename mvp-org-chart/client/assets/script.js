@@ -61,6 +61,7 @@ svg.append("text")
 const tree = d3.tree().size([width, height]);
 
 let root;
+let isDragging = false;
 
 function collapse(node){
     if(node.children){
@@ -104,7 +105,7 @@ function update(source) {
         .call(dragBehavior)
         .attr("transform", d => `translate(${source.x0},${source.y0})`)
         .on('click', (event, d) => {
-            if (event.defaultPrevented) return;
+            if (event.defaultPrevented || isDragging) return;
             if (d.children) {
                 collapse(d);
             } else {
@@ -227,7 +228,7 @@ function update(source) {
         .style('display', d => (d.children || d._children) ? 'block' : 'none')
         .on('click', (event, d) => {
             event.stopPropagation();
-            if (event.defaultPrevented) return;
+            if (event.defaultPrevented || isDragging) return;
             if (d.children) {
                 collapse(d);
             } else if (d._children) {
@@ -682,6 +683,7 @@ function openCropper(src, cb){
 }
 
 function dragStarted(event, d){
+    isDragging = true;
     d3.select(this).raise();
 }
 
@@ -710,6 +712,7 @@ function dragEnded(event, d){
     }
     update(root);
     updateJSON();
+    setTimeout(()=>{ isDragging = false; },50);
 }
 
 const zoom = d3.zoom()
