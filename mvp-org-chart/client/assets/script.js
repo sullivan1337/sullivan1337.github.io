@@ -11,9 +11,12 @@ const standardColors = [
 
 let data = {};
 
-const token = localStorage.getItem("token");
+function getToken(){
+    return localStorage.getItem("token");
+}
+
 async function api(method,url,body){
-  return fetch(url,{method,headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:body?JSON.stringify(body):undefined});
+  return fetch(url,{method,headers:{"Content-Type":"application/json","Authorization":"Bearer "+getToken()},body:body?JSON.stringify(body):undefined});
 }
 
 const margin = {top: 40, right: 120, bottom: 20, left: 120};
@@ -320,8 +323,6 @@ function update(source) {
               ${d.x} ${d.y}`;
     }
 }
-
-update(root);
 
 function updateJSON() {
     document.getElementById('jsonBox').value = JSON.stringify(data, null, 2);

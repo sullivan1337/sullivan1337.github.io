@@ -2,7 +2,8 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import bcrypt from 'bcrypt';
 
-const dbPromise = open({ filename: './database.db', driver: sqlite3.Database });
+const DB_FILE = process.env.DB_FILE || './database.db';
+const dbPromise = open({ filename: DB_FILE, driver: sqlite3.Database });
 
 export async function init() {
   const db = await dbPromise;

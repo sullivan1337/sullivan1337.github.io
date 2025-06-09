@@ -41,6 +41,7 @@ app.post('/api/login', async (req,res)=>{
 app.get('/api/org-chart', authMiddleware, async (req,res)=>{
   const orgId = req.user.org_id;
   const members = await db.all('SELECT * FROM members WHERE org_id=?', orgId);
+  const org = await db.get('SELECT name FROM organizations WHERE id=?', orgId);
   const map = new Map();
   members.forEach(m => { m.children=[]; map.set(m.id, m); });
   let root=null;
@@ -50,6 +51,7 @@ app.get('/api/org-chart', authMiddleware, async (req,res)=>{
       parent.children.push(m);
     } else root=m;
   });
+  if(root) root.company = org?.name || '';
   res.json(root);
 });
 

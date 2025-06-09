@@ -13,9 +13,10 @@ A minimal multi-tenant organizational chart SaaS prototype built with Node.js, S
 ## Quick Start
 
 1. `cd server && npm install`
-2. `npm start`
-3. Open `http://localhost:3000` in a browser
-4. Login with `admin@acme.com` / `password`
+2. `npm test` to verify the API works
+3. `npm start`
+4. Open `http://localhost:3000` in a browser
+5. Login with `admin@acme.com` / `password`
 
 Seed data includes a sample org chart for "Acme Corp".
 

@@ -20,9 +20,9 @@
     <textarea id="jsonBox" class="m-4" placeholder="JSON representation" style="display:none"></textarea>
     <script src="/assets/script.js"></script>
     <script>
-    const token = localStorage.getItem('token');
-    if(!token) window.location.href = '/login.html';
+    if(!localStorage.getItem('token')) window.location.href = '/login.html';
     async function fetchData(){
+        const token = localStorage.getItem('token');
         const res = await fetch('/api/org-chart', { headers:{ 'Authorization': 'Bearer '+token }});
         if(res.ok){
             const json = await res.json();
