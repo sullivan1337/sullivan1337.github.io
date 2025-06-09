@@ -116,12 +116,12 @@ function update(source) {
         });
 
         function calculateNodeSize(d) {
-            const nameLength = d.data.name.length;
-            const titleLength = d.data.title.length;
-            const buFlagWidth = Math.max(d.data.buText.length * 10, 30);
+            const nameLength = (d.data.name || '').length;
+            const titleLength = (d.data.title || '').length;
+            const buFlagWidth = Math.max((d.data.buText || '').length * 10, 30);
             const width = Math.max(nameLength, titleLength) * 7 + 150;
             const height = 120;
-            
+
             return { width, height, buFlagWidth };
         }
 
@@ -643,6 +643,8 @@ function openAddForm(event, parent) {
                 data.children.push(newNode);
             }
             root = d3.hierarchy(data);
+            root.x0 = width / 2;
+            root.y0 = 0;
             update(root);
             updateJSON();
             d3.select('.form-overlay').remove();
