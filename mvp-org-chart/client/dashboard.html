@@ -94,7 +94,7 @@
             window.open('https://docs.google.com/presentation/u/0/create','_blank');
         });
     };
-    document.getElementById('companyName').addEventListener('change', async ()=>{
+    document.getElementById('companyName').addEventListener('input', async ()=>{
         const name = document.getElementById('companyName').value;
         await api('PUT','/api/org',{name});
         if(window.updateCompany) window.updateCompany(name);

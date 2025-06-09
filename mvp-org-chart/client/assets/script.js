@@ -12,6 +12,22 @@ const standardColors = [
 let data = {};
 let activeForm = null;
 
+function createOverlayForm() {
+    if (activeForm) activeForm.remove();
+    const overlay = d3.select('body').append('div')
+        .attr('class', 'form-overlay');
+    overlay.on('mousedown', (event) => {
+        if (event.target === overlay.node()) {
+            overlay.remove();
+            activeForm = null;
+        }
+    });
+    const form = overlay.append('div')
+        .attr('class', 'editForm');
+    activeForm = overlay;
+    return form;
+}
+
 function getToken(){
     return localStorage.getItem("token");
 }
@@ -367,16 +383,17 @@ document.getElementById('jsonBox').addEventListener('change', function() {
 });
 
 function editNode(event, d) {
-    d3.selectAll('.editForm').remove();
-    const form = d3.select("body").append("div")
-        .attr("class", "editForm")
-        .style("left", (event.pageX + 10) + "px")
-        .style("top", (event.pageY - 25) + "px");
+    const form = createOverlayForm();
 
-    form.append("span")
-        .attr("class", "close-button")
-        .html("&times;")
-        .on("click", () => form.remove());
+    form.append('h3').text('Edit Member').style('margin-bottom','10px');
+
+    form.append('span')
+        .attr('class','close-button')
+        .html('&times;')
+        .on('click', () => {
+            d3.select('.form-overlay').remove();
+            activeForm = null;
+        });
 
     const nameInput = form.append("input")
         .attr("type", "text")
@@ -471,7 +488,8 @@ function editNode(event, d) {
             d.children.push(d3.hierarchy(newChild));
             update(root);
             updateJSON();
-            form.remove();
+            d3.select('.form-overlay').remove();
+            activeForm = null;
         });
 
     form.append("button")
@@ -487,16 +505,11 @@ function editNode(event, d) {
                 update(root);
                 updateJSON();
             }
-            form.remove();
+            d3.select('.form-overlay').remove();
+            activeForm = null;
         });
 
-    // Auto-close when clicking outside the form
-    d3.select("body").on("click.editForm", function() {
-        if (d3.event && !form.node().contains(d3.event.target)) {
-            form.remove();
-            d3.select("body").on("click.editForm", null);
-        }
-    });
+    // overlay click handled in createOverlayForm
 }
 
 function findNodeById(obj, id){
@@ -512,7 +525,7 @@ function findNodeById(obj, id){
 
 function nodeMenu(event, node){
     const menu = d3.select('body').append('div')
-        .attr('class','editForm')
+        .attr('class','contextMenu')
         .style('left', event.pageX+'px')
         .style('top', event.pageY+'px');
     menu.append('div').text('Add Child').on('click',()=>{ menu.remove(); openAddForm(event,node);});
@@ -522,16 +535,17 @@ function nodeMenu(event, node){
 }
 
 function openAddForm(event, parent) {
-    d3.selectAll('.editForm').remove();
-    const form = d3.select("body").append("div")
-        .attr("class", "editForm")
-        .style("left", (event.pageX + 10) + "px")
-        .style("top", (event.pageY - 25) + "px");
+    const form = createOverlayForm();
 
-    form.append("span")
-        .attr("class", "close-button")
-        .html("&times;")
-        .on("click", () => form.remove());
+    form.append('h3').text('Add Member').style('margin-bottom','10px');
+
+    form.append('span')
+        .attr('class','close-button')
+        .html('&times;')
+        .on('click', () => {
+            d3.select('.form-overlay').remove();
+            activeForm = null;
+        });
 
     const nameInput = form.append("input").attr("type","text").attr("placeholder","Name");
     const titleInput = form.append("input").attr("type","text").attr("placeholder","Title");
@@ -589,15 +603,11 @@ function openAddForm(event, parent) {
             root = d3.hierarchy(data);
             update(root);
             updateJSON();
-            form.remove();
+            d3.select('.form-overlay').remove();
+            activeForm = null;
         });
 
-    d3.select("body").on("click.addForm", function(){
-        if(d3.event && !form.node().contains(d3.event.target)){
-            form.remove();
-            d3.select("body").on("click.addForm", null);
-        }
-    });
+    // overlay click handled in createOverlayForm
 }
 
 function dragStarted(event, d){
