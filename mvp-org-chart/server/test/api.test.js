@@ -195,6 +195,7 @@ test('scrape linkedin', async () => {
         <html><head>
         <meta property="og:title" content="Jane Doe - Developer at Example Co | LinkedIn">
         <meta property="og:image" content="http://example.com/jane.jpg">
+        <script type="application/ld+json">{"@context":"http://schema.org","@type":"Person","name":"Jane Doe","jobTitle":"Developer","worksFor":{"name":"Example Co"},"image":"http://example.com/jane.jpg"}</script>
         </head><body></body></html>`);
     });
     await new Promise(resolve=>mock.listen(0, resolve));

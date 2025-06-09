@@ -130,26 +130,58 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
     });
     const html = await fs.promises.readFile(tmp,'utf8');
     await fs.promises.unlink(tmp);
-    const titleMatch = html.match(/property=["']og:title["'] content=["']([^"']+)["']/i);
-    const descMatch = html.match(/property=["']og:description["'] content=["']([^"']+)["']/i);
-    const imgMatch = html.match(/property=["']og:image["'] content=["']([^"']+)["']/i);
+    function meta(prop){
+      const re = new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]+content=["']([^"']+)["']`, 'i');
+      const m = html.match(re);
+      return m ? m[1] : null;
+    }
+
+    const titleMatch = meta('og:title');
+    const descMatch = meta('og:description');
+    const imgMatch = meta('og:image');
     const titleTag = html.match(/<title>([^<]+)<\/title>/i);
-    let name='', title='', company='';
-    const baseText = descMatch ? descMatch[1] : (titleMatch ? titleMatch[1] : (titleTag ? titleTag[1] : ''));
+
+    let name='', title='', company='', photo=imgMatch;
+
+    const jsonMatch = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([^<]+)<\/script>/i);
+    if(jsonMatch){
+      try {
+        let obj = JSON.parse(jsonMatch[1]);
+        if(Array.isArray(obj['@graph'])) obj = obj['@graph'].find(o=>o['@type']==='Person') || obj;
+        if(obj['@type']==='Person'){
+          name = obj.name || name;
+          title = obj.jobTitle || obj.headline || title;
+          if(Array.isArray(title)) title = title[0];
+          if(obj.worksFor && obj.worksFor.name) company = obj.worksFor.name;
+          photo = obj.image?.url || obj.image?.contentUrl || obj.image || photo;
+        }
+      } catch(e){}
+    }
+
+    const baseText = descMatch || titleMatch || (titleTag ? titleTag[1] : '');
     const text = baseText.replace(/\s+\|.*$/, '');
-    const dashIdx = text.indexOf(' - ');
-    if(dashIdx!==-1){
-      name = text.slice(0,dashIdx).trim();
-      const rest = text.slice(dashIdx+3);
-      const atIdx = rest.indexOf(' at ');
-      if(atIdx!==-1){
-        title = rest.slice(0,atIdx).trim();
-        company = rest.slice(atIdx+4).replace(/\|.*$/,'').trim();
-      } else {
-        title = rest.replace(/\|.*$/,'').trim();
+    if(!name){
+      const dashIdx = text.indexOf(' - ');
+      if(dashIdx!==-1){
+        name = text.slice(0,dashIdx).trim();
+        const rest = text.slice(dashIdx+3);
+        if(!title){
+          if(rest.includes(' at ')){
+            const atIdx = rest.indexOf(' at ');
+            title = rest.slice(0,atIdx).trim();
+            if(!company) company = rest.slice(atIdx+4).replace(/\|.*$/,'').trim();
+          } else if(rest.includes(' - ')){
+            const parts = rest.split(' - ');
+            title = parts.shift().trim();
+            if(!company) company = parts.join(' - ').replace(/\|.*$/,'').trim();
+          } else {
+            title = rest.replace(/\|.*$/,'').trim();
+          }
+        }
       }
     }
-    res.json({name, title, company, photo: imgMatch?imgMatch[1]:null});
+
+    res.json({name, title, company, photo});
   } catch(e){
     console.error(e);
     res.status(500).send('Failed to fetch');
