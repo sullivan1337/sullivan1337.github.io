@@ -52,9 +52,11 @@ body, html {
 
 .editForm div{
     padding:4px;
+}
+.editForm .actions button{
     cursor:pointer;
 }
-.editForm div:hover{
+.editForm .actions button:hover{
     background-color:#444;
 }
 

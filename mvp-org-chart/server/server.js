@@ -4,6 +4,9 @@ import bcrypt from 'bcrypt';
 import { init, getDb } from './db.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execFile } from 'child_process';
+import fs from 'fs';
+import os from 'os';
 
 const SECRET = 'supersecret';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -113,6 +116,42 @@ app.post('/api/import', authMiddleware, async (req,res)=>{
     await db.run('UPDATE organizations SET name=? WHERE id=?', company, orgId);
   }
   res.sendStatus(201);
+});
+
+app.post('/api/linkedin', authMiddleware, async (req,res)=>{
+  const { url } = req.body;
+  if(!url) return res.status(400).send('url required');
+  try {
+    const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
+    await new Promise((resolve, reject)=>{
+      execFile('curl', ['-L', url, '-o', tmp], (err)=>{
+        if(err) reject(err); else resolve();
+      });
+    });
+    const html = await fs.promises.readFile(tmp,'utf8');
+    await fs.promises.unlink(tmp);
+    const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
+    const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/i);
+    const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+    let name='', title='', company='';
+    const text = descMatch ? descMatch[1] : (titleMatch ? titleMatch[1] : '');
+    const dashIdx = text.indexOf(' - ');
+    if(dashIdx!==-1){
+      name = text.slice(0,dashIdx).trim();
+      const rest = text.slice(dashIdx+3);
+      const atIdx = rest.indexOf(' at ');
+      if(atIdx!==-1){
+        title = rest.slice(0,atIdx).trim();
+        company = rest.slice(atIdx+4).replace(/\|.*$/,'').trim();
+      } else {
+        title = rest.replace(/\|.*$/,'').trim();
+      }
+    }
+    res.json({name, title, company, photo: imgMatch?imgMatch[1]:null});
+  } catch(e){
+    console.error(e);
+    res.status(500).send('Failed to fetch');
+  }
 });
 
 app.put('/api/org', authMiddleware, async (req,res)=>{

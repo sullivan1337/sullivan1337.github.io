@@ -175,3 +175,46 @@ test('import org chart', async () => {
     await new Promise(r => server.on('exit', r));
   }
 });
+
+test('scrape linkedin', async () => {
+  const server = await startServer();
+  try {
+    await new Promise(r => setTimeout(r, 100));
+    const loginRes = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@acme.com', password: 'password' })
+    });
+    const { token } = await loginRes.json();
+
+    // mock server to mimic linkedin profile
+    const http = await import('http');
+    const mock = http.createServer((req,res)=>{
+      res.writeHead(200, {'Content-Type':'text/html'});
+      res.end(`
+        <html><head>
+        <meta property="og:title" content="Jane Doe - Developer at Example Co | LinkedIn">
+        <meta property="og:image" content="http://example.com/jane.jpg">
+        </head><body></body></html>`);
+    });
+    await new Promise(resolve=>mock.listen(0, resolve));
+    const {port} = mock.address();
+    const profileUrl = `http://localhost:${port}/profile`;
+
+    const res = await fetch('http://localhost:3000/api/linkedin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ url: profileUrl })
+    });
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.name, 'Jane Doe');
+    assert.equal(body.title, 'Developer');
+    assert.equal(body.company, 'Example Co');
+    assert.equal(body.photo, 'http://example.com/jane.jpg');
+    mock.close();
+  } finally {
+    server.kill();
+    await new Promise(r => server.on('exit', r));
+  }
+});

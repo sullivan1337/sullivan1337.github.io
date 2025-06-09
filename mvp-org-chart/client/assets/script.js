@@ -581,6 +581,24 @@ function openAddForm(event, parent) {
     const emailInput = form.append("input").attr("type","text").attr("placeholder","Email");
     const phoneInput = form.append("input").attr("type","text").attr("placeholder","Phone");
     const linkedinInput = form.append("input").attr("type","text").attr("placeholder","LinkedIn URL");
+    const importBtn = form.append('button')
+        .attr('class','btn')
+        .text('Import from LinkedIn')
+        .on('click', async ()=>{
+            const url = linkedinInput.property('value');
+            if(!url) return;
+            const res = await api('POST','/api/linkedin',{url});
+            if(res.ok){
+                const info = await res.json();
+                if(info.name) nameInput.property('value', info.name);
+                if(info.title) titleInput.property('value', info.title);
+                if(info.company) buTextInput.property('value', info.company);
+                if(info.photo) {
+                    photoInput.property('value', info.photo);
+                    uploadedImage = null;
+                }
+            }
+        });
     const photoInput = form.append("input").attr("type","text").attr("placeholder","Photo URL");
     const uploadInput = form.append("input").attr("type","file").attr("accept","image/*");
     let uploadedImage = null;
