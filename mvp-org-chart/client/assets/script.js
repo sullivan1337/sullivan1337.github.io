@@ -223,6 +223,7 @@ function update(source) {
     const toggleGroup = nodeEnter.append('g')
         .attr('class', 'expand-collapse')
         .attr('transform', d => `translate(0,${-calculateNodeSize(d).height / 2 - 12})`)
+        .style('display', d => (d.children || d._children) ? 'block' : 'none')
         .on('click', (event, d) => {
             event.stopPropagation();
             if (d.children) {
@@ -320,10 +321,14 @@ function update(source) {
         .style('display', d => d.data.linkedin ? 'block' : 'none');
 
     nodeUpdate.select('.expand-collapse')
-        .attr('transform', d => `translate(0,${-calculateNodeSize(d).height / 2 - 12})`);
+        .attr('transform', d => `translate(0,${-calculateNodeSize(d).height / 2 - 12})`)
+        .style('display', d => (d.children || d._children) ? 'block' : 'none');
 
     nodeUpdate.select('.expand-collapse .v-line')
-        .style('display', d => d.children ? 'none' : 'block');
+        .style('display', d => d._children ? 'block' : 'none');
+
+    nodeUpdate.select('.expand-collapse .h-line')
+        .style('display', d => (d.children || d._children) ? 'block' : 'none');
 
     nodeUpdate.select('.edit-btn')
         .attr('transform', d => `translate(${calculateNodeSize(d).width / 2 - 10},${calculateNodeSize(d).height / 2 - 15})`);
@@ -495,6 +500,7 @@ function editNode(event, d) {
 
     const actions = form.append('div').attr('class','actions');
     actions.append("button")
+        .attr('class','btn')
         .text("Add Subordinate")
         .on("click", () => {
             d3.select('.form-overlay').remove();
@@ -503,22 +509,16 @@ function editNode(event, d) {
         });
 
     actions.append("button")
+        .attr('class','btn bg-red-600')
         .text("Delete")
         .on("click", async () => {
             await api("DELETE","/api/members/"+d.data.id);
-            if (d.parent) {
-                const index = d.parent.data.children.indexOf(d.data);
-                if (index > -1) {
-                    d.parent.data.children.splice(index, 1);
-                    d.parent.children = d.parent.children.filter(child => child !== d);
-                }
-                update(root);
-            } else {
-                data = {};
-                root = d3.hierarchy(data);
-                root.x0 = width / 2;
-                root.y0 = 0;
-            }
+            const res = await api('GET','/api/org-chart');
+            data = res.ok ? normalizeKeys(await res.json()) : {};
+            root = d3.hierarchy(data);
+            root.x0 = width / 2;
+            root.y0 = 0;
+            update(root);
             updateJSON();
             d3.select('.form-overlay').remove();
             activeForm = null;
@@ -552,13 +552,8 @@ function nodeMenu(event, node){
         } else {
             return;
         }
-        if(node.parent){
-            const idx=node.parent.children.indexOf(node);
-            node.parent.children.splice(idx,1);
-        } else {
-            const res = await api('GET','/api/org-chart');
-            data = res.ok ? normalizeKeys(await res.json()) : {};
-        }
+        const res = await api('GET','/api/org-chart');
+        data = res.ok ? normalizeKeys(await res.json()) : {};
         root = d3.hierarchy(data);
         root.x0 = width/2;
         root.y0 = 0;
@@ -619,6 +614,7 @@ function openAddForm(event, parent) {
     });
 
     form.append("button")
+        .attr('class','btn')
         .text("Add")
         .on("click", async ()=>{
             const newNode = {
@@ -633,25 +629,15 @@ function openAddForm(event, parent) {
                 parent_id:managerSelect.property('value') || null
             };
             const res = await api('POST','/api/members', newNode);
-            const saved = await res.json();
-            newNode.id = saved.id;
-            newNode.buText = newNode.bu_text;
-            newNode.buColor = newNode.bu_color;
-            if(newNode.parent_id){
-                const parentNode = findNodeById(data, parseInt(newNode.parent_id));
-                if(!parentNode.children) parentNode.children=[];
-                parentNode.children.push(newNode);
-            }else{
-                if(!data.children){
-                    data = { company: data.company || '', children: [data] };
-                }
-                data.children.push(newNode);
+            if(res.ok){
+                const chartRes = await api('GET','/api/org-chart');
+                data = chartRes.ok ? normalizeKeys(await chartRes.json()) : {};
+                root = d3.hierarchy(data);
+                root.x0 = width / 2;
+                root.y0 = 0;
+                update(root);
+                updateJSON();
             }
-            root = d3.hierarchy(data);
-            root.x0 = width / 2;
-            root.y0 = 0;
-            update(root);
-            updateJSON();
             d3.select('.form-overlay').remove();
             activeForm = null;
         });
