@@ -7,8 +7,10 @@ A minimal multi-tenant organizational chart SaaS prototype built with Node.js, S
 - JWT based authentication
 - Separate organizations (tenants) with their own members
 - CRUD API for members and full chart retrieval
-- Optional JSON import
+- Import/export modal with PNG and PPTX download
 - Tailwind powered login and dashboard
+- Right-click to edit or add members
+- Drag nodes to change managers
 
 ## Quick Start
 
@@ -18,7 +20,7 @@ A minimal multi-tenant organizational chart SaaS prototype built with Node.js, S
 4. Open `http://localhost:3000` in a browser
 5. Login with `admin@acme.com` / `password`
 
-Seed data includes a sample org chart for "Acme Corp".
+Seed data includes a sample org chart for "Example Corp" with executives and staff.
 
 ## Elevator Pitch
 

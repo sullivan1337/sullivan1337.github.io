@@ -87,7 +87,7 @@ app.delete('/api/members/:id', authMiddleware, async (req,res)=>{
 
 app.post('/api/import', authMiddleware, async (req,res)=>{
   const orgId = req.user.org_id;
-  const {members} = req.body; // expecting array or root object
+  const {members, company} = req.body; // expecting root object
   if(!members) return res.status(400).send('No members');
   await db.run('DELETE FROM members WHERE org_id=?', orgId);
   function insert(node,parent){
@@ -98,7 +98,18 @@ app.post('/api/import', authMiddleware, async (req,res)=>{
       });
   }
   await insert(members,null);
+  if(company){
+    await db.run('UPDATE organizations SET name=? WHERE id=?', company, orgId);
+  }
   res.sendStatus(201);
+});
+
+app.put('/api/org', authMiddleware, async (req,res)=>{
+  const orgId = req.user.org_id;
+  const {name} = req.body;
+  if(!name) return res.status(400).send('name required');
+  await db.run('UPDATE organizations SET name=? WHERE id=?', name, orgId);
+  res.sendStatus(204);
 });
 
 app.get('*', (req,res)=>{ res.sendFile(path.join(__dirname,'../client/login.html')); });

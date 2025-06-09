@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,7 +12,7 @@ function startServer() {
     cwd: path.join(__dirname, '..'),
     env: { ...process.env, DB_FILE: ':memory:' }
   });
-  return new Promise(resolve => setTimeout(() => resolve(server), 200));
+  return new Promise(resolve => setTimeout(() => resolve(server), 1000));
 }
 
 test('login and fetch chart', async () => {
@@ -34,6 +35,13 @@ test('login and fetch chart', async () => {
     assert.equal(chartRes.status, 200);
     const data = await chartRes.json();
     assert.ok(data.id);
+
+    const putRes = await fetch('http://localhost:3000/api/org', {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({name: 'New Name'})
+    });
+    assert.equal(putRes.status,204);
   } finally {
     server.kill();
     await new Promise(r => server.on('exit', r));

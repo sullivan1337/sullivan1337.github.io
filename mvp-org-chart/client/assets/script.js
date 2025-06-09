@@ -47,6 +47,10 @@ let root;
 
 
 let nodeId = 0;
+const dragBehavior = d3.drag()
+    .on('start', dragStarted)
+    .on('drag', dragged)
+    .on('end', dragEnded);
 
 function update(source) {
     const treeData = tree(root);
@@ -57,12 +61,14 @@ function update(source) {
     nodes.forEach(d => {
         d.y = d.depth * 180;
     });
+    companyTitle.attr('x', root.x).text(data.company);
 
     const node = svg.selectAll('g.node')
         .data(nodes, d => d.id || (d.id = ++nodeId));
 
     const nodeEnter = node.enter().append('g')
         .attr('class', 'node')
+        .call(dragBehavior)
         .attr("transform", d => `translate(${source.x0},${source.y0})`)
         .on('click', (event, d) => {
             if (d.children) {
@@ -76,7 +82,7 @@ function update(source) {
         })
         .on('contextmenu', (event, d) => {
             event.preventDefault();
-            openAddForm(event, d);
+            nodeMenu(event, d);
         });
 
         function calculateNodeSize(d) {
@@ -134,7 +140,8 @@ function update(source) {
         .attr('height',50)
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
         .attr('y', d => -calculateNodeSize(d).height / 2 + 30)
-        .attr('href', d => d.data.photo || 'https://via.placeholder.com/80');
+        .attr('href', d => d.data.photo)
+        .style('display', d => d.data.photo ? 'block' : 'none');
 
     // Name text
     nodeEnter.append('text')
@@ -152,26 +159,31 @@ function update(source) {
         .text(d => d.data.title);
 
     nodeEnter.append('text')
+        .attr('class','email-text')
         .attr('dy', '3em')
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
         .attr('text-anchor', 'start')
-        .text('Email')
-        .style('font-size', '10px');
+        .style('font-size', '10px')
+        .text(d => d.data.email || '')
+        .style('display', d => d.data.email ? 'block' : 'none');
 
     nodeEnter.append('text')
+        .attr('class','phone-text')
         .attr('dy', '3em')
         .attr('x', d => -calculateNodeSize(d).width / 2 + 100)
         .attr('text-anchor', 'start')
-        .text('Phone')
-        .style('font-size', '10px');
+        .style('font-size', '10px')
+        .text(d => d.data.phone || '')
+        .style('display', d => d.data.phone ? 'block' : 'none');
 
     nodeEnter.append('text')
         .attr('class', 'linkedin-link')
         .attr('dy', '4.5em')
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
         .attr('text-anchor', 'start')
-        .text('LinkedIn')
         .style('font-size', '10px')
+        .text(d => d.data.linkedin ? 'LinkedIn' : '')
+        .style('display', d => d.data.linkedin ? 'block' : 'none')
         .on('click', (event, d) => {
             event.stopPropagation();
             window.open(d.data.linkedin, '_blank');
@@ -258,12 +270,22 @@ function update(source) {
         nodeUpdate.select('.member-photo')
             .attr('x', d => -calculateNodeSize(d).width / 2 + 15)
             .attr('y', d => -calculateNodeSize(d).height / 2 + 30)
-            .attr('href', d => d.data.photo || 'https://via.placeholder.com/80');
+            .attr('href', d => d.data.photo)
+            .style('display', d => d.data.photo ? 'block' : 'none');
         
 
     nodeUpdate.selectAll('text')
         .filter(function() { return !this.classList.contains('expand-collapse') && !this.classList.contains('edit-button'); })
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15);
+    nodeUpdate.select('.email-text')
+        .text(d => d.data.email || '')
+        .style('display', d => d.data.email ? 'block' : 'none');
+    nodeUpdate.select('.phone-text')
+        .text(d => d.data.phone || '')
+        .style('display', d => d.data.phone ? 'block' : 'none');
+    nodeUpdate.select('.linkedin-link')
+        .text(d => d.data.linkedin ? 'LinkedIn' : '')
+        .style('display', d => d.data.linkedin ? 'block' : 'none');
 
     nodeUpdate.select('.expand-collapse-circle')
         .attr('cx', d => calculateNodeSize(d).width / 2 - 30)
@@ -486,6 +508,17 @@ function findNodeById(obj, id){
     return null;
 }
 
+function nodeMenu(event, node){
+    const menu = d3.select('body').append('div')
+        .attr('class','editForm')
+        .style('left', event.pageX+'px')
+        .style('top', event.pageY+'px');
+    menu.append('div').text('Add Child').on('click',()=>{ menu.remove(); openAddForm(event,node);});
+    menu.append('div').text('Edit').on('click',()=>{ menu.remove(); editNode(event,node);});
+    menu.append('div').text('Delete').on('click',async()=>{ menu.remove(); await api('DELETE','/api/members/'+node.data.id); if(node.parent){ const idx=node.parent.children.indexOf(node); node.parent.children.splice(idx,1); } update(root); updateJSON();});
+    d3.select('body').on('click.context',function(){ if(d3.event && !menu.node().contains(d3.event.target)){ menu.remove(); d3.select('body').on('click.context',null);} });
+}
+
 function openAddForm(event, parent) {
     const form = d3.select("body").append("div")
         .attr("class", "editForm")
@@ -564,6 +597,36 @@ function openAddForm(event, parent) {
     });
 }
 
+function dragStarted(event, d){
+    d3.select(this).raise();
+}
+
+function dragged(event, d){
+    d.x = event.x;
+    d.y = event.y;
+    d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
+}
+
+function dragEnded(event, d){
+    const nodes = root.descendants();
+    let newParent = null;
+    nodes.forEach(n => {
+        if(n !== d && n.y < d.y && Math.abs(n.x - d.x) < 80){
+            if(!newParent || n.y > newParent.y) newParent = n;
+        }
+    });
+    if(newParent){
+        d.parent.children = d.parent.children.filter(c=>c!==d);
+        if(!newParent.children) newParent.children=[];
+        newParent.children.push(d);
+        d.parent = newParent;
+        d.data.parent_id = newParent.data.id;
+        api('PUT','/api/members/'+d.data.id,{name:d.data.name,title:d.data.title,email:d.data.email,phone:d.data.phone,linkedin:d.data.linkedin,photo:d.data.photo,bu_text:d.data.buText,bu_color:d.data.buColor,parent_id:d.data.parent_id});
+    }
+    update(root);
+    updateJSON();
+}
+
 const zoom = d3.zoom()
     .scaleExtent([0.1, 3])
     .on("zoom", (event) => {
@@ -571,6 +634,9 @@ const zoom = d3.zoom()
     });
 
 d3.select("#chart-container").call(zoom);
+d3.select("#chart-container").on('contextmenu', function(event){
+    if(event.target.tagName === 'svg'){ event.preventDefault(); openAddForm(event, null); }
+});
 
 window.addEventListener('resize', () => {
     width = window.innerWidth - margin.right - margin.left;

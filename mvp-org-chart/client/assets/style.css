@@ -127,3 +127,17 @@ body, html {
 .member-photo {
     border-radius: 9999px;
 }
+
+#jsonOverlay textarea {
+    background-color:#1e1e1e;
+    color:white;
+    border:1px solid #444;
+}
+
+.editForm div{
+    padding:4px;
+    cursor:pointer;
+}
+.editForm div:hover{
+    background-color:#444;
+}
