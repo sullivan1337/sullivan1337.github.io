@@ -80,6 +80,13 @@ const dragBehavior = d3.drag()
     .on('drag', dragged)
     .on('end', dragEnded);
 
+function diagonal(s, d) {
+    return `M ${s.x} ${s.y}
+        C ${s.x} ${(s.y + d.y) / 2},
+          ${d.x} ${(s.y + d.y) / 2},
+          ${d.x} ${d.y}`;
+}
+
 function update(source) {
     if(!root) return;
     const treeData = tree(root);
@@ -371,13 +378,6 @@ function update(source) {
         d.x0 = d.x;
         d.y0 = d.y;
     });
-
-    function diagonal(s, d) {
-        return `M ${s.x} ${s.y}
-            C ${s.x} ${(s.y + d.y) / 2},
-              ${d.x} ${(s.y + d.y) / 2},
-              ${d.x} ${d.y}`;
-    }
 }
 
 function updateJSON() {
@@ -695,13 +695,31 @@ function openCropper(src, cb){
 function dragStarted(event, d){
     isDragging = true;
     d3.select(this).raise();
+    d.dragStartX = d.x;
+    d.dragStartY = d.y;
 }
 
 function dragged(event, d){
     const grid = 20;
-    d.x = Math.round(event.x / grid) * grid;
-    d.y = Math.round(event.y / grid) * grid;
-    d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
+    const newX = Math.round(event.x / grid) * grid;
+    const newY = Math.round(event.y / grid) * grid;
+    const dx = newX - d.x;
+    const dy = newY - d.y;
+    d.x = newX;
+    d.y = newY;
+    const desc = d.descendants();
+    desc.forEach(n => {
+        if(n!==d){
+            n.x += dx;
+            n.y += dy;
+        }
+    });
+    svg.selectAll('g.node')
+        .filter(n => desc.includes(n))
+        .attr('transform', n => `translate(${n.x},${n.y})`);
+    svg.selectAll('path.link')
+        .filter(l => desc.includes(l) || desc.includes(l.parent))
+        .attr('d', l => diagonal(l, l.parent));
     const nodes = root.descendants();
     let candidate = null;
     nodes.forEach(n => {

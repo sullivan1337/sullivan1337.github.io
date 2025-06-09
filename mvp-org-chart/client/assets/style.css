@@ -94,6 +94,7 @@ body, html {
 
 .expand-collapse {
     cursor: pointer;
+    pointer-events: all;
     font-size: 14px;
     font-weight: bold;
     dominant-baseline: middle;
