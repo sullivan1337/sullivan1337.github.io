@@ -62,6 +62,21 @@ const tree = d3.tree().size([width, height]);
 
 let root;
 
+function collapse(node){
+    if(node.children){
+        node.children.forEach(collapse);
+        node._children = node.children;
+        node.children = null;
+    }
+}
+function expand(node){
+    if(node._children){
+        node.children = node._children;
+        node.children.forEach(expand);
+        node._children = null;
+    }
+}
+
 
 let nodeId = 0;
 const dragBehavior = d3.drag()
@@ -89,11 +104,9 @@ function update(source) {
         .attr("transform", d => `translate(${source.x0},${source.y0})`)
         .on('click', (event, d) => {
             if (d.children) {
-                d._children = d.children;
-                d.children = null;
+                collapse(d);
             } else {
-                d.children = d._children;
-                d._children = null;
+                expand(d);
             }
             update(d);
         })
@@ -208,8 +221,8 @@ function update(source) {
 
     nodeEnter.append('circle')
         .attr('class', 'expand-collapse-circle')
-        .attr('cx', d => calculateNodeSize(d).width / 2 - 30)
-        .attr('cy', d => calculateNodeSize(d).height / 2 - 15)
+        .attr('cx', 0)
+        .attr('cy', d => -calculateNodeSize(d).height / 2 - 12)
         .attr('r', 8)
         .attr('fill', '#4a4a4a')
         .attr('stroke', '#ffffff')
@@ -217,19 +230,17 @@ function update(source) {
 
     nodeEnter.append('text')
         .attr('class', 'expand-collapse')
-        .attr('x', d => calculateNodeSize(d).width / 2 - 30)
-        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
+        .attr('x', 0)
+        .attr('y', d => -calculateNodeSize(d).height / 2 - 8)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .text(d => d.children || d._children ? (d.children ? '-' : '+') : '')
         .on('click', (event, d) => {
             event.stopPropagation();
             if (d.children) {
-                d._children = d.children;
-                d.children = null;
+                collapse(d);
             } else if (d._children) {
-                d.children = d._children;
-                d._children = null;
+                expand(d);
             }
             update(d);
         });
@@ -247,6 +258,7 @@ function update(source) {
         .attr('class', 'edit-button')
         .attr('x', d => calculateNodeSize(d).width / 2 - 10)
         .attr('y', d => calculateNodeSize(d).height / 2 - 11)
+        .attr('dy','0.35em')
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .text('✎')
@@ -305,12 +317,12 @@ function update(source) {
         .style('display', d => d.data.linkedin ? 'block' : 'none');
 
     nodeUpdate.select('.expand-collapse-circle')
-        .attr('cx', d => calculateNodeSize(d).width / 2 - 30)
-        .attr('cy', d => calculateNodeSize(d).height / 2 - 15);
+        .attr('cx', 0)
+        .attr('cy', d => -calculateNodeSize(d).height / 2 - 12);
 
     nodeUpdate.select('.expand-collapse')
-        .attr('x', d => calculateNodeSize(d).width / 2 - 30)
-        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
+        .attr('x', 0)
+        .attr('y', d => -calculateNodeSize(d).height / 2 - 8)
         .text(d => d.children || d._children ? (d.children ? '-' : '+') : '');
 
     nodeUpdate.select('.edit-button-circle')
@@ -319,7 +331,8 @@ function update(source) {
 
     nodeUpdate.select('.edit-button')
         .attr('x', d => calculateNodeSize(d).width / 2 - 10)
-        .attr('y', d => calculateNodeSize(d).height / 2 - 11);
+        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
+        .attr('dy','0.35em');
 
     const nodeExit = node.exit().transition()
         .duration(750)
@@ -537,7 +550,22 @@ function nodeMenu(event, node){
         .style('top', event.pageY+'px');
     menu.append('div').text('Add Subordinate').on('click',()=>{ menu.remove(); openAddForm(event,node);});
     menu.append('div').text('Edit').on('click',()=>{ menu.remove(); editNode(event,node);});
-    menu.append('div').text('Delete').on('click',async()=>{ menu.remove(); await api('DELETE','/api/members/'+node.data.id); if(node.parent){ const idx=node.parent.children.indexOf(node); node.parent.children.splice(idx,1); update(root); } else { data={}; root=d3.hierarchy(data); root.x0=width/2; root.y0=0; } updateJSON();});
+menu.append('div').text('Delete').on('click',async()=>{
+        menu.remove();
+        await api('DELETE','/api/members/'+node.data.id);
+        if(node.parent){
+            const idx=node.parent.children.indexOf(node);
+            node.parent.children.splice(idx,1);
+        } else {
+            const res = await api('GET','/api/org-chart');
+            data = res.ok ? await res.json() : {};
+        }
+        root = d3.hierarchy(data);
+        root.x0 = width/2;
+        root.y0 = 0;
+        update(root);
+        updateJSON();
+    });
     d3.select('body').on('click.context',function(){ if(d3.event && !menu.node().contains(d3.event.target)){ menu.remove(); d3.select('body').on('click.context',null);} });
 }
 
@@ -648,8 +676,9 @@ function dragStarted(event, d){
 }
 
 function dragged(event, d){
-    d.x = event.x;
-    d.y = event.y;
+    const grid = 20;
+    d.x = Math.round(event.x / grid) * grid;
+    d.y = Math.round(event.y / grid) * grid;
     d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
 }
 

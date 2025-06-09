@@ -81,7 +81,14 @@ app.delete('/api/members/:id', authMiddleware, async (req,res)=>{
   const id = req.params.id;
   const m = await db.get('SELECT * FROM members WHERE id=? AND org_id=?', id, orgId);
   if(!m) return res.sendStatus(404);
-  await db.run('DELETE FROM members WHERE id=? OR parent_id=?', id, id); // naive
+  await db.run(
+    `WITH RECURSIVE sub(id) AS (
+      SELECT id FROM members WHERE id=? AND org_id=?
+      UNION ALL
+      SELECT m.id FROM members m JOIN sub s ON m.parent_id=s.id
+    ) DELETE FROM members WHERE id IN sub`,
+    id, orgId
+  );
   res.sendStatus(204);
 });
 

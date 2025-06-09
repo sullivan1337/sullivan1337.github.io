@@ -47,3 +47,36 @@ test('login and fetch chart', async () => {
     await new Promise(r => server.on('exit', r));
   }
 });
+
+test('create and delete member', async () => {
+  const server = await startServer();
+  try {
+    await new Promise(r => setTimeout(r, 100));
+    const loginRes = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@acme.com', password: 'password' })
+    });
+    const { token } = await loginRes.json();
+    const addRes = await fetch('http://localhost:3000/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: 'Temp', parent_id: null })
+    });
+    assert.equal(addRes.status, 200);
+    const added = await addRes.json();
+    const delRes = await fetch(`http://localhost:3000/api/members/${added.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    assert.equal(delRes.status, 204);
+    const chartRes = await fetch('http://localhost:3000/api/org-chart', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const chart = await chartRes.json();
+    assert.ok(!chart.children || chart.children.every(c => c.id !== added.id));
+  } finally {
+    server.kill();
+    await new Promise(r => server.on('exit', r));
+  }
+});
