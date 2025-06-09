@@ -80,3 +80,31 @@ test('create and delete member', async () => {
     await new Promise(r => server.on('exit', r));
   }
 });
+
+test('add second root member', async () => {
+  const server = await startServer();
+  try {
+    await new Promise(r => setTimeout(r, 100));
+    const loginRes = await fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'admin@acme.com', password: 'password' })
+    });
+    const { token } = await loginRes.json();
+    const addRes = await fetch('http://localhost:3000/api/members', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: 'Root2', parent_id: null })
+    });
+    assert.equal(addRes.status, 200);
+    const chartRes = await fetch('http://localhost:3000/api/org-chart', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const chart = await chartRes.json();
+    const roots = chart.children ? chart.children : [chart];
+    assert.ok(roots.length >= 2);
+  } finally {
+    server.kill();
+    await new Promise(r => server.on('exit', r));
+  }
+});

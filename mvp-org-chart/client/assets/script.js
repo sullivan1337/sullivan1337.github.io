@@ -219,22 +219,9 @@ function update(source) {
             window.open(d.data.linkedin, '_blank');
         });
 
-    nodeEnter.append('circle')
-        .attr('class', 'expand-collapse-circle')
-        .attr('cx', 0)
-        .attr('cy', d => -calculateNodeSize(d).height / 2 - 12)
-        .attr('r', 8)
-        .attr('fill', '#4a4a4a')
-        .attr('stroke', '#ffffff')
-        .attr('stroke-width', 1);
-
-    nodeEnter.append('text')
+    const toggleGroup = nodeEnter.append('g')
         .attr('class', 'expand-collapse')
-        .attr('x', 0)
-        .attr('y', d => -calculateNodeSize(d).height / 2 - 8)
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle')
-        .text(d => d.children || d._children ? (d.children ? '-' : '+') : '')
+        .attr('transform', d => `translate(0,${-calculateNodeSize(d).height / 2 - 12})`)
         .on('click', (event, d) => {
             event.stopPropagation();
             if (d.children) {
@@ -244,28 +231,43 @@ function update(source) {
             }
             update(d);
         });
-
-    nodeEnter.append('circle')
-        .attr('class', 'edit-button-circle')
-        .attr('cx', d => calculateNodeSize(d).width / 2 - 10)
-        .attr('cy', d => calculateNodeSize(d).height / 2 - 15)
+    toggleGroup.append('circle')
         .attr('r', 8)
         .attr('fill', '#4a4a4a')
         .attr('stroke', '#ffffff')
         .attr('stroke-width', 1);
+    toggleGroup.append('line')
+        .attr('class', 'h-line')
+        .attr('x1', -4)
+        .attr('y1', 0)
+        .attr('x2', 4)
+        .attr('y2', 0)
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 2);
+    toggleGroup.append('line')
+        .attr('class', 'v-line')
+        .attr('x1', 0)
+        .attr('y1', -4)
+        .attr('x2', 0)
+        .attr('y2', 4)
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 2);
 
-    nodeEnter.append('text')
-        .attr('class', 'edit-button')
-        .attr('x', d => calculateNodeSize(d).width / 2 - 10)
-        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
-        .attr('dy','0.35em')
-        .attr('text-anchor', 'middle')
-        .attr('dominant-baseline', 'middle')
-        .text('✎')
+    const editGroup = nodeEnter.append('g')
+        .attr('class', 'edit-btn')
+        .attr('transform', d => `translate(${calculateNodeSize(d).width / 2 - 10},${calculateNodeSize(d).height / 2 - 15})`)
         .on('click', (event, d) => {
             event.stopPropagation();
             editNode(event, d);
         });
+    editGroup.append('circle')
+        .attr('r', 8)
+        .attr('fill', '#4a4a4a')
+        .attr('stroke', '#ffffff')
+        .attr('stroke-width', 1);
+    editGroup.append('path')
+        .attr('d', 'M -3 2 L -1 4 L 4 -1 L 2 -3 Z')
+        .attr('fill', '#ffffff');
 
         const nodeUpdate = nodeEnter.merge(node);
 
@@ -304,7 +306,7 @@ function update(source) {
         
 
     nodeUpdate.selectAll('text')
-        .filter(function() { return !this.classList.contains('expand-collapse') && !this.classList.contains('edit-button'); })
+        .filter(function() { return !this.classList.contains('expand-collapse'); })
         .attr('x', d => -calculateNodeSize(d).width / 2 + 15);
     nodeUpdate.select('.email-text')
         .text(d => d.data.email || '')
@@ -316,23 +318,15 @@ function update(source) {
         .text(d => d.data.linkedin ? 'LinkedIn' : '')
         .style('display', d => d.data.linkedin ? 'block' : 'none');
 
-    nodeUpdate.select('.expand-collapse-circle')
-        .attr('cx', 0)
-        .attr('cy', d => -calculateNodeSize(d).height / 2 - 12);
-
     nodeUpdate.select('.expand-collapse')
-        .attr('x', 0)
-        .attr('y', d => -calculateNodeSize(d).height / 2 - 8)
-        .text(d => d.children || d._children ? (d.children ? '-' : '+') : '');
+        .attr('transform', d => `translate(0,${-calculateNodeSize(d).height / 2 - 12})`);
 
-    nodeUpdate.select('.edit-button-circle')
-        .attr('cx', d => calculateNodeSize(d).width / 2 - 10)
-        .attr('cy', d => calculateNodeSize(d).height / 2 - 15);
+    nodeUpdate.select('.expand-collapse .v-line')
+        .style('display', d => d.children ? 'none' : 'block');
 
-    nodeUpdate.select('.edit-button')
-        .attr('x', d => calculateNodeSize(d).width / 2 - 10)
-        .attr('y', d => calculateNodeSize(d).height / 2 - 11)
-        .attr('dy','0.35em');
+    nodeUpdate.select('.edit-btn')
+        .attr('transform', d => `translate(${calculateNodeSize(d).width / 2 - 10},${calculateNodeSize(d).height / 2 - 15})`);
+
 
     const nodeExit = node.exit().transition()
         .duration(750)
@@ -643,7 +637,10 @@ function openAddForm(event, parent) {
                 if(!parentNode.children) parentNode.children=[];
                 parentNode.children.push(newNode);
             }else{
-                data = newNode;
+                if(!data.children){
+                    data = { company: data.company || '', children: [data] };
+                }
+                data.children.push(newNode);
             }
             root = d3.hierarchy(data);
             update(root);

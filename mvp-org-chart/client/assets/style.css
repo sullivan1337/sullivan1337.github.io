@@ -69,12 +69,24 @@ body, html {
     font-weight: bold;
 }
 
-.expand-collapse, .edit-button {
+.expand-collapse {
     cursor: pointer;
     font-size: 14px;
     font-weight: bold;
     dominant-baseline: middle;
     text-anchor: middle;
+}
+
+.expand-collapse line {
+    pointer-events: none;
+}
+
+.edit-btn {
+    cursor: pointer;
+}
+.edit-btn path {
+    pointer-events: none;
+    fill: #ffffff;
 }
 
 .close-button {
