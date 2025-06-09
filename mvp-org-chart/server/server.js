@@ -131,6 +131,10 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
       });
       const page = await browser.newPage();
       await page.goto(url, { waitUntil: 'domcontentloaded' });
+      try {
+        const btn = await page.$('button[aria-label="Dismiss"],button[aria-label="Close"]');
+        if(btn) await btn.click();
+      } catch(e) {}
       html = await page.content();
       await browser.close();
     } catch(err){

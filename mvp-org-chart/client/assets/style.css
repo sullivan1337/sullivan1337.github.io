@@ -162,6 +162,11 @@ body, html {
     border-radius: 9999px;
 }
 
+.node.highlight rect {
+    stroke: orange;
+    stroke-width: 2px;
+}
+
 #jsonOverlay textarea {
     background-color: var(--panel-bg);
     border: 1px solid var(--border);

@@ -48,20 +48,15 @@ const svg = d3.select("#chart-container").append("svg")
 
 const companyTitle = svg.append("text")
     .attr("class", "company-title")
-    .attr("x", -margin.left + 10)  // 10px from the left edge
-    .attr("y", -margin.top + 20)   // 20px from the top edge
-    .text("");
-
-svg.append("text")
-    .attr("class", "company-title")
-    .attr("x", width / 2)
     .attr("y", -20)
+    .attr("text-anchor","middle")
     .text("");
 
 const tree = d3.tree().size([width, height]);
 
 let root;
 let isDragging = false;
+let highlightNode = null;
 
 function collapse(node){
     if(node.children){
@@ -95,7 +90,9 @@ function update(source) {
     nodes.forEach(d => {
         d.y = d.depth * 180;
     });
-    companyTitle.attr('x', root.x).text(data.company);
+    const roots = root.children ? root.children : [root];
+    const center = roots.reduce((sum,n)=>sum+n.x,0)/roots.length;
+    companyTitle.attr('x', center).text(data.company);
 
     const node = svg.selectAll('g.node')
         .data(nodes, d => d.id || (d.id = ++nodeId));
@@ -516,6 +513,15 @@ function editNode(event, d) {
         });
 
     actions.append("button")
+        .attr('class','btn')
+        .text("Save")
+        .on("click", () => {
+            updateNodeData();
+            d3.select('.form-overlay').remove();
+            activeForm = null;
+        });
+
+    actions.append("button")
         .attr('class','btn bg-red-600')
         .text("Delete")
         .on("click", async () => {
@@ -696,6 +702,15 @@ function dragged(event, d){
     d.x = Math.round(event.x / grid) * grid;
     d.y = Math.round(event.y / grid) * grid;
     d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
+    const nodes = root.descendants();
+    let candidate = null;
+    nodes.forEach(n => {
+        if(n !== d && n.y < d.y && Math.abs(n.x - d.x) < 80){
+            if(!candidate || n.y > candidate.y) candidate = n;
+        }
+    });
+    svg.selectAll('.node').classed('highlight', n => n === candidate);
+    highlightNode = candidate;
 }
 
 function dragEnded(event, d){
@@ -706,6 +721,7 @@ function dragEnded(event, d){
             if(!newParent || n.y > newParent.y) newParent = n;
         }
     });
+    svg.selectAll('.node').classed('highlight', false);
     if(newParent){
         d.parent.children = d.parent.children.filter(c=>c!==d);
         if(!newParent.children) newParent.children=[];
@@ -770,6 +786,7 @@ window.updateCompany = function(name){
     data.company = name;
     if(root) root.data.company = name;
     companyTitle.text(name);
+    update(root);
     updateJSON();
 };
 
