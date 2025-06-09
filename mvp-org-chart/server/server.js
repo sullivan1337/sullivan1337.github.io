@@ -124,7 +124,7 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
   try {
     const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
     await new Promise((resolve, reject)=>{
-      execFile('curl', ['-L', '-A', 'Mozilla/5.0', url, '-o', tmp], (err)=>{
+      execFile('curl', ['-L', '--compressed', '-A', 'Mozilla/5.0', url, '-o', tmp], (err)=>{
         if(err) reject(err); else resolve();
       });
     });
@@ -133,8 +133,10 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
     const titleMatch = html.match(/property=["']og:title["'] content=["']([^"']+)["']/i);
     const descMatch = html.match(/property=["']og:description["'] content=["']([^"']+)["']/i);
     const imgMatch = html.match(/property=["']og:image["'] content=["']([^"']+)["']/i);
+    const titleTag = html.match(/<title>([^<]+)<\/title>/i);
     let name='', title='', company='';
-    const text = descMatch ? descMatch[1] : (titleMatch ? titleMatch[1] : '');
+    const baseText = descMatch ? descMatch[1] : (titleMatch ? titleMatch[1] : (titleTag ? titleTag[1] : ''));
+    const text = baseText.replace(/\s+\|.*$/, '');
     const dashIdx = text.indexOf(' - ');
     if(dashIdx!==-1){
       name = text.slice(0,dashIdx).trim();
