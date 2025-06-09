@@ -147,22 +147,22 @@ function update(source) {
         .attr('y', d => -calculateNodeSize(d).height / 2)
         .attr('fill', d => d.data.buColor);
 
-    // BU flag
-    nodeEnter.append('rect')
+    const buGroup = nodeEnter.append('g')
+        .attr('class','bu-group')
+        .attr('transform', d => `translate(${calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5},${-calculateNodeSize(d).height / 2 + 5})`);
+    buGroup.append('rect')
         .attr('class', 'bu-flag')
+        .attr('height',20)
+        .attr('x', d => -calculateNodeSize(d).buFlagWidth/2)
+        .attr('y',0)
         .attr('width', d => calculateNodeSize(d).buFlagWidth)
-        .attr('height', 20)
-        .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth - 5)
-        .attr('y', d => -calculateNodeSize(d).height / 2 + 5)
         .attr('rx', 10)
         .attr('ry', 10)
         .attr('fill', d => d.data.buColor);
-
-    // BU text
-    nodeEnter.append('text')
+    buGroup.append('text')
         .attr('class', 'bu-text')
-        .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
-        .attr('y', d => -calculateNodeSize(d).height / 2 + 15)
+        .attr('x',0)
+        .attr('y',10)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .text(d => d.data.buText);
@@ -292,15 +292,19 @@ function update(source) {
             .attr('y', d => -calculateNodeSize(d).height / 2)
             .attr('fill', d => d.data.buColor);
     
+        nodeUpdate.select('.bu-group')
+            .attr('transform', d => `translate(${calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5},${-calculateNodeSize(d).height / 2 + 5})`);
+
         nodeUpdate.select('.bu-flag')
             .attr('width', d => calculateNodeSize(d).buFlagWidth)
-            .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth - 5)
-            .attr('y', d => -calculateNodeSize(d).height / 2 + 5)
+            .attr('height', 20)
+            .attr('x', d => -calculateNodeSize(d).buFlagWidth/2)
+            .attr('y', 0)
             .attr('fill', d => d.data.buColor);
-    
+
         nodeUpdate.select('.bu-text')
-            .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
-            .attr('y', d => -calculateNodeSize(d).height / 2 + 15)
+            .attr('x', 0)
+            .attr('y', 10)
             .text(d => d.data.buText);
 
         nodeUpdate.select('.member-photo')

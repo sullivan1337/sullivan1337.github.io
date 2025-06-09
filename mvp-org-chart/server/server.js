@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { execFile } from 'child_process';
 import fs from 'fs';
 import os from 'os';
+import puppeteer from 'puppeteer';
 
 const SECRET = 'supersecret';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -122,25 +123,37 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
   const { url } = req.body;
   if(!url) return res.status(400).send('url required');
   try {
-    const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
-    async function fetchPage(u){
-      try {
-        await new Promise((resolve, reject)=>{
-          execFile('curl', ['-L', '--compressed', '-A', 'Mozilla/5.0', u, '-o', tmp], err => err ? reject(err) : resolve());
-        });
-      } catch(e){
-        return false;
+    let html = '';
+    try {
+      const browser = await puppeteer.launch({
+        headless: 'new',
+        args: ['--no-sandbox','--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+      html = await page.content();
+      await browser.close();
+    } catch(err){
+      const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
+      async function fetchPage(u){
+        try {
+          await new Promise((resolve, reject)=>{
+            execFile('curl', ['-L', '--compressed', '-A', 'Mozilla/5.0', u, '-o', tmp], err => err ? reject(err) : resolve());
+          });
+        } catch(e){
+          return false;
+        }
+        return true;
       }
-      return true;
-    }
 
-    let ok = await fetchPage(url);
-    if(!ok){
-      const proxy = 'https://r.jina.ai/' + url;
-      await fetchPage(proxy);
+      let ok = await fetchPage(url);
+      if(!ok){
+        const proxy = 'https://r.jina.ai/' + url;
+        await fetchPage(proxy);
+      }
+      html = await fs.promises.readFile(tmp,'utf8');
+      await fs.promises.unlink(tmp);
     }
-    const html = await fs.promises.readFile(tmp,'utf8');
-    await fs.promises.unlink(tmp);
     function meta(prop){
       const re = new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]+content=["']([^"']+)["']`, 'i');
       const m = html.match(re);
