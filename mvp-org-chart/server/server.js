@@ -43,15 +43,19 @@ app.get('/api/org-chart', authMiddleware, async (req,res)=>{
   const members = await db.all('SELECT * FROM members WHERE org_id=?', orgId);
   const org = await db.get('SELECT name FROM organizations WHERE id=?', orgId);
   const map = new Map();
-  members.forEach(m => { m.children=[]; map.set(m.id, m); });
-  let root=null;
+  members.forEach(m => { m.children = []; map.set(m.id, m); });
+
+  const roots = [];
   members.forEach(m => {
-    if(m.parent_id){
-      const parent = map.get(m.parent_id);
-      parent.children.push(m);
-    } else root=m;
+    if (m.parent_id && map.get(m.parent_id)) {
+      map.get(m.parent_id).children.push(m);
+    } else {
+      roots.push(m);
+    }
   });
-  if(root) root.company = org?.name || '';
+
+  let root = roots.length === 1 ? roots[0] : { children: roots };
+  if (root) root.company = org?.name || '';
   res.json(root);
 });
 
