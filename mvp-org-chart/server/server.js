@@ -124,15 +124,15 @@ app.post('/api/linkedin', authMiddleware, async (req,res)=>{
   try {
     const tmp = path.join(os.tmpdir(), 'li'+Date.now()+'.html');
     await new Promise((resolve, reject)=>{
-      execFile('curl', ['-L', url, '-o', tmp], (err)=>{
+      execFile('curl', ['-L', '-A', 'Mozilla/5.0', url, '-o', tmp], (err)=>{
         if(err) reject(err); else resolve();
       });
     });
     const html = await fs.promises.readFile(tmp,'utf8');
     await fs.promises.unlink(tmp);
-    const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
-    const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/i);
-    const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+    const titleMatch = html.match(/property=["']og:title["'] content=["']([^"']+)["']/i);
+    const descMatch = html.match(/property=["']og:description["'] content=["']([^"']+)["']/i);
+    const imgMatch = html.match(/property=["']og:image["'] content=["']([^"']+)["']/i);
     let name='', title='', company='';
     const text = descMatch ? descMatch[1] : (titleMatch ? titleMatch[1] : '');
     const dashIdx = text.indexOf(' - ');

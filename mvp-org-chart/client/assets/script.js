@@ -160,7 +160,7 @@ function update(source) {
     nodeEnter.append('text')
         .attr('class', 'bu-text')
         .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
-        .attr('y', d => -calculateNodeSize(d).height / 2 + 18)
+        .attr('y', d => -calculateNodeSize(d).height / 2 + 15)
         .attr('text-anchor', 'middle')
         .attr('dominant-baseline', 'middle')
         .text(d => d.data.buText);
@@ -297,7 +297,7 @@ function update(source) {
     
         nodeUpdate.select('.bu-text')
             .attr('x', d => calculateNodeSize(d).width / 2 - calculateNodeSize(d).buFlagWidth / 2 - 5)
-            .attr('y', d => -calculateNodeSize(d).height / 2 + 18)
+            .attr('y', d => -calculateNodeSize(d).height / 2 + 15)
             .text(d => d.data.buText);
 
         nodeUpdate.select('.member-photo')
