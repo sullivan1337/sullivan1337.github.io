@@ -136,7 +136,7 @@ function update(source) {
         .attr('y', d => -calculateNodeSize(d).height / 2)
         .attr('rx', 5)
         .attr('ry', 5)
-        .attr('fill', '#2d2d2d');
+        .attr('fill', 'var(--node-bg)');
 
     // Left color bar
     nodeEnter.append('rect')
@@ -238,8 +238,8 @@ function update(source) {
         });
     toggleGroup.append('circle')
         .attr('r', 8)
-        .attr('fill', '#4a4a4a')
-        .attr('stroke', '#ffffff')
+        .attr('fill', 'var(--panel-bg)')
+        .attr('stroke', 'var(--text)')
         .attr('stroke-width', 1);
     toggleGroup.append('line')
         .attr('class', 'h-line')
@@ -247,7 +247,7 @@ function update(source) {
         .attr('y1', 0)
         .attr('x2', 4)
         .attr('y2', 0)
-        .attr('stroke', '#ffffff')
+        .attr('stroke', 'var(--text)')
         .attr('stroke-width', 2);
     toggleGroup.append('line')
         .attr('class', 'v-line')
@@ -255,7 +255,7 @@ function update(source) {
         .attr('y1', -4)
         .attr('x2', 0)
         .attr('y2', 4)
-        .attr('stroke', '#ffffff')
+        .attr('stroke', 'var(--text)')
         .attr('stroke-width', 2);
 
     const editGroup = nodeEnter.append('g')
@@ -267,12 +267,12 @@ function update(source) {
         });
     editGroup.append('circle')
         .attr('r', 8)
-        .attr('fill', '#4a4a4a')
-        .attr('stroke', '#ffffff')
+        .attr('fill', 'var(--panel-bg)')
+        .attr('stroke', 'var(--text)')
         .attr('stroke-width', 1);
     editGroup.append('path')
         .attr('d', 'M -3 2 L -1 4 L 4 -1 L 2 -3 Z')
-        .attr('fill', '#ffffff');
+        .attr('fill', 'var(--text)');
 
         const nodeUpdate = nodeEnter.merge(node);
 
@@ -772,3 +772,23 @@ window.updateCompany = function(name){
     companyTitle.text(name);
     updateJSON();
 };
+
+window.initTheme = function(){
+    const saved = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+    const btn = document.getElementById('themeToggle');
+    if(btn){
+        btn.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        btn.onclick = () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            btn.textContent = next === 'dark' ? 'Light Mode' : 'Dark Mode';
+        };
+    }
+};
+
+window.initTheme();

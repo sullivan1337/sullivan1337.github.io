@@ -12,26 +12,27 @@
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
     <link rel="stylesheet" href="/assets/style.css" />
 </head>
-<body class="bg-gray-900 text-white">
-    <div class="p-4 flex justify-between items-center bg-gray-800">
+<body>
+    <div class="p-4 flex justify-between items-center" style="background-color:var(--panel-bg);">
         <div class="flex items-center gap-4">
-            <input id="companyName" class="bg-gray-700 px-2 py-1 rounded" />
+            <input id="companyName" class="px-2 py-1 rounded" style="background-color:var(--bg);color:var(--text);border:1px solid var(--border);" />
             <button id="addRoot" class="bg-blue-500 px-2 py-1 rounded">Add Member</button>
-            <button id="toggleJson" class="bg-gray-600 px-2 py-1 rounded">Import/Export</button>
+            <button id="toggleJson" class="px-2 py-1 rounded" style="background-color:var(--border);">Import/Export</button>
+            <button id="themeToggle" class="px-2 py-1 rounded" style="background-color:var(--border);"></button>
         </div>
         <button id="logout" class="bg-red-500 px-3 py-1 rounded">Logout</button>
     </div>
     <div id="chart-container"></div>
     <div id="jsonOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-gray-800 p-4 rounded w-3/4 max-w-2xl">
+        <div class="p-4 rounded w-3/4 max-w-2xl" style="background-color:var(--panel-bg);">
             <textarea id="jsonBox" class="w-full h-40 mb-2"></textarea>
             <div class="flex flex-wrap gap-2">
                 <button id="importBtn" class="bg-blue-500 px-2 py-1 rounded">Import</button>
-                <button id="copyBtn" class="bg-gray-600 px-2 py-1 rounded">Copy</button>
-                <button id="downloadBtn" class="bg-gray-600 px-2 py-1 rounded">Download</button>
-                <button id="pngBtn" class="bg-gray-600 px-2 py-1 rounded">PNG</button>
-                <button id="pptBtn" class="bg-gray-600 px-2 py-1 rounded">PPTX</button>
-                <button id="gslideBtn" class="bg-gray-600 px-2 py-1 rounded">Google Slides</button>
+                <button id="copyBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Copy</button>
+                <button id="downloadBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Download</button>
+                <button id="pngBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">PNG</button>
+                <button id="pptBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">PPTX</button>
+                <button id="gslideBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Google Slides</button>
                 <button id="closeModal" class="ml-auto bg-red-500 px-2 py-1 rounded">Close</button>
             </div>
         </div>
