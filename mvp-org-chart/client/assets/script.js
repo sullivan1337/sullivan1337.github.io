@@ -693,13 +693,14 @@ function openCropper(src, cb){
 }
 
 function dragStarted(event, d){
-    isDragging = true;
+    isDragging = false;
     d3.select(this).raise();
     d.dragStartX = d.x;
     d.dragStartY = d.y;
 }
 
 function dragged(event, d){
+    isDragging = true;
     const grid = 20;
     const newX = Math.round(event.x / grid) * grid;
     const newY = Math.round(event.y / grid) * grid;
@@ -732,13 +733,8 @@ function dragged(event, d){
 }
 
 function dragEnded(event, d){
-    const nodes = root.descendants();
-    let newParent = null;
-    nodes.forEach(n => {
-        if(n !== d && n.y < d.y && Math.abs(n.x - d.x) < 80){
-            if(!newParent || n.y > newParent.y) newParent = n;
-        }
-    });
+    // use the highlighted node from the drag operation if available
+    const newParent = highlightNode;
     svg.selectAll('.node').classed('highlight', false);
     if(newParent){
         d.parent.children = d.parent.children.filter(c=>c!==d);

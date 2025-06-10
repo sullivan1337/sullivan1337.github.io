@@ -12,7 +12,8 @@ function startServer() {
     cwd: path.join(__dirname, '..'),
     env: { ...process.env, DB_FILE: ':memory:' }
   });
-  return new Promise(resolve => setTimeout(() => resolve(server), 1000));
+  // give the server extra time to boot in CI environments
+  return new Promise(resolve => setTimeout(() => resolve(server), 3000));
 }
 
 test('login and fetch chart', async () => {
