@@ -45,14 +45,14 @@
       <span class="close" data-close="helpSamlModal">&times;</span>
       <h2>How to Export SAML XML, JSON, or base64</h2>
       <ol>
-        <li>If using a SAML tracer extension, start it before triggering the SAML request. (<a target="_blank" href="https://chromewebstore.google.com/detail/saml-tracer/mpdajninpobndbfcldcmbpnnbhibjmch?hl=en">SAML-tracer</a> is a widely used option for Chrome.)</li>
+        <li>Start a SAML tracer extension, or open the browser Dev-tools "Networking" tab, before triggering the SAML request.</li>
         <li>Perform the action that triggers the SAML request.</li>
-        <li>The extension captures the SAML requests—look for the POST request with the "SAML" tag.</li>
+        <li>Dev-tools or the extension should capture the SAML requests—look for "saml" or "idpresponse", or the POST request with the "SAML" tag.</li>
         <li>Either:
           <ol type="a">
-            <li>Export the captured SAML trace to a JSON file (<strong>without</strong> filters and <strong>with</strong> "none" masking),</li>
+            <li>Copy the base64 encoded <strong>SAMLResponse</strong> from the <strong>Payload</strong>(or Parameters) tab.</li>
             <li>Copy the SAML XML from the <strong>SAML</strong> tab, or</li>
-            <li>Copy the base64 encoded <strong>SAMLResponse</strong> from the <strong>Parameters</strong> tab.</li>
+            <li>Export the captured SAML trace to a JSON file (<strong>without</strong> filters and <strong>with</strong> "none" masking),</li>
           </ol>
         </li>
         <li>Upload the file or paste the XML (or JSON/base64) into the text input area.</li>
