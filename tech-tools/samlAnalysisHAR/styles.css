@@ -55,13 +55,11 @@ header {
   margin: 0;
 }
 
-/* Header buttons container (for Reset + Theme Toggle) */
 .header-buttons {
   display: flex;
   gap: 10px;
 }
 
-/* Common button styling (same as your Webhook Generator) */
 button {
   background-color: var(--accent-color);
   color: #fff;
@@ -77,10 +75,8 @@ button:hover {
   filter: brightness(1.1);
 }
 
-/* Reset button matches your orange Webhook style */
 .reset-btn {
   background-color: #F97316;
-  /* Inherits same padding, font-size, radius from above button rules */
 }
 
 /* Container */
@@ -112,20 +108,35 @@ label {
 }
 
 input[type="file"],
-textarea {
+textarea,
+input[type="text"] {
   background-color: var(--bg-color);
   color: var(--text-color);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 8px;
   font-size: 0.9rem;
-  resize: vertical;
-}
-textarea {
-  min-height: 120px;
+  font-family: inherit; /* [FIX] Ensure consistent font */
 }
 
-/* Action buttons */
+textarea,
+input[type="text"] {
+    width: 100%;
+    box-sizing: border-box; 
+}
+
+#rawTextInput {
+    min-height: 10px;
+    resize: vertical;
+}
+
+/* Validation status text */
+#validationStatus, #relayStateValidationStatus {
+    font-size: 0.8rem;
+    padding-top: 4px;
+    height: 1.2em; /* Reserve space to prevent layout shift */
+}
+
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -133,7 +144,6 @@ textarea {
   gap: 10px;
 }
 
-/* Help buttons centered and equal width */
 .help-buttons {
   display: flex;
   gap: 10px;
@@ -155,6 +165,7 @@ textarea {
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
   border-radius: 6px;
+  transition: background-color 0.3s, border 0.3s;
 }
 #currentUrl {
   flex: 1;
@@ -162,6 +173,17 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.navigation.highlight {
+  background-color: rgba(79, 70, 229, 0.15);
+  border: 1px solid var(--accent-color);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
 }
 
 /* Output Sections */
@@ -174,6 +196,11 @@ textarea {
   color: limegreen;
   margin-left: 10px;
 }
+#samlCount {
+  margin-left: 10px;
+  color: var(--accent-color);
+  font-weight: bold;
+}
 .output-box {
   white-space: pre-wrap;
   background-color: var(--bg-color);
@@ -184,7 +211,6 @@ textarea {
   margin-bottom: 30px;
 }
 
-/* Table styles - auto layout and wrapping */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -196,9 +222,23 @@ th, td {
   text-align: left;
   white-space: normal;
   word-break: break-word;
+  vertical-align: top;
 }
 
-/* Duplicate styling for highlight */
+table th:first-child,
+table td:first-child {
+  width: 25%;
+  font-weight: bold;
+}
+
+td pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
 .duplicate-note {
   color: red;
   font-style: italic;
@@ -246,14 +286,13 @@ th, td {
   filter: brightness(1.2);
 }
 
-/* File drop area styling */
 .file-drop-area {
   border: 2px dashed var(--border-color);
   border-radius: 6px;
-  padding: 20px;
+  padding: 24px;
   text-align: center;
   transition: background-color var(--transition-speed);
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 .file-drop-area.dragover {
   background-color: rgba(255, 255, 255, 0.1);
@@ -263,11 +302,19 @@ th, td {
   display: block;
 }
 
-/* Link styling */
 a {
   color: var(--accent-color);
   text-decoration: none;
 }
 a:hover {
   text-decoration: underline;
+}
+
+.cert-textarea {
+  width: 100%;
+  height: 140px;
+  font-family: monospace;
+  font-size: 0.8em;
+  resize: vertical;
+  box-sizing: border-box;
 }

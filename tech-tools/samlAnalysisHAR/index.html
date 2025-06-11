@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SAML Analyzer</title>
   <link rel="stylesheet" href="styles.css"/>
-  <!-- Optionally load a modern font -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
@@ -14,7 +13,6 @@
   <header>
     <div class="header-content">
       <h1>SAML Analyzer</h1>
-      <!-- Added reset button to header along with theme toggle -->
       <div class="header-buttons">
         <button id="resetBtn" title="Reset everything" class="reset-btn">Reset Page</button>
         <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
@@ -22,7 +20,6 @@
     </div>
   </header>
 
-  <!-- Help Modal for HAR Generation -->
   <div id="helpHarModal" class="modal">
     <div class="modal-content">
       <span class="close" data-close="helpHarModal">&times;</span>
@@ -39,7 +36,6 @@
     </div>
   </div>
 
-  <!-- Help Modal for SAML Export -->
   <div id="helpSamlModal" class="modal">
     <div class="modal-content">
       <span class="close" data-close="helpSamlModal">&times;</span>
@@ -61,7 +57,6 @@
   </div>
 
   <main class="container">
-    <!-- Both input sections visible side by side -->
     <div id="inputContainer" class="input-container">
       <div id="fileInputContainer" class="input-section">
         <div class="file-drop-area">
@@ -70,7 +65,6 @@
           </label>
           <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
         </div>
-        <!-- Action buttons for help; reset button removed from here -->
         <div class="action-buttons">
           <div class="help-buttons">
             <button id="helpHarBtn" title="How to generate HAR content">How to Generate HAR Content</button>
@@ -80,14 +74,14 @@
       </div>
       <div id="rawInputContainer" class="input-section">
         <label for="rawTextInput"><strong>Or paste HAR/JSON/XML/base64 encoded SAML trace here:</strong></label>
-        <textarea id="rawTextInput" rows="8" placeholder="Paste HAR/JSON/XML/base64 encoded SAML trace here"></textarea>
-        <!-- Validation status will appear here -->
+        <textarea id="rawTextInput" placeholder="Paste HAR/JSON/XML/base64 encoded SAML trace here"></textarea>
         <div id="validationStatus"></div>
-        <button id="analyzeRawBtn">Analyze Input</button>
+        
+        <label for="relayStateInput" style="margin-top: 10px;"><strong>Paste RelayState separately:</strong></label>
+<textarea id="relayStateInput" placeholder="Paste RelayState here if separate from main input"></textarea>        <div id="relayStateValidationStatus"></div>
       </div>
     </div>
 
-    <!-- Navigation for multiple SAML requests -->
     <div id="navigation" class="navigation">
       <button id="prevRequest">&lt; Previous</button>
       <span id="currentUrl"></span>
@@ -95,7 +89,7 @@
     </div>
 
     <section class="output-section">
-      <h2>Decoded SAML Summary <span id="captureTimestamp"></span></h2>
+      <h2>Decoded SAML Summary <span id="samlCount"></span><span id="captureTimestamp"></span></h2>
       <div id="samlSummary" class="output-box"></div>
     </section>
     <section class="output-section">
@@ -110,6 +104,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.4/standalone.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/prettier/2.8.4/parser-html.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
