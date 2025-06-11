@@ -354,20 +354,53 @@ function decodeAndFormatSAML(encodedSAML) {
   }
 }
 
+/**
+ * [REVISED] Formats an XML string with proper indentation and cleaning.
+ * This version is more robust against malformed XML like the one provided.
+ */
 function formatXML(xml) {
-  let formatted = '';
-  let indent = '';
-  const tab = '    ';
-  xml.split(/>\s*</).forEach(node => {
-    if (node.match(/^\/\w/)) {
-      indent = indent.substring(tab.length);
+  try {
+    // 1. Basic cleaning: trim whitespace and replace non-breaking spaces.
+    let cleanedXml = xml.trim().replace(/ /g, ' ');
+
+    // 2. Fix common attribute spacing issues (e.g., ...Version="2.0"ID="...")
+    cleanedXml = cleanedXml.replace(/(")([a-zA-Z0-9_-]+=")/g, '$1 $2');
+
+    // 3. Pretty-print logic.
+    let formatted = '';
+    let indent = '';
+    const tab = '    ';
+    
+    // Split the XML into an array of tags for line-by-line processing.
+    const xmlArr = cleanedXml.replace(/>\s*</g, '>\n<').split('\n');
+    
+    for (const node of xmlArr) {
+        const trimmedNode = node.trim();
+        if (!trimmedNode) continue;
+
+        const isClosingTag = trimmedNode.startsWith('</');
+        const isSelfClosing = trimmedNode.endsWith('/>');
+        const isOpeningTag = trimmedNode.startsWith('<') && !isClosingTag && !isSelfClosing;
+
+        // A tag that contains a value on the same line, e.g., <tag>value</tag>
+        const isInlineTag = isOpeningTag && trimmedNode.includes('</');
+
+        if (isClosingTag && !isInlineTag) {
+            indent = indent.substring(tab.length);
+        }
+
+        formatted += indent + trimmedNode + '\r\n';
+
+        if (isOpeningTag && !isInlineTag) {
+            indent += tab;
+        }
     }
-    formatted += indent + '<' + node + '>\r\n';
-    if (node.match(/^<?\w[^>]*[^\/]$/)) {
-      indent += tab;
-    }
-  });
-  return formatted.substring(1, formatted.length - 3);
+
+    return formatted.trim();
+  } catch (e) {
+    // Fallback to returning the original XML if formatting fails.
+    return xml;
+  }
 }
 
 // Generate SAML summary tables
