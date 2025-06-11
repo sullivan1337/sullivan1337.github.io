@@ -1,8 +1,3 @@
-/*
-  For full functionality, please ensure the following libraries are included in your HTML file:
-  - Forge.js (for certificate parsing): <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
-  - Pako.js (for RelayState GZIP decoding): <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
-*/
 let samlRequests = [];
 let currentRequestIndex = 0;
 
@@ -158,7 +153,6 @@ function updateCaptureTimestampFromSAML(decodedSAML) {
   }
 }
 
-// [MODIFIED] Validator now accepts '.' for multipart Base64 strings.
 function validateInput(text, statusElementId) {
     const statusElement = document.getElementById(statusElementId);
     if (!text) {
@@ -205,110 +199,85 @@ function analyzeRawInput() {
     return;
   }
   
-  try {
-    JSON.parse(rawText);
-    analyzeFile(rawText);
-    return;
-  } catch (e) {}
-
-  let formattedXML = "";
-  if (rawText.startsWith("<")) {
-    formattedXML = formatXML(rawText);
-  } else {
-    formattedXML = decodeAndFormatSAML(rawText);
-  }
-  document.getElementById('decodedSAML').textContent = formattedXML;
-  updateCaptureTimestampFromSAML(formattedXML);
-  let summaryHTML = getSAMLSummary(formattedXML);
-
-  if (separateRelayState) {
-      const relayStateData = decodeRelayState(separateRelayState);
-      const relayStateTableData = {
-          'Raw Value': `<textarea readonly class="cert-textarea">${separateRelayState}</textarea>`,
-          'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
-          'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
-          'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
-      };
-      if (relayStateData.notes) {
-          relayStateTableData['Notes'] = relayStateData.notes;
-      }
-      summaryHTML += createTable('Relay State (from separate input)', relayStateTableData);
-  }
-
-  document.getElementById('samlSummary').innerHTML = summaryHTML;
-  document.getElementById('results').textContent = "Processed raw SAML input.";
-  document.getElementById('navigation').style.display = 'none';
-  document.getElementById('samlCount').textContent = '';
+  analyzeFile(rawText, separateRelayState);
 }
 
-function analyzeFile(contents) {
-  let data;
+function analyzeFile(contents, separateRelayState = "") {
   try {
-    data = JSON.parse(contents);
-  } catch (err) {
-    if (contents.trim().startsWith("<")) {
-      const formattedXML = formatXML(contents.trim());
-      document.getElementById('decodedSAML').textContent = formattedXML;
-      updateCaptureTimestampFromSAML(formattedXML);
-      const summary = getSAMLSummary(formattedXML);
-      document.getElementById('samlSummary').innerHTML = summary;
-      document.getElementById('results').textContent = "Processed raw SAML input from text file.";
-      document.getElementById('navigation').style.display = 'none';
-      return;
-    } else {
-      document.getElementById('results').textContent = 'Invalid JSON file.';
-      return;
-    }
-  }
-  if (data.log && data.log.entries) {
-    samlRequests = data.log.entries.filter(entry => {
-      if (!entry || !entry.request || entry.request.method !== 'POST' || !entry.request.postData) {
+    const data = JSON.parse(contents);
+    if (data.log && data.log.entries) {
+      samlRequests = data.log.entries.filter(entry => {
+        if (!entry || !entry.request || entry.request.method !== 'POST' || !entry.request.postData) return false;
+        if (entry.request.postData.params) return entry.request.postData.params.some(p => p.name === 'SAMLRequest' || p.name === 'SAMLResponse');
+        if (typeof entry.request.postData.text === "string") return entry.request.postData.text.includes('SAMLRequest') || entry.request.postData.text.includes('SAMLResponse');
         return false;
-      }
-      if (entry.request.postData.params) {
-        return entry.request.postData.params.some(p => p.name === 'SAMLRequest' || p.name === 'SAMLResponse');
-      }
-      if (typeof entry.request.postData.text === "string") {
-        return entry.request.postData.text.includes('SAMLRequest') || entry.request.postData.text.includes('SAMLResponse');
-      }
-      return false;
-    });
-  }
-  else if (data.requests) {
-    samlRequests = data.requests.filter(req => {
-      if (req.saml && typeof req.saml === "string" && req.saml.trim().length > 0) return true;
-      if (req.method === "POST" && req.postData && typeof req.postData.text === "string") {
-        return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
-      }
-      if (req.method === "POST" && req.post && Array.isArray(req.post)) {
-        return req.post.some(pair => Array.isArray(pair) && pair.length >= 2 && (pair[0] === 'SAMLRequest' || pair[0] === 'SAMLResponse') && !!pair[1]);
-      }
-      if (req.method === "GET" && req.get && Array.isArray(req.get)) {
-        return req.get.some(pair => Array.isArray(pair) && pair.length >= 2 && (pair[0] === 'SAMLRequest' || pair[0] === 'SAMLResponse') && !!pair[1]);
-      }
-      return false;
-    });
-  } else {
-    document.getElementById('results').textContent = 'Unsupported JSON file format.';
-    return;
-  }
-
-  const nav = document.getElementById('navigation');
-  if (samlRequests.length > 0) {
-    nav.style.display = 'flex';
-    if (samlRequests.length > 1) {
-      nav.classList.add('highlight');
+      });
+    } else if (data.requests) {
+      samlRequests = data.requests.filter(req => {
+        if (req.saml && typeof req.saml === "string" && req.saml.trim().length > 0) return true;
+        if (req.method === "POST" && req.postData && typeof req.postData.text === "string") return req.postData.text.includes('SAMLRequest') || req.postData.text.includes('SAMLResponse');
+        if (req.method === "POST" && req.post && Array.isArray(req.post)) return req.post.some(pair => Array.isArray(pair) && pair.length >= 2 && (pair[0] === 'SAMLRequest' || pair[0] === 'SAMLResponse') && !!pair[1]);
+        if (req.method === "GET" && req.get && Array.isArray(req.get)) return req.get.some(pair => Array.isArray(pair) && pair.length >= 2 && (pair[0] === 'SAMLRequest' || pair[0] === 'SAMLResponse') && !!pair[1]);
+        return false;
+      });
     } else {
-      nav.classList.remove('highlight');
+        processRawContent(contents, separateRelayState);
+        return;
     }
-    currentRequestIndex = 0;
-    updateNavigation();
-    displaySAMLRequest(currentRequestIndex);
-  } else {
-    document.getElementById('results').textContent = 'No SAML requests found in the file.';
-    nav.style.display = 'none';
-    nav.classList.remove('highlight');
+
+    const nav = document.getElementById('navigation');
+    if (samlRequests.length > 1) {
+        nav.style.display = 'flex';
+        nav.classList.add('highlight');
+        currentRequestIndex = 0;
+        updateNavigation();
+        displaySAMLRequest(currentRequestIndex);
+    } else if (samlRequests.length === 1) {
+        nav.style.display = 'none';
+        nav.classList.remove('highlight');
+        document.getElementById('samlCount').textContent = '';
+        currentRequestIndex = 0;
+        displaySAMLRequest(currentRequestIndex);
+    } else {
+        document.getElementById('results').textContent = 'No SAML requests found in the file.';
+        nav.style.display = 'none';
+        nav.classList.remove('highlight');
+    }
+
+  } catch (err) {
+    processRawContent(contents, separateRelayState);
   }
+}
+
+function processRawContent(rawText, separateRelayState) {
+    let formattedXML = "";
+    if (rawText.startsWith("<")) {
+        formattedXML = formatXML(rawText);
+    } else {
+        formattedXML = decodeAndFormatSAML(rawText);
+    }
+    document.getElementById('decodedSAML').textContent = formattedXML;
+    updateCaptureTimestampFromSAML(formattedXML);
+    let summaryHTML = getSAMLSummary(formattedXML);
+
+    if (separateRelayState) {
+        const relayStateData = decodeRelayState(separateRelayState);
+        const relayStateTableData = {
+            'Raw Value': `<textarea readonly class="cert-textarea">${separateRelayState}</textarea>`,
+            'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
+            'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
+            'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
+        };
+        if (relayStateData.notes) {
+            relayStateTableData['Notes'] = relayStateData.notes;
+        }
+        summaryHTML += createTable('Relay State (from separate input)', relayStateTableData);
+    }
+
+    document.getElementById('samlSummary').innerHTML = summaryHTML;
+    document.getElementById('results').textContent = "Processed raw SAML input.";
+    document.getElementById('navigation').style.display = 'none';
+    document.getElementById('samlCount').textContent = '';
 }
 
 function updateNavigation() {
@@ -406,10 +375,13 @@ function displaySAMLRequest(index) {
     updateCaptureTimestampFromSAML(decodedSAML);
     let summaryHTML = getSAMLSummary(decodedSAML);
 
-    if (relayState) {
-        const relayStateData = decodeRelayState(relayState);
+    const separateRelayState = document.getElementById('relayStateInput').value.trim();
+    const finalRelayState = relayState || separateRelayState;
+
+    if (finalRelayState) {
+        const relayStateData = decodeRelayState(finalRelayState);
         const relayStateTableData = {
-            'Raw Value': `<textarea readonly class="cert-textarea">${relayState}</textarea>`,
+            'Raw Value': `<textarea readonly class="cert-textarea">${finalRelayState}</textarea>`,
             'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
             'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
             'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
