@@ -1,0 +1,306 @@
+/* Base font and color variables */
+:root {
+  --bg-dark: #1f1f1f;
+  --bg-light: #f9f9f9;
+  --container-dark: #2c2c2c;
+  --container-light: #ffffff;
+  --text-dark: #e2e2e2;
+  --text-light: #333333;
+  --accent-dark: #6366F1;
+  --accent-light: #4F46E5;
+  --border-dark: #444444;
+  --border-light: #cccccc;
+  --transition-speed: 0.3s;
+}
+
+/* ADDED FOR CHROME EXTENSION: Define popup size */
+body {
+  width: 800px;
+}
+
+/* Dark mode by default */
+body.dark-mode {
+  --bg-color: var(--bg-dark);
+  --container-color: var(--container-dark);
+  --text-color: var(--text-dark);
+  --accent-color: var(--accent-dark);
+  --border-color: var(--border-dark);
+}
+
+/* Light mode */
+body:not(.dark-mode) {
+  --bg-color: var(--bg-light);
+  --container-color: var(--container-light);
+  --text-color: var(--text-light);
+  --accent-color: var(--accent-light);
+  --border-color: var(--border-light);
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+button {
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+  font-size: 0.9rem;
+  outline: none;
+}
+button:hover {
+  filter: brightness(1.1);
+}
+
+.reset-btn {
+  background-color: #F97316;
+}
+
+/* Container */
+.container {
+  margin: 20px auto;
+  background-color: var(--container-color);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Input container layout using grid */
+.input-container {
+  display: grid;
+  grid-template-columns: minmax(250px, 400px) 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.input-section {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+input[type="file"],
+textarea,
+input[type="text"] {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+textarea,
+input[type="text"] {
+    width: 100%;
+    box-sizing: border-box; 
+}
+
+#rawTextInput {
+    min-height: 10px;
+    resize: vertical;
+}
+
+/* Validation status text */
+#validationStatus, #relayStateValidationStatus {
+    font-size: 0.8rem;
+    padding-top: 4px;
+    height: 1.2em; /* Reserve space to prevent layout shift */
+}
+
+/* MODIFIED: Styling for button layout */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.top-row-buttons, .help-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.top-row-buttons button, .help-buttons button {
+  flex: 1;
+  text-align: center;
+}
+/* End modified styles */
+
+/* Navigation */
+.navigation {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  transition: background-color 0.3s, border 0.3s;
+}
+#currentUrl {
+  flex: 1;
+  margin: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navigation.highlight {
+  background-color: rgba(79, 70, 229, 0.15);
+  border: 1px solid var(--accent-color);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+/* Output Sections */
+.output-section h2 {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+#captureTimestamp {
+  font-size: 0.9rem;
+  color: limegreen;
+  margin-left: 10px;
+}
+#samlCount {
+  margin-left: 10px;
+  color: var(--accent-color);
+  font-weight: bold;
+}
+.output-box {
+  white-space: pre-wrap;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 30px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+th, td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  vertical-align: top;
+}
+
+table th:first-child,
+table td:first-child {
+  width: 25%;
+  font-weight: bold;
+}
+
+td pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.9em;
+}
+
+.duplicate-note {
+  color: red;
+  font-style: italic;
+  margin-bottom: 5px;
+}
+.duplicate-value {
+  background-color: red;
+}
+
+/* Modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+  transition: opacity var(--transition-speed);
+}
+.modal-content {
+  background-color: var(--container-color);
+  margin: 5% auto;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  position: relative;
+}
+.modal-content h2 {
+  margin-top: 0;
+}
+.close {
+  color: var(--text-color);
+  float: right;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: -4px;
+}
+.close:hover {
+  filter: brightness(1.2);
+}
+
+.file-drop-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 6px;
+  padding: 24px;
+  text-align: center;
+  transition: background-color var(--transition-speed);
+}
+.file-drop-area.dragover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.custom-file-upload {
+  cursor: pointer;
+  display: block;
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.cert-textarea {
+  width: 100%;
+  height: 140px;
+  font-family: monospace;
+  font-size: 0.8em;
+  resize: vertical;
+  box-sizing: border-box;
+}

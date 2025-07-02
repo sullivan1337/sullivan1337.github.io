@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SSO Troubleshooter</title>
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+<body class="dark-mode">
+  <div id="helpHarModal" class="modal">
+    <div class="modal-content">
+      <span class="close" data-close="helpHarModal">&times;</span>
+      <h2>How to Generate HAR Content</h2>
+      <ol>
+        <li>Open your browser's Developer Tools - F12 or right-click and select "Inspect". (<a target="_blank" href="https://developer.chrome.com/docs/devtools/network/reference#save-as-har">Chrome DevTools HAR</a>)</li>
+        <li>Navigate to the <strong>Network</strong> tab and click the top <strong>Settings</strong> Gear.</li>
+        <li>Enable <strong>"Preserve log"</strong>.</li>
+        <li>Enable <strong>"Allow to generate HAR with sensitive data"</strong>.</li>
+        <li>Perform the action that triggers the SAML request.</li>
+        <li>Right-click on the network log/entry and choose <strong>"Copy" > "Copy all as HAR (with sensitive content)"</strong>, or click the "export" icon and <strong>Export HAR (with sensitive data)</strong>.</li>
+        <li>Upload the file or paste the saved HAR content into the text input area.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div id="helpSamlModal" class="modal">
+    <div class="modal-content">
+      <span class="close" data-close="helpSamlModal">&times;</span>
+      <h2>How to Export SAML XML, JSON, or base64</h2>
+      <ol>
+        <li>Start a SAML tracer extension, or open the browser Dev-tools "Networking" tab, before triggering the SAML request.</li>
+        <li>Perform the action that triggers the SAML request.</li>
+        <li>Dev-tools or the extension should capture the SAML requests—look for "saml" or "idpresponse", or the POST request with the "SAML" tag.</li>
+        <li>Either:
+          <ol type="a">
+            <li>Copy the base64 encoded <strong>SAMLResponse</strong> from the <strong>Payload</strong>(or Parameters) tab.</li>
+            <li>Copy the SAML XML from the <strong>SAML</strong> tab, or</li>
+            <li>Export the captured SAML trace to a JSON file (<strong>without</strong> filters and <strong>with</strong> "none" masking),</li>
+          </ol>
+        </li>
+        <li>Upload the file or paste the XML (or JSON/base64) into the text input area.</li>
+      </ol>
+    </div>
+  </div>
+
+  <main class="container">
+    <div id="inputContainer" class="input-container">
+      <div id="fileInputContainer" class="input-section">
+        
+        <div class="action-buttons">
+          <div class="top-row-buttons">
+            <button id="resetBtn" title="Reset everything" class="reset-btn">Reset</button>
+            <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+          </div>
+        </div>
+
+        <div class="file-drop-area">
+          <label for="fileInput" class="custom-file-upload">
+            <strong>Upload file: ( .har, .xml, .json )</strong>
+          </label>
+          <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
+        </div>
+        
+        <div class="action-buttons">
+          <div class="help-buttons">
+            <button id="helpHarBtn" title="How to generate HAR content">HAR Help</button>
+            <button id="helpSamlBtn" title="How to export SAML XML">SAML Help</button>
+          </div>
+        </div>
+      </div>
+      <div id="rawInputContainer" class="input-section">
+        <label for="rawTextInput"><strong>Or paste HAR/JSON/XML/base64 encoded SAML trace here:</strong></label>
+        <textarea id="rawTextInput" placeholder="Paste HAR/JSON/XML/base64 encoded SAML trace here"></textarea>
+        <div id="validationStatus"></div>
+        
+        <label for="relayStateInput" style="margin-top: 10px;"><strong>Paste RelayState separately:</strong></label>
+        <textarea id="relayStateInput" placeholder="Paste RelayState here if separate from main input"></textarea>
+        <div id="relayStateValidationStatus"></div>
+      </div>
+    </div>
+
+    <div id="navigation" class="navigation">
+      <button id="prevRequest">&lt; Previous</button>
+      <span id="currentUrl"></span>
+      <button id="nextRequest">Next &gt;</button>
+    </div>
+
+    <section class="output-section">
+      <h2>Decoded SAML Summary <span id="samlCount"></span><span id="captureTimestamp"></span></h2>
+      <div id="samlSummary" class="output-box"></div>
+    </section>
+    <section class="output-section">
+      <h2>Full Decoded SAMLResponse</h2>
+      <div id="decodedSAML" class="output-box"></div>
+    </section>
+    <section class="output-section">
+      <h2>HAR Analysis Results</h2>
+      <div id="results" class="output-box"></div>
+    </section>
+  </main>
+
+  <script src="lib/forge.min.js"></script>
+  <script src="lib/pako.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
