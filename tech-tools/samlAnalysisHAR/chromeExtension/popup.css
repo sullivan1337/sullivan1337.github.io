@@ -1,3 +1,5 @@
+/* popup.css */
+
 /* Base font and color variables */
 :root {
   --bg-dark: #1f1f1f;
@@ -13,12 +15,32 @@
   --transition-speed: 0.3s;
 }
 
-/* ADDED FOR CHROME EXTENSION: Define popup size */
-body {
-  width: 800px;
+/* Full-height flex container to center the main panel */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+  font-family: 'Roboto', sans-serif;
 }
 
-/* Dark mode by default */
+/* Centered content panel */
+.container {
+  width: 90%;
+  max-width: 800px;
+  background-color: var(--container-color);
+  margin: 20px 0;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Dark mode variables */
 body.dark-mode {
   --bg-color: var(--bg-dark);
   --container-color: var(--container-dark);
@@ -27,7 +49,7 @@ body.dark-mode {
   --border-color: var(--border-dark);
 }
 
-/* Light mode */
+/* Light mode variables */
 body:not(.dark-mode) {
   --bg-color: var(--bg-light);
   --container-color: var(--container-light);
@@ -36,14 +58,7 @@ body:not(.dark-mode) {
   --border-color: var(--border-light);
 }
 
-body {
-  font-family: 'Roboto', sans-serif;
-  margin: 0;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  transition: background-color var(--transition-speed), color var(--transition-speed);
-}
-
+/* Buttons */
 button {
   background-color: var(--accent-color);
   color: #fff;
@@ -58,38 +73,25 @@ button {
 button:hover {
   filter: brightness(1.1);
 }
-
 .reset-btn {
   background-color: #F97316;
 }
 
-/* Container */
-.container {
-  margin: 20px auto;
-  background-color: var(--container-color);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-/* Input container layout using grid */
+/* Input layout */
 .input-container {
   display: grid;
   grid-template-columns: minmax(250px, 400px) 1fr;
   gap: 20px;
   margin-bottom: 20px;
 }
-
 .input-section {
   display: flex;
   flex-direction: column;
 }
-
 label {
   margin-bottom: 6px;
   font-weight: 500;
 }
-
 input[type="file"],
 textarea,
 input[type="text"] {
@@ -101,26 +103,25 @@ input[type="text"] {
   font-size: 0.9rem;
   font-family: inherit;
 }
-
 textarea,
 input[type="text"] {
-    width: 100%;
-    box-sizing: border-box; 
+  width: 100%;
+  box-sizing: border-box; 
 }
-
 #rawTextInput {
-    min-height: 10px;
-    resize: vertical;
+  min-height: 10px;
+  resize: vertical;
 }
 
-/* Validation status text */
-#validationStatus, #relayStateValidationStatus {
-    font-size: 0.8rem;
-    padding-top: 4px;
-    height: 1.2em; /* Reserve space to prevent layout shift */
+/* Validation status */
+#validationStatus,
+#relayStateValidationStatus {
+  font-size: 0.8rem;
+  padding-top: 4px;
+  height: 1.2em;
 }
 
-/* MODIFIED: Styling for button layout */
+/* Button groups */
 .action-buttons {
   display: flex;
   flex-direction: column;
@@ -128,19 +129,18 @@ input[type="text"] {
   gap: 10px;
   margin-bottom: 10px;
 }
-
-.top-row-buttons, .help-buttons {
+.top-row-buttons,
+.help-buttons {
   display: flex;
   gap: 10px;
   justify-content: center;
   width: 100%;
 }
-
-.top-row-buttons button, .help-buttons button {
+.top-row-buttons button,
+.help-buttons button {
   flex: 1;
   text-align: center;
 }
-/* End modified styles */
 
 /* Navigation */
 .navigation {
@@ -161,19 +161,24 @@ input[type="text"] {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .navigation.highlight {
   background-color: rgba(79, 70, 229, 0.15);
   border: 1px solid var(--accent-color);
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
-  70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
 }
 
-/* Output Sections */
+/* Outputs */
 .output-section h2 {
   margin-bottom: 10px;
   font-size: 1.1rem;
@@ -198,26 +203,25 @@ input[type="text"] {
   margin-bottom: 30px;
 }
 
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
   table-layout: auto;
 }
-th, td {
+th,
+td {
   border: 1px solid var(--border-color);
   padding: 8px;
   text-align: left;
-  white-space: normal;
   word-break: break-word;
   vertical-align: top;
 }
-
 table th:first-child,
 table td:first-child {
   width: 25%;
   font-weight: bold;
 }
-
 td pre {
   margin: 0;
   white-space: pre-wrap;
@@ -225,7 +229,6 @@ td pre {
   font-family: monospace;
   font-size: 0.9em;
 }
-
 .duplicate-note {
   color: red;
   font-style: italic;
@@ -273,6 +276,7 @@ td pre {
   filter: brightness(1.2);
 }
 
+/* File drop area */
 .file-drop-area {
   border: 2px dashed var(--border-color);
   border-radius: 6px;
@@ -288,6 +292,7 @@ td pre {
   display: block;
 }
 
+/* Links */
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -296,6 +301,7 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Certificate textarea */
 .cert-textarea {
   width: 100%;
   height: 140px;

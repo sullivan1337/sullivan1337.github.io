@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,11 +47,10 @@
   <main class="container">
     <div id="inputContainer" class="input-container">
       <div id="fileInputContainer" class="input-section">
-        
         <div class="action-buttons">
           <div class="top-row-buttons">
             <button id="resetBtn" title="Reset everything" class="reset-btn">Reset</button>
-            <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+            <button id="themeToggle" title="Toggle light/dark mode">☀️ Theme</button>
           </div>
         </div>
 
@@ -60,7 +60,7 @@
           </label>
           <input type="file" id="fileInput" accept=".har,.json,.txt,.xml" />
         </div>
-        
+
         <div class="action-buttons">
           <div class="help-buttons">
             <button id="helpHarBtn" title="How to generate HAR content">HAR Help</button>
@@ -68,11 +68,12 @@
           </div>
         </div>
       </div>
+
       <div id="rawInputContainer" class="input-section">
         <label for="rawTextInput"><strong>Or paste HAR/JSON/XML/base64 encoded SAML trace here:</strong></label>
         <textarea id="rawTextInput" placeholder="Paste HAR/JSON/XML/base64 encoded SAML trace here"></textarea>
         <div id="validationStatus"></div>
-        
+
         <label for="relayStateInput" style="margin-top: 10px;"><strong>Paste RelayState separately:</strong></label>
         <textarea id="relayStateInput" placeholder="Paste RelayState here if separate from main input"></textarea>
         <div id="relayStateValidationStatus"></div>

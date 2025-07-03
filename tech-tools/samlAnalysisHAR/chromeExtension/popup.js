@@ -1,3 +1,5 @@
+// popup.js
+
 let samlRequests = [];
 let currentRequestIndex = 0;
 
@@ -22,45 +24,42 @@ function debounce(func, delay = 500) {
   let timeoutId;
   return function(...args) {
     clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      func.apply(this, args);
-    }, delay);
+    timeoutId = setTimeout(() => func.apply(this, args), delay);
   };
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const themeToggle = document.getElementById('themeToggle');
-  
-  // Use chrome.storage.local for theme persistence
-  chrome.storage.local.get(['theme'], (result) => {
-    // Default to dark mode if no theme is set
-    if (result.theme === 'light') {
-      document.body.classList.remove('dark-mode');
-      themeToggle.textContent = '🌙';
-    } else {
-      document.body.classList.add('dark-mode');
-      themeToggle.textContent = '☀️';
-    }
-  });
 
+  // Load theme preference from localStorage
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    document.body.classList.remove('dark-mode');
+    themeToggle.textContent = '🌙';
+  } else {
+    themeToggle.textContent = '☀️';
+  }
+
+  // Set up analysis inputs
   const rawTextInput = document.getElementById('rawTextInput');
   const relayStateInput = document.getElementById('relayStateInput');
   const debouncedAnalysis = debounce(analyzeRawInput);
 
   if (rawTextInput) {
-      rawTextInput.addEventListener('input', debouncedAnalysis);
+    rawTextInput.addEventListener('input', debouncedAnalysis);
   }
   if (relayStateInput) {
-      relayStateInput.addEventListener('input', debouncedAnalysis);
+    relayStateInput.addEventListener('input', debouncedAnalysis);
   }
+
+  // ** All popout/openWindowBtn logic removed **
 });
 
 document.getElementById('themeToggle').addEventListener('click', function () {
   document.body.classList.toggle('dark-mode');
   const isDarkMode = document.body.classList.contains('dark-mode');
-  const newTheme = isDarkMode ? 'dark' : 'light';
   this.textContent = isDarkMode ? '☀️' : '🌙';
-  chrome.storage.local.set({ theme: newTheme });
+  localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
 });
 
 document.getElementById('helpHarBtn').addEventListener('click', () => {
@@ -160,40 +159,40 @@ function updateCaptureTimestampFromSAML(decodedSAML) {
 }
 
 function validateInput(text, statusElementId) {
-    const statusElement = document.getElementById(statusElementId);
-    if (!text) {
-        statusElement.textContent = '';
-        return;
+  const statusElement = document.getElementById(statusElementId);
+  if (!text) {
+    statusElement.textContent = '';
+    return;
+  }
+  try {
+    JSON.parse(text);
+    statusElement.textContent = 'Valid JSON ✓';
+    statusElement.style.color = 'limegreen';
+    return;
+  } catch (e) {}
+  let parser = new DOMParser();
+  let xmlDoc = parser.parseFromString(text, "text/xml");
+  if (!xmlDoc.getElementsByTagName("parsererror").length && text.trim().startsWith('<')) {
+    statusElement.textContent = 'Valid XML ✓';
+    statusElement.style.color = 'limegreen';
+    return;
+  }
+  try {
+    if (/^[A-Za-z0-9+/=._-]+$/.test(text)) {
+      atob(text.replace(/-/g, '+').replace(/_/g, '/').split('.')[0]);
+      statusElement.textContent = 'Valid Base64 ✓';
+      statusElement.style.color = 'limegreen';
+      return;
     }
-    try {
-        JSON.parse(text);
-        statusElement.textContent = 'Valid JSON ✓';
-        statusElement.style.color = 'limegreen';
-        return;
-    } catch (e) {}
-    let parser = new DOMParser();
-    let xmlDoc = parser.parseFromString(text, "text/xml");
-    if (!xmlDoc.getElementsByTagName("parsererror").length && text.trim().startsWith('<')) {
-        statusElement.textContent = 'Valid XML ✓';
-        statusElement.style.color = 'limegreen';
-        return;
-    }
-    try {
-        if (/^[A-Za-z0-9+/=._-]+$/.test(text)) {
-            atob(text.replace(/-/g, '+').replace(/_/g, '/').split('.')[0]);
-            statusElement.textContent = 'Valid Base64 ✓';
-            statusElement.style.color = 'limegreen';
-            return;
-        }
-    } catch (e) {}
-    statusElement.textContent = `Attempting to parse unknown format...`;
-    statusElement.style.color = "orange";
+  } catch (e) {}
+  statusElement.textContent = `Attempting to parse unknown format...`;
+  statusElement.style.color = "orange";
 }
 
 function analyzeRawInput() {
   const rawText = document.getElementById('rawTextInput').value.trim();
   const separateRelayState = document.getElementById('relayStateInput').value.trim();
-  
+
   validateInput(rawText, 'validationStatus');
   validateInput(separateRelayState, 'relayStateValidationStatus');
 
@@ -204,7 +203,7 @@ function analyzeRawInput() {
     document.getElementById('captureTimestamp').textContent = "";
     return;
   }
-  
+
   analyzeFile(rawText, separateRelayState);
 }
 
@@ -227,63 +226,62 @@ function analyzeFile(contents, separateRelayState = "") {
         return false;
       });
     } else {
-        processRawContent(contents, separateRelayState);
-        return;
+      processRawContent(contents, separateRelayState);
+      return;
     }
 
     const nav = document.getElementById('navigation');
     if (samlRequests.length > 1) {
-        nav.style.display = 'flex';
-        nav.classList.add('highlight');
-        currentRequestIndex = 0;
-        updateNavigation();
-        displaySAMLRequest(currentRequestIndex);
+      nav.style.display = 'flex';
+      nav.classList.add('highlight');
+      currentRequestIndex = 0;
+      updateNavigation();
+      displaySAMLRequest(currentRequestIndex);
     } else if (samlRequests.length === 1) {
-        nav.style.display = 'none';
-        nav.classList.remove('highlight');
-        document.getElementById('samlCount').textContent = '';
-        currentRequestIndex = 0;
-        displaySAMLRequest(currentRequestIndex);
+      nav.style.display = 'none';
+      nav.classList.remove('highlight');
+      document.getElementById('samlCount').textContent = '';
+      currentRequestIndex = 0;
+      displaySAMLRequest(currentRequestIndex);
     } else {
-        document.getElementById('results').textContent = 'No SAML requests found in the file.';
-        nav.style.display = 'none';
-        nav.classList.remove('highlight');
+      document.getElementById('results').textContent = 'No SAML requests found in the file.';
+      nav.style.display = 'none';
+      nav.classList.remove('highlight');
     }
-
   } catch (err) {
     processRawContent(contents, separateRelayState);
   }
 }
 
 function processRawContent(rawText, separateRelayState) {
-    let formattedXML = "";
-    if (rawText.startsWith("<")) {
-        formattedXML = formatXML(rawText);
-    } else {
-        formattedXML = decodeAndFormatSAML(rawText);
-    }
-    document.getElementById('decodedSAML').textContent = formattedXML;
-    updateCaptureTimestampFromSAML(formattedXML);
-    let summaryHTML = getSAMLSummary(formattedXML);
+  let formattedXML = "";
+  if (rawText.startsWith("<")) {
+    formattedXML = formatXML(rawText);
+  } else {
+    formattedXML = decodeAndFormatSAML(rawText);
+  }
+  document.getElementById('decodedSAML').textContent = formattedXML;
+  updateCaptureTimestampFromSAML(formattedXML);
+  let summaryHTML = getSAMLSummary(formattedXML);
 
-    if (separateRelayState) {
-        const relayStateData = decodeRelayState(separateRelayState);
-        const relayStateTableData = {
-            'Raw Value': `<textarea readonly class="cert-textarea">${separateRelayState}</textarea>`,
-            'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
-            'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
-            'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
-        };
-        if (relayStateData.notes) {
-            relayStateTableData['Notes'] = relayStateData.notes;
-        }
-        summaryHTML += createTable('Relay State (from separate input)', relayStateTableData);
+  if (separateRelayState) {
+    const relayStateData = decodeRelayState(separateRelayState);
+    const relayStateTableData = {
+      'Raw Value': `<textarea readonly class="cert-textarea">${separateRelayState}</textarea>`,
+      'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
+      'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
+      'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
+    };
+    if (relayStateData.notes) {
+      relayStateTableData['Notes'] = relayStateData.notes;
     }
+    summaryHTML += createTable('Relay State (from separate input)', relayStateTableData);
+  }
 
-    document.getElementById('samlSummary').innerHTML = summaryHTML;
-    document.getElementById('results').textContent = "Processed raw SAML input.";
-    document.getElementById('navigation').style.display = 'none';
-    document.getElementById('samlCount').textContent = '';
+  document.getElementById('samlSummary').innerHTML = summaryHTML;
+  document.getElementById('results').textContent = "Processed raw SAML input.";
+  document.getElementById('navigation').style.display = 'none';
+  document.getElementById('samlCount').textContent = '';
 }
 
 function updateNavigation() {
@@ -292,7 +290,7 @@ function updateNavigation() {
     const nextButton = document.getElementById('nextRequest');
     const currentUrl = document.getElementById('currentUrl');
     const samlCountSpan = document.getElementById('samlCount');
-    
+
     if (!samlRequests || samlRequests.length === 0 || !samlRequests[currentRequestIndex]) return;
 
     const entry = samlRequests[currentRequestIndex];
@@ -301,14 +299,14 @@ function updateNavigation() {
     prevButton.disabled = (currentRequestIndex === 0);
     nextButton.disabled = (currentRequestIndex === samlRequests.length - 1);
     currentUrl.textContent = req.url || '(no URL)';
-    
+
     if (samlRequests.length > 1) {
       samlCountSpan.textContent = `(${currentRequestIndex + 1} of ${samlRequests.length})`;
     } else {
       samlCountSpan.textContent = '';
     }
   } catch (e) {
-      console.error("Error in updateNavigation:", e);
+    console.error("Error in updateNavigation:", e);
   }
 }
 
@@ -347,23 +345,20 @@ function displaySAMLRequest(index) {
     let relayState = "";
 
     if (req.postData && Array.isArray(req.postData.params)) {
-        const samlParam = req.postData.params.find(p => p.name === 'SAMLResponse' || p.name === 'SAMLRequest');
-        if (samlParam) samlResponse = samlParam.value;
-
-        const relayStateParam = req.postData.params.find(p => p.name === 'RelayState');
-        if (relayStateParam) relayState = relayStateParam.value;
-
-        req.postData.params.forEach(p => {
-            results += `${p.name}: ${p.value.substring(0, 100)}...\n\n`;
-        });
-
+      const samlParam = req.postData.params.find(p => p.name === 'SAMLResponse' || p.name === 'SAMLRequest');
+      if (samlParam) samlResponse = samlParam.value;
+      const relayStateParam = req.postData.params.find(p => p.name === 'RelayState');
+      if (relayStateParam) relayState = relayStateParam.value;
+      req.postData.params.forEach(p => {
+        results += `${p.name}: ${p.value.substring(0, 100)}...\n\n`;
+      });
     } else if (req.postData && req.postData.text) {
-        const decodedText = decodeURIComponent(req.postData.text);
-        results += decodedText;
-        const samlMatch = decodedText.match(/(SAMLResponse|SAMLRequest)=([^&]+)/);
-        if (samlMatch) samlResponse = samlMatch[2];
-        const relayMatch = decodedText.match(/RelayState=([^&]+)/);
-        if (relayMatch) relayState = relayMatch[1];
+      const decodedText = decodeURIComponent(req.postData.text);
+      results += decodedText;
+      const samlMatch = decodedText.match(/(SAMLResponse|SAMLRequest)=([^&]+)/);
+      if (samlMatch) samlResponse = samlMatch[2];
+      const relayMatch = decodedText.match(/RelayState=([^&]+)/);
+      if (relayMatch) relayState = relayMatch[1];
     }
 
     document.getElementById('results').textContent = results;
@@ -385,51 +380,44 @@ function displaySAMLRequest(index) {
     const finalRelayState = relayState || separateRelayState;
 
     if (finalRelayState) {
-        const relayStateData = decodeRelayState(finalRelayState);
-        const relayStateTableData = {
-            'Raw Value': `<textarea readonly class="cert-textarea">${finalRelayState}</textarea>`,
-            'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
-            'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
-            'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
-        };
-        if (relayStateData.notes) {
-            relayStateTableData['Notes'] = relayStateData.notes;
-        }
-        summaryHTML += createTable('Relay State', relayStateTableData);
+      const relayStateData = decodeRelayState(finalRelayState);
+      const relayStateTableData = {
+        'Raw Value': `<textarea readonly class="cert-textarea">${finalRelayState}</textarea>`,
+        'Parsed String Value': `<pre>${relayStateData.parsedStringValue}</pre>`,
+        'Full String Value': `<pre>${relayStateData.fullStringValue}</pre>`,
+        'Decoded JSON': `<pre>${relayStateData.decoded}</pre>`,
+      };
+      if (relayStateData.notes) {
+        relayStateTableData['Notes'] = relayStateData.notes;
+      }
+      summaryHTML += createTable('Relay State', relayStateTableData);
     }
-    document.getElementById('samlSummary').innerHTML = summaryHTML;
 
+    document.getElementById('samlSummary').innerHTML = summaryHTML;
   } catch (e) {
-      console.error(`Error displaying SAML Request at index ${index}:`, e);
-      alert(`An error occurred while displaying request #${index + 1}. Please check the developer console for details.`);
+    console.error(`Error displaying SAML Request at index ${index}:`, e);
+    alert(`An error occurred while displaying request #${index + 1}. Please check the developer console for details.`);
   }
 }
 
 function decodeAndFormatSAML(encodedSAML) {
   try {
     let decoded = encodedSAML;
-    try {
-      decoded = decodeURIComponent(decoded);
-    } catch (e) {}
+    try { decoded = decodeURIComponent(decoded); } catch {}
     decoded = decoded.replace(/-/g, '+').replace(/_/g, '/');
     while (decoded.length % 4 !== 0) decoded += "=";
     let base64Decoded = "";
-    try {
-      base64Decoded = atob(decoded);
-    } catch (e) {
-      base64Decoded = decoded;
-    }
+    try { base64Decoded = atob(decoded); } catch { base64Decoded = decoded; }
     return formatXML(base64Decoded);
-  } catch (err) {
+  } catch {
     return "Error decoding SAML response.";
   }
 }
 
-// CORRECTED: Restored the original, working formatXML function
 function formatXML(xml) {
   try {
-    let cleanedXml = xml.trim().replace(/ /g, ' ').replace(/(")([a-zA-Z0-9_-]+=")/g, '$1 $2');
-    let formatted = '', indent = '', tab = '    ';
+    let cleanedXml = xml.trim().replace(/\u00A0/g, ' ').replace(/(")([a-zA-Z0-9_-]+=")/g, '$1 $2');
+    let formatted = '', indent = '', tab = '  ';
     const xmlArr = cleanedXml.replace(/>\s*</g, '>\n<').split('\n');
     for (const node of xmlArr) {
       const trimmedNode = node.trim();
@@ -447,14 +435,19 @@ function formatXML(xml) {
       }
     }
     return formatted.trim();
-  } catch (e) {
+  } catch {
     return xml;
   }
 }
 
 function decodeRelayState(relayState) {
-  const defaultReturn = { decoded: relayState, notes: 'Value is likely plain text or an unknown format.', stringValue: relayState, parsedStringValue: relayState };
-  if (!relayState) return { decoded: '', notes: 'Not present.', stringValue: '', parsedStringValue: '' };
+  const defaultReturn = {
+    decoded: relayState,
+    notes: 'Value is likely plain text or an unknown format.',
+    parsedStringValue: relayState,
+    fullStringValue: relayState
+  };
+  if (!relayState) return { decoded: '', notes: 'Not present.', parsedStringValue: '', fullStringValue: '' };
 
   const processDecodedString = (decodedString) => {
     try {
@@ -467,88 +460,85 @@ function decodeRelayState(relayState) {
       for (const key in parsed) {
         expanded[COGNITO_RELAY_STATE_KEY_MAP[key] || `unknownKey_${key}`] = parsed[key];
       }
-      
+
       let finalRedirectUri = expanded.redirect_uri;
       if (expanded.cognito_domain) {
-          const domainMatch = expanded.cognito_domain.match(/^([a-f0-9-]+)/);
-          if (domainMatch && domainMatch[1]) {
-               finalRedirectUri = `https://auth.app.wiz.io/api/idp-init-callback/${domainMatch[1]}`;
-          }
+        const domainMatch = expanded.cognito_domain.match(/^([a-f0-9-]+)/);
+        if (domainMatch && domainMatch[1]) {
+          finalRedirectUri = `https://auth.app.wiz.io/api/idp-init-callback/${domainMatch[1]}`;
+        }
       }
 
       for (const key in expanded) {
-          let value = expanded[key];
-          if (key === 'scope' && Array.isArray(value)) {
-              value = value.join(' ');
-          }
-          if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-              fullStringParams.append(key, value);
-          }
+        let value = expanded[key];
+        if (key === 'scope' && Array.isArray(value)) {
+          value = value.join(' ');
+        }
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+          fullStringParams.append(key, value);
+        }
       }
-      
+
       parsedStringKeys.forEach(key => {
         if (expanded.hasOwnProperty(key)) {
-            let value = (key === 'redirect_uri') ? finalRedirectUri : expanded[key];
-            if (key === 'scope' && Array.isArray(value)) {
-                value = value.join(' ');
-            }
-            parsedStringParams.append(key, value);
+          let value = (key === 'redirect_uri') ? finalRedirectUri : expanded[key];
+          if (key === 'scope' && Array.isArray(value)) {
+            value = value.join(' ');
+          }
+          parsedStringParams.append(key, value);
         }
       });
-      
+
       if (expanded.client_metadata_b64) {
-          try {
-              expanded.client_metadata_decoded = JSON.parse(atob(expanded.client_metadata_b64));
-          } catch (e) {
-              expanded.client_metadata_decoded = "Could not decode Base64/JSON.";
-          }
+        try {
+          expanded.client_metadata_decoded = JSON.parse(atob(expanded.client_metadata_b64));
+        } catch {
+          expanded.client_metadata_decoded = "Could not decode Base64/JSON.";
+        }
       }
 
-      return { 
-          decoded: JSON.stringify(expanded, null, 2),
-          fullStringValue: decodeURIComponent(fullStringParams.toString()),
-          parsedStringValue: decodeURIComponent(parsedStringParams.toString())
+      return {
+        decoded: JSON.stringify(expanded, null, 2),
+        fullStringValue: decodeURIComponent(fullStringParams.toString()),
+        parsedStringValue: decodeURIComponent(parsedStringParams.toString())
       };
-
-    } catch (e) {
+    } catch {
       return { decoded: decodedString, fullStringValue: decodedString, parsedStringValue: 'Could not parse from JSON.' };
     }
   };
-  
+
   let mainPart = relayState.split('.')[0];
   let standardBase64 = mainPart.replace(/-/g, '+').replace(/_/g, '/');
-  while (standardBase64.length % 4) {
-      standardBase64 += '=';
-  }
+  while (standardBase64.length % 4) standardBase64 += '=';
 
   if (standardBase64.startsWith('H4sIA')) {
-      if (typeof pako === 'undefined') {
-          return { ...defaultReturn, notes: 'Value appears to be GZIP compressed. Include Pako.js library to decode.' };
-      }
-      try {
-          const binaryData = Uint8Array.from(atob(standardBase64), c => c.charCodeAt(0));
-          const inflated = pako.inflate(binaryData, { to: 'string' });
-          return { ...processDecodedString(inflated), notes: null };
-      } catch(e) {
-          console.error("GZIP Decode Error:", e);
-          return { ...defaultReturn, notes: `Error during GZIP decode: ${e.message}` };
-      }
+    if (typeof pako === 'undefined') {
+      return { ...defaultReturn, notes: 'Value appears to be GZIP compressed. Include Pako.js library to decode.' };
+    }
+    try {
+      const binaryData = Uint8Array.from(atob(standardBase64), c => c.charCodeAt(0));
+      const inflated = pako.inflate(binaryData, { to: 'string' });
+      return { ...processDecodedString(inflated), notes: null };
+    } catch(e) {
+      console.error("GZIP Decode Error:", e);
+      return { ...defaultReturn, notes: `Error during GZIP decode: ${e.message}` };
+    }
   }
-  
-  try {
-      const decoded = atob(standardBase64);
-      if (/^[\x20-\x7E\r\n\t]*$/.test(decoded)) {
-           return { ...processDecodedString(decoded), notes: null };
-      }
-  } catch(e) {}
 
   try {
-      const decoded = decodeURIComponent(relayState);
-      if (decoded !== relayState) {
-          return { ...processDecodedString(decoded), notes: null };
-      }
-  } catch(e) {}
-  
+    const decoded = atob(standardBase64);
+    if (/^[\x20-\x7E\r\n\t]*$/.test(decoded)) {
+      return { ...processDecodedString(decoded), notes: null };
+    }
+  } catch {}
+
+  try {
+    const decoded = decodeURIComponent(relayState);
+    if (decoded !== relayState) {
+      return { ...processDecodedString(decoded), notes: null };
+    }
+  } catch {}
+
   return defaultReturn;
 }
 
