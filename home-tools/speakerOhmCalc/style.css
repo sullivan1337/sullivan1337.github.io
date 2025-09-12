@@ -1,0 +1,377 @@
+/*
+ * --------------------------------------------------------------------------
+ * Root Variables & Global Styles
+ * --------------------------------------------------------------------------
+ */
+:root {
+    --primary-color: #005A9C;
+    --secondary-color: #6c757d;
+    --series-color: #2a9d8f;
+    --parallel-color: #e76f51;
+    --bg-color: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #212529;
+    --light-text: #6c757d;
+    --border-color: #dee2e6;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --border-radius: 8px;
+    --positive-wire: #d90429;
+    --negative-wire: #212529;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 2rem;
+    min-height: 100vh;
+    user-select: none;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Main Layout & Typography
+ * --------------------------------------------------------------------------
+ */
+.main-container {
+    display: grid;
+    grid-template-columns: minmax(350px, 0.5fr) 1fr;
+    gap: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.controls-pane {
+    position: sticky;
+    top: 2rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+}
+
+.step-number {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.intro {
+    text-align: center;
+    color: var(--light-text);
+    font-size: 1rem;
+    margin: 0 auto 1.5rem;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Card, Inputs & Buttons
+ * --------------------------------------------------------------------------
+ */
+.card {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.input-field {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--light-text);
+    font-size: 0.9rem;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn.btn-secondary {
+    background-color: var(--secondary-color);
+}
+
+.btn:hover:not(:disabled) {
+    opacity: 0.85;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Workspace Pane: Unassigned & Zones
+ * --------------------------------------------------------------------------
+ */
+.unassigned-speakers-container {
+    padding-bottom: 0.5rem;
+}
+.speaker-holder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 80px;
+    padding-top: 10px;
+}
+.placeholder-text {
+    color: var(--light-text);
+    padding: 1rem;
+}
+.zones-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Amplifier Zone Styling
+ * --------------------------------------------------------------------------
+ */
+.amp-zone {
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #fff;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.amp-zone.drag-over {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(0, 90, 156, 0.2);
+}
+
+.zone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--bg-color);
+    border-bottom: 2px solid var(--border-color);
+}
+.zone-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+.zone-remove-btn {
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+.zone-remove-btn:hover {
+    color: var(--positive-wire);
+}
+
+.zone-workspace {
+    position: relative;
+    flex-grow: 1;
+    padding: 1rem;
+}
+.zone-workspace .speaker-holder {
+    min-height: 150px;
+}
+.zone-wiring-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.zone-controls {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+.zone-controls .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem;
+}
+.btn.series { background-color: var(--series-color); }
+.btn.parallel { background-color: var(--parallel-color); }
+
+.zone-results {
+    padding: 1rem 1.5rem;
+    background-color: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.result-item strong {
+    font-size: 1.5rem;
+    display: block;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Speaker Component Styling
+ * --------------------------------------------------------------------------
+ */
+.speaker {
+    width: 90px;
+    height: 70px;
+    border: 2px solid var(--secondary-color);
+    border-radius: 6px;
+    background-color: #fff;
+    cursor: grab;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    padding: 5px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.speaker.dragging {
+    cursor: grabbing;
+    opacity: 0.7;
+    z-index: 1000;
+    transform: scale(1.05);
+    position: absolute; /* Detach from flow */
+}
+
+.speaker-remove-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--positive-wire);
+    color: white;
+    border-radius: 50%;
+    border: 1px solid white;
+    cursor: pointer;
+    font-weight: bold;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+.speaker:hover .speaker-remove-btn {
+    display: flex;
+}
+
+/*
+ * --------------------------------------------------------------------------
+ * Power Matching Card
+ * --------------------------------------------------------------------------
+ */
+.power-card.hidden {
+    display: none;
+}
+.power-match-input-area {
+    margin-bottom: 1.5rem;
+}
+.power-match-results-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    text-align: center;
+    background: var(--bg-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+}
+.power-match-item p {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    color: var(--light-text);
+}
+.power-match-item strong {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+.note {
+    font-size: 0.85rem;
+    margin-top: 1rem;
+    color: var(--light-text);
+    line-height: 1.5;
+}
+
+
+/*
+ * --------------------------------------------------------------------------
+ * Responsive Design
+ * --------------------------------------------------------------------------
+ */
+@media (max-width: 992px) {
+    body { padding: 1rem; }
+    .main-container {
+        grid-template-columns: 1fr;
+    }
+    .controls-pane {
+        position: static;
+    }
+}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Speaker Zone Planner</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- Controls Column -->
+        <div class="controls-pane">
+            <header>
+                <h1>Speaker Zone Planner</h1>
+                <p class="intro">Add speakers, create amplifier zones, then drag speakers into zones to calculate the load for each.</p>
+            </header>
+
+            <div class="card">
+                <h2><span class="step-number">1</span>Add Speakers</h2>
+                <div class="input-group">
+                    <div class="input-field">
+                        <label for="speaker-impedance">Impedance ($\Omega$)</label>
+                        <input type="number" id="speaker-impedance" min="1" step="1" value="8">
+                    </div>
+                    <div class="input-field">
+                        <label for="speaker-power">Power (Watts RMS)</label>
+                        <input type="number" id="speaker-power" min="1" value="50">
+                    </div>
+                </div>
+                <button id="add-speaker-btn" class="btn">Add Speaker</button>
+            </div>
+            
+            <div class="card">
+                <h2><span class="step-number">2</span>Manage Zones</h2>
+                <button id="add-zone-btn" class="btn btn-secondary">Add New Amplifier Zone</button>
+            </div>
+
+            <div id="power-matching-card" class="card power-card hidden">
+                 <h2><span class="step-number">★</span>Power Matching</h2>
+                 <p>For <strong id="power-match-zone-name"></strong> with its calculated load of <strong id="power-match-impedance"></strong>:</p>
+                 
+                 <div class="power-match-input-area">
+                    <label for="amp-power">Enter Amp Power (RMS) @ 8 Ω</label>
+                    <input type="number" id="amp-power" placeholder="e.g., 100">
+                 </div>
+
+                 <div class="power-match-results-area">
+                    <div class="power-match-item">
+                        <p>Estimated Power Delivered:</p>
+                        <strong id="estimated-power-delivered">- W</strong>
+                    </div>
+                     <div class="power-match-item">
+                        <p>Recommended Speaker Power:</p>
+                        <strong id="recommended-speaker-power">- W</strong>
+                    </div>
+                 </div>
+
+                 <p class="note"><strong>How this works:</strong> Power delivered changes with impedance. This calculates the actual power your amp will likely send to the zone's specific load. The recommendation is 1.5x this delivered power.</p>
+            </div>
+        </div>
+
+        <!-- Main Workspace Column -->
+        <div class="workspace-pane">
+            <div class="unassigned-speakers-container card" id="unassigned-speakers-area">
+                <h2><span class="step-number">3</span>Unassigned Speakers (Drag these into zones)</h2>
+                <div class="speaker-holder" id="unassigned-speaker-holder">
+                    <p class="placeholder-text">Add speakers using the panel on the left.</p>
+                </div>
+            </div>
+
+            <div class="zones-container" id="zones-area">
+                <!-- Amplifier Zones will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
