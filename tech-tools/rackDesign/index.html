@@ -4,32 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Rack Designer</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="dark-mode">
-    <div class="dark-mode-toggle">
-        <label class="switch">
-            <input type="checkbox" id="darkModeToggle" checked>
-            <span class="slider round"></span>
-        </label>
-    </div>
-    <div class="container">
-        <div class="tools">
-            <h2>Server Rack Designer</h2>
-            <div>
-                Total Rack Units:
-                <input type="number" id="totalUnits" value="16" min="1" max="100">
+    <header class="top-header">
+        <h1 class="app-title">Server Rack Designer</h1>
+        <div class="header-actions">
+            <button id="exportBtn" class="header-btn">📥 Export</button>
+            <button id="importBtn" class="header-btn">📤 Import</button>
+            <div class="dark-mode-toggle">
+                <span class="toggle-label">🌙</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle" checked>
+                    <span class="slider round"></span>
+                </label>
+                <span class="toggle-label">☀️</span>
             </div>
-            <div id="rackItems">
-                <div class="rack-item" draggable="true" data-size="1">1U Item</div>
-                <div class="rack-item" draggable="true" data-size="2">2U Item</div>
-                <div class="rack-item" draggable="true" data-size="3">3U Item</div>
-                <div class="rack-item" draggable="true" data-size="4">4U Item</div>
-            </div>
-            <p>(Click to rename item after placed in rack)</p>
         </div>
-        <div id="rack"></div>
+    </header>
+    <div class="main-wrapper">
+        <div class="container">
+            <div class="tools">
+                <div>
+                    <label for="totalUnits">Total Rack Units:</label>
+                    <input type="number" id="totalUnits" value="16" min="1" max="100">
+                </div>
+                <div id="rackItems">
+                    <div class="rack-item" draggable="true" data-size="1">1U Item</div>
+                    <div class="rack-item" draggable="true" data-size="2">2U Item</div>
+                    <div class="rack-item" draggable="true" data-size="3">3U Item</div>
+                    <div class="rack-item" draggable="true" data-size="4">4U Item</div>
+                </div>
+                <p class="hint">(Click to rename item after placed in rack)</p>
+            </div>
+            <div class="rack-container">
+                <div id="projectNameDisplay" class="project-name-display" title="Click to rename">Untitled Rack</div>
+                <div id="rack"></div>
+            </div>
+        </div>
     </div>
+
+    <!-- JSON Import/Export Modal -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Export JSON</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="jsonTextarea" placeholder="Paste JSON here or copy from above..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="modalCopyBtn" class="action-btn">📋 Copy</button>
+                <button id="modalImportBtn" class="action-btn">Import</button>
+                <button id="modalCloseBtn" class="action-btn secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Icon Picker Modal -->
+    <div id="iconModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Icon</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="icon-search">
+                    <input type="text" id="iconSearchInput" placeholder="Search Google Material Icons...">
+                    <button id="iconUrlBtn" class="action-btn">Use URL</button>
+                </div>
+                <div class="icon-favorites-section">
+                    <h4>Favorites</h4>
+                    <div class="icon-favorites" id="iconFavorites">
+                        <!-- Favorite icons will be populated here -->
+                    </div>
+                </div>
+                <div class="icon-grid-section">
+                    <h4>All Icons</h4>
+                    <div class="icon-grid" id="iconGrid">
+                        <!-- Icons will be populated here -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="iconModalCloseBtn" class="action-btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
