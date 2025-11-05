@@ -13,6 +13,7 @@
         <div class="header-actions">
             <button id="exportBtn" class="header-btn">📥 Export</button>
             <button id="importBtn" class="header-btn">📤 Import</button>
+            <button id="resetBtn" class="header-btn">🔄 Reset</button>
             <div class="dark-mode-toggle">
                 <span class="toggle-label">🌙</span>
                 <label class="switch">
@@ -26,15 +27,24 @@
     <div class="main-wrapper">
         <div class="container">
             <div class="tools">
-                <div>
+                <div class="config-input">
                     <label for="totalUnits">Total Rack Units:</label>
-                    <input type="number" id="totalUnits" value="16" min="1" max="100">
+                    <input type="number" id="totalUnits" value="24" min="1" max="100">
                 </div>
+                <div class="config-input">
+                    <label for="rackWidth">Rack Width:</label>
+                    <input type="number" id="rackWidth" value="300" min="200" max="1000" step="10">
+                </div>
+                <p class="hint" style="margin-top: -10px; margin-bottom: 0;">(for visual purposes only)</p>
                 <div id="rackItems">
                     <div class="rack-item" draggable="true" data-size="1">1U Item</div>
                     <div class="rack-item" draggable="true" data-size="2">2U Item</div>
                     <div class="rack-item" draggable="true" data-size="3">3U Item</div>
                     <div class="rack-item" draggable="true" data-size="4">4U Item</div>
+                    <div class="rack-item" draggable="true" data-size="5">5U Item</div>
+                    <div class="rack-item" draggable="true" data-size="6">6U Item</div>
+                    <div class="rack-item" draggable="true" data-size="7">7U Item</div>
+                    <div class="rack-item" draggable="true" data-size="8">8U Item</div>
                 </div>
                 <p class="hint">(Click to rename item after placed in rack)</p>
             </div>
@@ -59,6 +69,98 @@
                 <button id="modalCopyBtn" class="action-btn">📋 Copy</button>
                 <button id="modalImportBtn" class="action-btn">Import</button>
                 <button id="modalCloseBtn" class="action-btn secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirm Action</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmYesBtn" class="action-btn">Yes</button>
+                <button id="confirmNoBtn" class="action-btn secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Item Hover Popup -->
+    <div id="itemHoverPopup" class="item-hover-popup">
+        <div class="popup-header">
+            <div class="popup-icon-container">
+                <div id="popupIconDisplay" class="popup-icon-display">
+                    <span class="material-symbols-rounded">image</span>
+                </div>
+                <button id="popupIconChangeBtn" class="popup-icon-change-btn" title="Change icon">✏️</button>
+            </div>
+            <input type="text" id="popupNameInput" class="popup-name-input" placeholder="Item Name">
+        </div>
+        <div class="popup-body">
+            <div class="popup-field">
+                <span class="popup-label">Manufacturer:</span>
+                <input type="text" id="popupMfgInput" class="popup-input" placeholder="Enter manufacturer">
+            </div>
+            <div class="popup-field">
+                <span class="popup-label">Model/Part No:</span>
+                <input type="text" id="popupModelInput" class="popup-input" placeholder="Enter model/part number">
+            </div>
+            <div class="popup-field">
+                <span class="popup-label">Cost:</span>
+                <input type="text" id="popupCostInput" class="popup-input" placeholder="$0.00">
+            </div>
+            <div class="popup-field">
+                <span class="popup-label">Description:</span>
+                <textarea id="popupDescriptionInput" class="popup-input popup-textarea" placeholder="Enter description" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="popup-footer">
+            <button id="popupSaveBtn" class="popup-btn popup-btn-primary">Save</button>
+        </div>
+    </div>
+
+    <!-- Item Info Modal -->
+    <div id="itemInfoModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Item Information</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-form">
+                    <div class="form-group">
+                        <label for="infoName">Name:</label>
+                        <input type="text" id="infoName" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="infoMfg">Manufacturer:</label>
+                        <input type="text" id="infoMfg" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="infoModel">Model/Part No:</label>
+                        <input type="text" id="infoModel" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="infoCost">Cost:</label>
+                        <input type="text" id="infoCost" class="form-input" placeholder="$0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="infoDescription">Description:</label>
+                        <textarea id="infoDescription" class="form-input" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="itemInfoSaveBtn" class="action-btn">Save</button>
+                <button id="itemInfoCancelBtn" class="action-btn secondary">Cancel</button>
             </div>
         </div>
     </div>

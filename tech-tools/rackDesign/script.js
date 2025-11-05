@@ -5,6 +5,7 @@ const darkModeToggle = document.getElementById('darkModeToggle');
 const projectNameDisplay = document.getElementById('projectNameDisplay');
 const exportBtn = document.getElementById('exportBtn');
 const importBtn = document.getElementById('importBtn');
+const resetBtn = document.getElementById('resetBtn');
 const jsonModal = document.getElementById('jsonModal');
 const jsonTextarea = document.getElementById('jsonTextarea');
 const modalTitle = document.getElementById('modalTitle');
@@ -16,6 +17,33 @@ const iconGrid = document.getElementById('iconGrid');
 const iconSearchInput = document.getElementById('iconSearchInput');
 const iconUrlBtn = document.getElementById('iconUrlBtn');
 const iconFavorites = document.getElementById('iconFavorites');
+const rackWidthInput = document.getElementById('rackWidth');
+const confirmModal = document.getElementById('confirmModal');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmYesBtn = document.getElementById('confirmYesBtn');
+const confirmNoBtn = document.getElementById('confirmNoBtn');
+const toastContainer = document.getElementById('toastContainer');
+const itemInfoModal = document.getElementById('itemInfoModal');
+const infoNameInput = document.getElementById('infoName');
+const infoMfgInput = document.getElementById('infoMfg');
+const infoModelInput = document.getElementById('infoModel');
+const infoCostInput = document.getElementById('infoCost');
+const infoDescriptionInput = document.getElementById('infoDescription');
+const itemInfoSaveBtn = document.getElementById('itemInfoSaveBtn');
+const itemInfoCancelBtn = document.getElementById('itemInfoCancelBtn');
+const itemHoverPopup = document.getElementById('itemHoverPopup');
+const popupNameInput = document.getElementById('popupNameInput');
+const popupMfgInput = document.getElementById('popupMfgInput');
+const popupModelInput = document.getElementById('popupModelInput');
+const popupCostInput = document.getElementById('popupCostInput');
+const popupDescriptionInput = document.getElementById('popupDescriptionInput');
+const popupSaveBtn = document.getElementById('popupSaveBtn');
+const popupIconDisplay = document.getElementById('popupIconDisplay');
+const popupIconChangeBtn = document.getElementById('popupIconChangeBtn');
+
+let currentInfoItem = null;
+let hoverTimeout = null;
+let currentHoverItem = null;
 
 let draggedItemSize = 0;
 let draggedItem = null;
@@ -227,7 +255,7 @@ function closeModal(modal) {
 }
 
 // Close modals on backdrop click
-[jsonModal, iconModal].forEach(modal => {
+[jsonModal, iconModal, confirmModal, itemInfoModal].forEach(modal => {
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closeModal(modal);
@@ -235,11 +263,78 @@ function closeModal(modal) {
     });
 });
 
+// Toast notification function
+function showToast(message, type = 'info', duration = 3000) {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'toast-message';
+    messageSpan.textContent = message;
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => {
+        removeToast(toast);
+    });
+    
+    toast.appendChild(messageSpan);
+    toast.appendChild(closeBtn);
+    toastContainer.appendChild(toast);
+    
+    if (duration > 0) {
+        setTimeout(() => {
+            removeToast(toast);
+        }, duration);
+    }
+    
+    return toast;
+}
+
+function removeToast(toast) {
+    toast.classList.add('fade-out');
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 300);
+}
+
+// Confirmation dialog function
+function showConfirm(message) {
+    return new Promise((resolve) => {
+        confirmMessage.textContent = message;
+        openModal(confirmModal);
+        
+        const handleYes = () => {
+            closeModal(confirmModal);
+            confirmYesBtn.removeEventListener('click', handleYes);
+            confirmNoBtn.removeEventListener('click', handleNo);
+            confirmModal.querySelector('.modal-close').removeEventListener('click', handleNo);
+            resolve(true);
+        };
+        
+        const handleNo = () => {
+            closeModal(confirmModal);
+            confirmYesBtn.removeEventListener('click', handleYes);
+            confirmNoBtn.removeEventListener('click', handleNo);
+            confirmModal.querySelector('.modal-close').removeEventListener('click', handleNo);
+            resolve(false);
+        };
+        
+        confirmYesBtn.addEventListener('click', handleYes);
+        confirmNoBtn.addEventListener('click', handleNo);
+        confirmModal.querySelector('.modal-close').addEventListener('click', handleNo);
+    });
+}
+
 // JSON Export functionality
 exportBtn.addEventListener('click', () => {
     const rackData = {
         projectName: projectNameDisplay.textContent || 'Untitled Rack',
         totalUnits: parseInt(totalUnitsInput.value),
+        width: parseInt(rackWidthInput.value),
         items: []
     };
 
@@ -258,11 +353,16 @@ exportBtn.addEventListener('click', () => {
                 iconData = { type: 'material', value: icon.textContent };
             }
         }
+        const metadata = item.dataset.metadata ? JSON.parse(item.dataset.metadata) : {};
         rackData.items.push({
             unit: parseInt(item.dataset.unit),
             size: parseInt(item.dataset.size),
             name: item.querySelector('.item-name').textContent,
-            icon: iconData
+            icon: iconData,
+            mfg: metadata.mfg || '',
+            model: metadata.model || '',
+            cost: metadata.cost || '',
+            description: metadata.description || ''
         });
     });
 
@@ -284,7 +384,7 @@ modalCopyBtn.addEventListener('click', async () => {
             modalCopyBtn.textContent = originalText;
         }, 2000);
     } catch (err) {
-        alert('Failed to copy to clipboard');
+        showToast('Failed to copy to clipboard', 'error');
     }
 });
 
@@ -311,6 +411,11 @@ modalImportBtn.addEventListener('click', () => {
             updateRack();
         }
         
+        if (rackData.width) {
+            rackWidthInput.value = rackData.width;
+            updateRackWidth();
+        }
+        
         // Clear existing items
         rack.querySelectorAll('.rack-item-placed').forEach(item => {
             const startUnit = parseInt(item.dataset.unit);
@@ -327,20 +432,59 @@ modalImportBtn.addEventListener('click', () => {
                 if (typeof iconData === 'string') {
                     iconData = { type: 'url', value: iconData };
                 }
-                placeItem(itemData.unit, itemData.size, itemData.name || `${itemData.size}U Item`, iconData);
+                const item = placeItem(itemData.unit, itemData.size, itemData.name || `${itemData.size}U Item`, iconData);
+                
+                // Restore metadata if present
+                if (itemData.mfg || itemData.model || itemData.cost || itemData.description) {
+                    const metadata = {
+                        mfg: itemData.mfg || '',
+                        model: itemData.model || '',
+                        cost: itemData.cost || '',
+                        description: itemData.description || ''
+                    };
+                    item.dataset.metadata = JSON.stringify(metadata);
+                }
             });
         }
         
         closeModal(jsonModal);
-        alert('Rack imported successfully!');
+        showToast('Rack imported successfully!', 'success');
     } catch (err) {
-        alert('Invalid JSON format. Please check your data.');
+        showToast('Invalid JSON format. Please check your data.', 'error');
         console.error(err);
     }
 });
 
 modalCloseBtn.addEventListener('click', () => closeModal(jsonModal));
 jsonModal.querySelector('.modal-close').addEventListener('click', () => closeModal(jsonModal));
+
+// Reset functionality
+resetBtn.addEventListener('click', async () => {
+    const confirmed = await showConfirm('Are you sure you want to reset? This will clear all items and reset all settings to defaults.');
+    if (confirmed) {
+        // Clear all placed items
+        rack.querySelectorAll('.rack-item-placed').forEach(item => {
+            const startUnit = parseInt(item.dataset.unit);
+            const size = parseInt(item.dataset.size);
+            freeSpaces(startUnit, size);
+            item.remove();
+        });
+        
+        // Reset project name
+        projectNameDisplay.textContent = 'Untitled Rack';
+        localStorage.removeItem('projectName');
+        
+        // Reset total units
+        totalUnitsInput.value = 24;
+        updateRack();
+        
+        // Reset width
+        rackWidthInput.value = 300;
+        updateRackWidth();
+        
+        showToast('Rack reset successfully', 'success');
+    }
+});
 
 // Icon picker functionality
 function openIconPicker(item) {
@@ -397,7 +541,7 @@ iconUrlBtn.addEventListener('click', () => {
     if (url && (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))) {
         selectIcon(url, 'url');
     } else {
-        alert('Please enter a valid URL (http://, https://, or data:)');
+        showToast('Please enter a valid URL (http://, https://, or data:)', 'error');
     }
 });
 
@@ -438,6 +582,11 @@ function selectIcon(iconValue, iconType = 'material') {
             e.stopPropagation();
             openIconPicker(currentIconSelectItem);
         });
+        
+        // Update popup icon if popup is open for this item
+        if (currentHoverItem === currentIconSelectItem && itemHoverPopup.classList.contains('visible')) {
+            updatePopupIcon(currentIconSelectItem);
+        }
     }
     closeModal(iconModal);
     currentIconSelectItem = null;
@@ -508,6 +657,15 @@ function updateRack() {
 
 totalUnitsInput.addEventListener('change', updateRack);
 
+// Width control
+rackWidthInput.addEventListener('change', () => {
+    updateRackWidth();
+});
+
+rackWidthInput.addEventListener('input', () => {
+    updateRackWidth();
+});
+
 rackItems.addEventListener('dragstart', dragStart);
 rackItems.addEventListener('touchstart', touchStart, { passive: false });
 
@@ -519,6 +677,7 @@ document.addEventListener('touchend', touchEnd);
 
 function dragStart(e) {
     if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
+        hideHoverPopup(); // Hide popup when dragging starts
         draggedItem = e.target;
         draggedItemSize = parseInt(e.target.dataset.size);
         e.dataTransfer.setData('text/plain', JSON.stringify({
@@ -532,6 +691,7 @@ function dragStart(e) {
 function touchStart(e) {
     if (e.target.classList.contains('rack-item') || e.target.classList.contains('rack-item-placed')) {
         e.preventDefault();
+        hideHoverPopup(); // Hide popup when touch drag starts
         draggedItem = e.target;
         draggedItemSize = parseInt(e.target.dataset.size);
         touchStartY = e.touches[0].clientY;
@@ -614,7 +774,7 @@ function handleDrop(targetSpace) {
             moveItem(parseInt(draggedItem.dataset.unit), targetUnit, draggedItemSize);
         }
     } else {
-        alert('Not enough space to place this item here.');
+        showToast('Not enough space to place this item here.', 'warning');
     }
     draggedItemSize = 0;
     draggedItem = null;
@@ -658,6 +818,7 @@ function placeItem(targetUnit, size, name, iconData = null) {
     firstSpace.parentNode.insertBefore(item, firstSpace);
     occupySpaces(targetUnit, size);
     updateRackWidth();
+    return item;
 }
 
 function moveItem(oldUnit, newUnit, size) {
@@ -747,11 +908,56 @@ function createRackItem(unit, size, name, iconData = null) {
         item.insertBefore(iconPlaceholder, content);
     }
     
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-item';
-    removeBtn.textContent = '×';
-    removeBtn.addEventListener('click', removeItem);
-    item.appendChild(removeBtn);
+    // Create menu button with dropdown
+    const menuBtn = document.createElement('button');
+    menuBtn.className = 'item-menu-btn';
+    menuBtn.innerHTML = '⋮';
+    menuBtn.title = 'Menu';
+    
+    const menuDropdown = document.createElement('div');
+    menuDropdown.className = 'item-menu-dropdown';
+    menuDropdown.innerHTML = `
+        <button class="menu-item" data-action="info">ℹ️ Info</button>
+        <button class="menu-item" data-action="delete">🗑️ Delete</button>
+    `;
+    
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hideHoverPopup(); // Hide popup when menu is clicked
+        // Close other menus
+        document.querySelectorAll('.item-menu-dropdown.active').forEach(dropdown => {
+            if (dropdown !== menuDropdown) {
+                dropdown.classList.remove('active');
+            }
+        });
+        menuDropdown.classList.toggle('active');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menuBtn.contains(e.target) && !menuDropdown.contains(e.target)) {
+            menuDropdown.classList.remove('active');
+        }
+    });
+    
+    menuDropdown.querySelectorAll('.menu-item').forEach(menuItem => {
+        menuItem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const action = menuItem.dataset.action;
+            if (action === 'delete') {
+                removeItem(e, item);
+            } else if (action === 'info') {
+                openItemInfo(item);
+            }
+            menuDropdown.classList.remove('active');
+        });
+    });
+    
+    const menuContainer = document.createElement('div');
+    menuContainer.className = 'item-menu-container';
+    menuContainer.appendChild(menuBtn);
+    menuContainer.appendChild(menuDropdown);
+    item.appendChild(menuContainer);
     
     item.draggable = true;
     item.dataset.unit = unit;
@@ -760,41 +966,265 @@ function createRackItem(unit, size, name, iconData = null) {
         startInlineEdit(nameSpan, item);
     });
     
+    // Add click handler to open popup immediately (except on icon, name, or menu)
+    item.addEventListener('click', (e) => {
+        const target = e.target;
+        // Don't trigger if clicking on icon, name, or menu
+        if (target.closest('.rack-item-icon') || 
+            target.closest('.item-name') || 
+            target.closest('.item-menu-container')) {
+            return;
+        }
+        // Open popup immediately on click
+        e.stopPropagation();
+        showHoverPopupImmediate(item, e);
+    });
+    
+    // Add hover event listeners for popup - works anywhere on the item
+    item.addEventListener('mouseenter', (e) => {
+        // Works anywhere on the item - 1 second delay prevents accidental triggers
+        showHoverPopup(item, e);
+    });
+    
+    item.addEventListener('mouseleave', (e) => {
+        // Check if mouse is moving to popup
+        const relatedTarget = e.relatedTarget;
+        if (relatedTarget && itemHoverPopup.contains(relatedTarget)) {
+            // Mouse is moving to popup, keep it visible
+            return;
+        }
+        // Only hide if we're actually leaving the item (not just moving to a child)
+        if (!item.contains(relatedTarget)) {
+            setTimeout(() => {
+                if (!itemHoverPopup.matches(':hover') && !item.matches(':hover')) {
+                    hideHoverPopup();
+                }
+            }, 100);
+        }
+    });
+    
+    item.addEventListener('mousemove', (e) => {
+        // Update position if popup is visible
+        if (itemHoverPopup.classList.contains('visible')) {
+            updatePopupPosition(item, e);
+        }
+    });
+    
     return item;
 }
 
-function updateRackWidth() {
-    let maxWidth = 200;
+function showHoverPopup(item, event) {
+    // Clear any existing timeout
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+    }
     
-    // Measure all placed items to find the widest one
-    rack.querySelectorAll('.rack-item-placed').forEach(item => {
-        // Temporarily make item visible to measure its content width
-        const originalDisplay = item.style.display;
-        const originalWidth = item.style.width;
-        item.style.display = 'flex';
-        item.style.width = 'auto';
-        
-        // Measure the actual content width
-        const contentWidth = item.scrollWidth || item.offsetWidth;
-        if (contentWidth > maxWidth) {
-            maxWidth = contentWidth;
+    // 1 second delay before showing to prevent accidental triggers
+    hoverTimeout = setTimeout(() => {
+        // Double-check that we're still hovering over the item
+        if (!item.matches(':hover') && !item.contains(document.elementFromPoint(event.clientX, event.clientY))) {
+            return;
         }
-        
-        // Restore original styles
-        item.style.display = originalDisplay || '';
-        item.style.width = originalWidth || '';
+        showHoverPopupImmediate(item, event);
+    }, 1000);
+}
+
+function showHoverPopupImmediate(item, event) {
+    currentHoverItem = item;
+    const name = item.querySelector('.item-name').textContent;
+    const metadata = item.dataset.metadata ? JSON.parse(item.dataset.metadata) : {};
+    
+    // Populate all fields (always show all fields)
+    popupNameInput.value = name;
+    popupMfgInput.value = metadata.mfg || '';
+    popupModelInput.value = metadata.model || '';
+    popupCostInput.value = metadata.cost || '';
+    popupDescriptionInput.value = metadata.description || '';
+    
+    // Update icon display
+    updatePopupIcon(item);
+    
+    // Position and show popup
+    updatePopupPosition(item, event);
+    itemHoverPopup.classList.add('visible');
+}
+
+function updatePopupIcon(item) {
+    const iconElement = item.querySelector('.rack-item-icon');
+    popupIconDisplay.innerHTML = ''; // Clear existing content
+    
+    if (iconElement) {
+        if (iconElement.dataset.iconType === 'material') {
+            const iconValue = iconElement.dataset.iconValue || iconElement.textContent;
+            const span = document.createElement('span');
+            span.className = 'material-symbols-rounded';
+            span.textContent = iconValue;
+            span.style.fontSize = '32px';
+            popupIconDisplay.appendChild(span);
+        } else if (iconElement.dataset.iconType === 'url') {
+            const img = iconElement.querySelector('img');
+            if (img) {
+                const newImg = document.createElement('img');
+                newImg.src = img.src;
+                newImg.alt = 'Icon';
+                newImg.style.width = '32px';
+                newImg.style.height = '32px';
+                newImg.style.objectFit = 'contain';
+                popupIconDisplay.appendChild(newImg);
+            }
+        } else if (iconElement.querySelector('img')) {
+            // Legacy support
+            const img = iconElement.querySelector('img');
+            const newImg = document.createElement('img');
+            newImg.src = img.src;
+            newImg.alt = 'Icon';
+            newImg.style.width = '32px';
+            newImg.style.height = '32px';
+            newImg.style.objectFit = 'contain';
+            popupIconDisplay.appendChild(newImg);
+        } else {
+            // Default icon
+            const span = document.createElement('span');
+            span.className = 'material-symbols-rounded';
+            span.textContent = 'image';
+            span.style.fontSize = '32px';
+            span.style.opacity = '0.5';
+            popupIconDisplay.appendChild(span);
+        }
+    } else {
+        // No icon - show placeholder
+        const span = document.createElement('span');
+        span.className = 'material-symbols-rounded';
+        span.textContent = 'image';
+        span.style.fontSize = '32px';
+        span.style.opacity = '0.5';
+        popupIconDisplay.appendChild(span);
+    }
+}
+
+function updatePopupPosition(item, event) {
+    const rect = item.getBoundingClientRect();
+    const popupRect = itemHoverPopup.getBoundingClientRect();
+    const scrollX = window.scrollX || window.pageXOffset;
+    const scrollY = window.scrollY || window.pageYOffset;
+    
+    // Position to the right of the item
+    let left = rect.right + 10;
+    let top = rect.top;
+    
+    // Check if popup would go off screen to the right
+    if (left + popupRect.width > window.innerWidth) {
+        // Position to the left instead
+        left = rect.left - popupRect.width - 10;
+    }
+    
+    // Check if popup would go off screen at the bottom
+    if (top + popupRect.height > window.innerHeight) {
+        top = window.innerHeight - popupRect.height - 10;
+    }
+    
+    // Check if popup would go off screen at the top
+    if (top < 0) {
+        top = 10;
+    }
+    
+    itemHoverPopup.style.left = `${left + scrollX}px`;
+    itemHoverPopup.style.top = `${top + scrollY}px`;
+}
+
+function hideHoverPopup() {
+    if (hoverTimeout) {
+        clearTimeout(hoverTimeout);
+        hoverTimeout = null;
+    }
+    itemHoverPopup.classList.remove('visible');
+    currentHoverItem = null;
+    // Clear hover tracking - will be reset when hovering again
+}
+
+function savePopupData(showNotification = false) {
+    if (!currentHoverItem) return;
+    
+    // Update name
+    const nameSpan = currentHoverItem.querySelector('.item-name');
+    const newName = popupNameInput.value.trim();
+    if (newName) {
+        nameSpan.textContent = newName;
+    }
+    
+    // Save metadata
+    const metadata = {
+        mfg: popupMfgInput.value.trim(),
+        model: popupModelInput.value.trim(),
+        cost: popupCostInput.value.trim(),
+        description: popupDescriptionInput.value.trim()
+    };
+    
+    currentHoverItem.dataset.metadata = JSON.stringify(metadata);
+    
+    if (showNotification) {
+        showToast('Item information saved', 'success');
+    }
+}
+
+// Popup save button
+popupSaveBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    savePopupData(true); // Show notification on manual save
+});
+
+// Icon change button in popup
+popupIconChangeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (currentHoverItem) {
+        openIconPicker(currentHoverItem);
+    }
+});
+
+// Keep popup visible when hovering over it
+itemHoverPopup.addEventListener('mouseenter', () => {
+    // Keep popup visible
+});
+
+itemHoverPopup.addEventListener('mouseleave', () => {
+    // Hide popup when mouse leaves both item and popup
+    setTimeout(() => {
+        if (!currentHoverItem || !currentHoverItem.matches(':hover')) {
+            hideHoverPopup();
+        }
+    }, 100);
+});
+
+// Auto-save on blur for all inputs
+[popupNameInput, popupMfgInput, popupModelInput, popupCostInput, popupDescriptionInput].forEach(input => {
+    input.addEventListener('blur', () => {
+        if (currentHoverItem) {
+            savePopupData();
+        }
     });
     
-    // Calculate the final width (content + padding, capped at 600px)
-    // Rack has 10px padding on each side, so we add 20px total
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !(input instanceof HTMLTextAreaElement)) {
+            e.preventDefault();
+            input.blur();
+        }
+    });
+});
+
+function updateRackWidth() {
+    const width = parseInt(rackWidthInput.value) || 300;
+    applyRackWidth(width);
+}
+
+function applyRackWidth(width) {
     const rackPadding = 20; // 10px left + 10px right
-    const finalWidth = Math.min(maxWidth + rackPadding, 600);
+    const finalWidth = Math.min(width, 1000); // Cap at 1000px
+    const spaceWidth = finalWidth - rackPadding; // Spaces are inside the padding
     
     // Set the rack width (this will be the container width)
     rack.style.width = finalWidth + 'px';
     
     // Set all rack spaces to match the rack width (accounting for rack padding)
-    const spaceWidth = finalWidth - rackPadding; // Spaces are inside the padding
     rack.querySelectorAll('.rack-space').forEach(space => {
         space.style.width = spaceWidth + 'px';
         space.style.minWidth = spaceWidth + 'px';
@@ -821,7 +1251,6 @@ function startInlineEdit(nameElement, item) {
         }
         nameElement.style.display = '';
         input.remove();
-        updateRackWidth();
         nameElement.addEventListener('click', (e) => {
             e.stopPropagation();
             startInlineEdit(nameElement, item);
@@ -849,14 +1278,67 @@ function startInlineEdit(nameElement, item) {
     input.select();
 }
 
-function removeItem(e) {
+function removeItem(e, itemElement = null) {
     e.stopPropagation();
-    const item = e.target.closest('.rack-item-placed');
+    const item = itemElement || e.target.closest('.rack-item-placed');
+    if (!item) return;
     const startUnit = parseInt(item.dataset.unit);
     const size = parseInt(item.dataset.size);
     freeSpaces(startUnit, size);
     item.remove();
 }
+
+function openItemInfo(item) {
+    currentInfoItem = item;
+    
+    // Load existing data or use defaults
+    const name = item.querySelector('.item-name').textContent;
+    const metadata = item.dataset.metadata ? JSON.parse(item.dataset.metadata) : {};
+    
+    infoNameInput.value = name;
+    infoMfgInput.value = metadata.mfg || '';
+    infoModelInput.value = metadata.model || '';
+    infoCostInput.value = metadata.cost || '';
+    infoDescriptionInput.value = metadata.description || '';
+    
+    openModal(itemInfoModal);
+}
+
+function saveItemInfo() {
+    if (!currentInfoItem) return;
+    
+    // Update name
+    const nameSpan = currentInfoItem.querySelector('.item-name');
+    const newName = infoNameInput.value.trim();
+    if (newName) {
+        nameSpan.textContent = newName;
+    }
+    
+    // Save metadata
+    const metadata = {
+        mfg: infoMfgInput.value.trim(),
+        model: infoModelInput.value.trim(),
+        cost: infoCostInput.value.trim(),
+        description: infoDescriptionInput.value.trim()
+    };
+    
+    currentInfoItem.dataset.metadata = JSON.stringify(metadata);
+    
+    closeModal(itemInfoModal);
+    showToast('Item information saved', 'success');
+    currentInfoItem = null;
+}
+
+// Item info modal handlers
+itemInfoSaveBtn.addEventListener('click', saveItemInfo);
+itemInfoCancelBtn.addEventListener('click', () => {
+    closeModal(itemInfoModal);
+    currentInfoItem = null;
+});
+itemInfoModal.querySelector('.modal-close').addEventListener('click', () => {
+    closeModal(itemInfoModal);
+    currentInfoItem = null;
+});
 
 function occupySpaces(startUnit, size) {
     for (let i = 0; i < size; i++) {
