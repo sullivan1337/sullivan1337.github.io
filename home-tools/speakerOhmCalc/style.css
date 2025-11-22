@@ -193,7 +193,7 @@ input[type="number"] {
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     background-color: #fff;
-    min-height: 300px;
+    min-height: 400px;
     display: flex;
     flex-direction: column;
     transition: border-color 0.3s, box-shadow 0.3s;
@@ -229,14 +229,46 @@ input[type="number"] {
     color: var(--positive-wire);
 }
 
-.zone-workspace {
-    position: relative;
+.zone-content {
+    display: flex;
+    flex-direction: column;
     flex-grow: 1;
+}
+
+.zone-workspace {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    flex-grow: 1;
+}
+
+.speaker-drop-area {
+    position: relative;
+    min-height: 200px;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.speaker-drop-area.drag-over {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 90, 156, 0.05);
+    border-style: solid;
+}
+
+.speaker-drop-area .speaker-holder {
     padding: 1rem;
+    min-height: 220px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-start;
+    align-content: flex-start;
+    padding-top: 50px; /* Add space for wiring labels */
 }
-.zone-workspace .speaker-holder {
-    min-height: 150px;
-}
+
 .zone-wiring-svg {
     position: absolute;
     top: 0;
@@ -244,6 +276,13 @@ input[type="number"] {
     width: 100%;
     height: 100%;
     pointer-events: none;
+    z-index: 1;
+}
+
+.zone-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .zone-controls {
@@ -259,14 +298,119 @@ input[type="number"] {
 .btn.series { background-color: var(--series-color); }
 .btn.parallel { background-color: var(--parallel-color); }
 
-.zone-results {
-    padding: 1rem 1.5rem;
+/* Load Results Section */
+.load-results {
     background-color: var(--bg-color);
-    border-top: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.load-results .result-item {
     text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.load-results .result-item:last-child {
+    margin-bottom: 0;
+}
+
+.load-results .result-item strong {
+    font-size: 1.3rem;
+    display: block;
+    color: var(--primary-color);
+}
+
+/* Amp Channel Section */
+.amp-channel-section {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+}
+
+.amp-channel-section h4 {
+    margin: 0 0 1rem 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.amp-power-input-group {
+    margin-bottom: 1rem;
+}
+
+.amp-power-input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--light-text);
+}
+
+.zone-amp-power-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.amp-power-results {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
+}
+
+.power-result-item {
+    text-align: center;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.power-result-item span {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--light-text);
+    margin-bottom: 0.25rem;
+}
+
+.power-result-item strong {
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+.zone-warnings {
+    grid-column: 1 / -1;
+    margin-top: 0.5rem;
+}
+
+.zone-warning {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.zone-warning:first-child {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.zone-warning:nth-child(2) {
+    background-color: #fee;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.zone-warning:nth-child(3) {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
 }
 .result-item strong {
     font-size: 1.5rem;
@@ -279,8 +423,8 @@ input[type="number"] {
  * --------------------------------------------------------------------------
  */
 .speaker {
-    width: 90px;
-    height: 70px;
+    width: 95px;
+    height: 75px;
     border: 2px solid var(--secondary-color);
     border-radius: 6px;
     background-color: #fff;
@@ -290,9 +434,10 @@ input[type="number"] {
     justify-content: center;
     align-items: center;
     font-size: 0.8rem;
-    padding: 5px;
+    padding: 8px;
     position: relative;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
 .speaker.dragging {
     cursor: grabbing;
@@ -360,12 +505,101 @@ input[type="number"] {
     line-height: 1.5;
 }
 
+/* Safety Warnings */
+.safety-warnings {
+    margin: 1rem 0;
+}
+
+.safety-warning {
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    border-left: 4px solid;
+}
+
+.safety-warning.critical {
+    background-color: #fee;
+    border-left-color: #dc3545;
+    color: #721c24;
+}
+
+.safety-warning.caution {
+    background-color: #fff3cd;
+    border-left-color: #ffc107;
+    color: #856404;
+}
+
+/* Power Matching Info */
+.power-match-info {
+    background-color: var(--bg-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-top: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.power-match-info h4 {
+    margin: 0 0 0.75rem 0;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.power-match-info ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.power-match-info li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Improved zone workspace for better wire rendering */
+.zone-workspace {
+    min-height: 250px;
+}
+
+.zone-wiring-svg {
+    z-index: 1;
+}
+
+/* Speaker terminal indicators */
+.speaker::before,
+.speaker::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    top: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.speaker::before {
+    background-color: var(--positive-wire);
+    left: 6px;
+}
+
+.speaker::after {
+    background-color: var(--negative-wire);
+    right: 6px;
+}
+
 
 /*
  * --------------------------------------------------------------------------
  * Responsive Design
  * --------------------------------------------------------------------------
  */
+@media (max-width: 1200px) {
+    .zone-workspace {
+        grid-template-columns: 1fr 280px;
+        gap: 1rem;
+    }
+}
+
 @media (max-width: 992px) {
     body { padding: 1rem; }
     .main-container {
@@ -373,5 +607,34 @@ input[type="number"] {
     }
     .controls-pane {
         position: static;
+    }
+    
+    .zone-workspace {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .zone-info {
+        order: -1;
+    }
+    
+    .amp-power-results {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .zone-workspace {
+        padding: 1rem;
+    }
+    
+    .zone-controls {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .zone-controls .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem;
     }
 }
