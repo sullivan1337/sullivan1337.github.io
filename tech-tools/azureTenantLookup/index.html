@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Azure Tenant Lookup</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- Load Roboto font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body class="dark-mode">
+  <header>
+    <div class="header-content">
+      <h1>Azure Tenant Lookup</h1>
+      <div class="header-buttons">
+        <button id="resetBtn" title="Reset" class="btn-reset">Reset Page</button>
+        <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section class="content">
+      <div class="intro">
+        <h2>Where's My Tenant?</h2>
+        <p>Use this tool to query Azure AD for basic tenant information. This will show you:</p>
+        <ul>
+          <li>If the tenant exists in Azure AD</li>
+          <li>What the tenant's GUID is</li>
+          <li>Which Azure AD instance the tenant resides in</li>
+        </ul>
+        <p>To search, simply enter the tenant name, domain, email address, or the tenant's GUID in the search box below.</p>
+      </div>
+
+      <form id="lookup-form">
+        <div class="form-group">
+          <label for="search-input"><strong>Tenant ID, Domain, or Email:</strong></label>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Enter tenant name, domain, email, or GUID" 
+            class="form-control"
+            autocomplete="off"
+          >
+          <small class="help-text">The tool will automatically search all Azure AD instances (Worldwide, US Government, China)</small>
+        </div>
+
+        <button type="submit" id="lookupBtn" class="btn-primary">Lookup Tenant</button>
+      </form>
+
+      <div id="loading" class="loading" style="display: none;">
+        <p>Searching for tenant...</p>
+      </div>
+
+      <div id="error-message" class="error-message" style="display: none;">
+        <h3>Tenant not found.</h3>
+        <p>Uh oh. We couldn't find the tenant you were looking for. Double check your search and try again.</p>
+      </div>
+
+      <div id="warning-message" class="warning-message" style="display: none;">
+        <h3>UNSUPPORTED TENANT</h3>
+        <p id="warning-text"></p>
+      </div>
+
+      <div id="results" class="results" style="display: none;">
+        <div class="results-header">
+          <h3>Lookup Results</h3>
+          <button type="button" id="copy-results" class="btn-copy">Copy Results</button>
+        </div>
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+          </tbody>
+        </table>
+        
+        <div class="openid-config-section">
+          <button type="button" id="toggle-openid" class="btn-toggle">
+            <span id="toggle-icon">▼</span> OpenID Configuration
+          </button>
+          <div id="openid-config-content" class="openid-config-content" style="display: none;">
+            <pre id="openid-config-json"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
+
