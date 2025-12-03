@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SERVER: Survival Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- UI Overlay: Top Bar -->
+    <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+
+        <!-- Stats Panel (Top Left) -->
+        <div id="statsPanel" class="absolute top-4 left-4 glass-panel rounded-xl p-5 w-80 pointer-events-auto">
+            <div class="flex justify-between items-end mb-3 border-b border-gray-700 pb-2">
+                <h1 class="text-2xl font-bold text-red-500 tracking-widest animate-pulse">SURVIVAL</h1>
+                <span class="text-xs text-gray-500 font-mono">v2.1</span>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">BUDGET</span>
+                    <span id="money-display"
+                        class="text-green-400 font-mono text-xl font-bold transition-colors duration-300">$500</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-gray-500">Upkeep Cost</span>
+                    <span id="upkeep-display" class="text-red-400 font-mono">-$0.00/s</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">REPUTATION</span>
+                    <div class="w-32 h-3 bg-gray-800 rounded-full overflow-hidden relative">
+                        <div id="rep-bar" class="h-full bg-yellow-500 transition-all duration-500" style="width: 100%">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-gray-400 text-sm">LOAD (RPS)</span>
+                    <span id="rps-display" class="text-blue-300 font-mono text-sm">0.0 req/s</span>
+                </div>
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-gray-400 text-sm">TRAFFIC MIX</span>
+                    <div class="flex gap-1 text-xs font-mono">
+                        <span class="text-green-400" id="mix-web">45%</span>
+                        <span class="text-orange-400" id="mix-api">40%</span>
+                        <span class="text-purple-400" id="mix-fraud">15%</span>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center pt-3 border-t border-gray-700 mt-2">
+                    <span class="text-gray-300 font-bold text-lg">TOTAL SCORE</span>
+                    <span id="total-score-display" class="text-white font-mono text-2xl font-bold">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Details Panel (Top Right) -->
+        <div id="detailsPanel" class="absolute top-4 right-4 glass-panel rounded-xl p-4 w-60 pointer-events-auto">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b border-gray-700 pb-1">
+                Traffic Score Details</h3>
+            <div class="space-y-1 text-sm font-mono">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">WEB (S3)</span>
+                    <span id="score-web" class="text-gray-300">0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">API (RDS)</span>
+                    <span id="score-api" class="text-gray-300">0</span>
+                </div>
+                <div class="flex justify-between items-center pt-1 border-t border-gray-800">
+                    <span class="text-purple-300 font-bold">WAF REFLECTED</span>
+                    <span id="score-fraud" class="text-purple-300">0</span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Time Control Panel (Top Center) -->
+        <div
+            class="absolute top-4 left-1/2 transform -translate-x-1/2 glass-panel rounded-xl p-2 pointer-events-auto flex gap-2">
+            <button onclick="saveGameState()" id="btn-save"
+                class="time-btn w-10 h-10 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-green-500 hover:text-green-400 flex items-center justify-center"
+                title="Save Game">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                    </path>
+                </svg>
+            </button>
+            <button onclick="restartGame()" id="btn-restart"
+                class="time-btn w-10 h-10 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-red-500 hover:text-red-400 flex items-center justify-center mr-2"
+                title="Restart Game">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15">
+                    </path>
+                </svg>
+            </button>
+            <div class="w-px bg-gray-700 mx-1"></div>
+            <button onclick="setTimeScale(0)" id="btn-pause"
+                class="time-btn w-10 h-10 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+                </svg>
+            </button>
+            <button onclick="setTimeScale(1)" id="btn-play"
+                class="time-btn active w-10 h-10 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                </svg>
+            </button>
+            <button onclick="setTimeScale(3)" id="btn-fast"
+                class="time-btn w-10 h-10 rounded-lg border border-gray-600 text-gray-400 hover:text-white hover:border-gray-400 flex items-center justify-center relative">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Sandbox Control Panel (Bottom Left - replaces objectives in sandbox mode) -->
+        <div id="sandboxPanel" class="hidden absolute bottom-24 left-4 glass-panel rounded-xl p-4 pointer-events-auto w-80">
+            <div class="flex justify-between items-center mb-3 border-b border-gray-700 pb-2">
+                <h3 class="text-sm font-bold text-purple-400">SANDBOX</h3>
+                <button onclick="clearAllServices()" class="text-xs text-red-400 hover:text-red-300 px-2 py-1 border border-red-900 rounded">Clear All</button>
+            </div>
+
+            <!-- BUDGET -->
+            <div class="mb-3">
+                <div class="text-xs text-gray-400 mb-1">Budget ($)</div>
+                <div class="flex items-center gap-2">
+                    <input type="range" id="budget-slider" min="0" max="10000" step="100" value="2000" oninput="setSandboxBudget(this.value)" class="flex-1 h-2 bg-gray-700 rounded-lg accent-green-500">
+                    <input type="number" id="budget-input" value="2000" min="0" onchange="setSandboxBudget(this.value)" class="w-20 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-green-400 text-sm text-center font-mono">
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="resetBudget()" class="flex-1 text-xs py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded">Reset $</button>
+                    <button onclick="toggleUpkeep()" id="upkeep-toggle" class="flex-1 text-xs py-1.5 bg-green-900/50 text-gray-300 rounded border border-gray-600">Upkeep: OFF</button>
+                </div>
+            </div>
+
+            <!-- RPS -->
+            <div class="mb-3">
+                <div class="text-xs text-gray-400 mb-1">Traffic Rate (req/s)</div>
+                <div class="flex items-center gap-2">
+                    <input type="range" id="rps-slider" min="0" max="50" step="0.5" value="1" oninput="setSandboxRPS(this.value)" class="flex-1 h-2 bg-gray-700 rounded-lg accent-blue-500">
+                    <input type="number" id="rps-input" value="1" min="0" step="0.5" onchange="setSandboxRPS(this.value)" class="w-20 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-blue-400 text-sm text-center font-mono">
+                </div>
+            </div>
+
+            <!-- TRAFFIC MIX -->
+            <div class="mb-3">
+                <div class="text-xs text-gray-400 mb-1">Traffic Mix (%)</div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-12 text-xs text-green-400">WEB</span>
+                    <input type="range" id="web-slider" min="0" max="100" value="50" oninput="setTrafficMix('WEB',this.value)" class="flex-1 h-1.5 bg-gray-700 rounded-lg accent-green-500">
+                    <input type="number" id="web-input" value="50" min="0" max="100" onchange="setTrafficMix('WEB',this.value)" class="w-14 px-1 py-0.5 bg-gray-800 border border-gray-600 rounded text-green-400 text-xs text-center font-mono">
+                </div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="w-12 text-xs text-orange-400">API</span>
+                    <input type="range" id="api-slider" min="0" max="100" value="45" oninput="setTrafficMix('API',this.value)" class="flex-1 h-1.5 bg-gray-700 rounded-lg accent-orange-500">
+                    <input type="number" id="api-input" value="45" min="0" max="100" onchange="setTrafficMix('API',this.value)" class="w-14 px-1 py-0.5 bg-gray-800 border border-gray-600 rounded text-orange-400 text-xs text-center font-mono">
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-12 text-xs text-purple-400">FRAUD</span>
+                    <input type="range" id="fraud-slider" min="0" max="100" value="5" oninput="setTrafficMix('FRAUD',this.value)" class="flex-1 h-1.5 bg-gray-700 rounded-lg accent-purple-500">
+                    <input type="number" id="fraud-input" value="5" min="0" max="100" onchange="setTrafficMix('FRAUD',this.value)" class="w-14 px-1 py-0.5 bg-gray-800 border border-gray-600 rounded text-purple-400 text-xs text-center font-mono">
+                </div>
+            </div>
+
+            <!-- BURST -->
+            <div class="border-t border-gray-700 pt-2">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs text-gray-400">Burst:</span>
+                    <input type="number" id="burst-input" value="10" min="1" onchange="setBurstCount(this.value)" class="w-16 px-2 py-1 bg-gray-800 border border-gray-600 rounded text-white text-xs text-center font-mono">
+                </div>
+                <div class="flex gap-1.5">
+                    <button onclick="spawnBurst('WEB')" class="flex-1 bg-green-900/50 hover:bg-green-800 text-green-400 text-xs py-1.5 rounded border border-green-700/50">WEB</button>
+                    <button onclick="spawnBurst('API')" class="flex-1 bg-orange-900/50 hover:bg-orange-800 text-orange-400 text-xs py-1.5 rounded border border-orange-700/50">API</button>
+                    <button onclick="spawnBurst('FRAUD')" class="flex-1 bg-purple-900/50 hover:bg-purple-800 text-purple-400 text-xs py-1.5 rounded border border-purple-700/50">DDoS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Objective Panel (Bottom Left) -->
+        <div id="objectivesPanel"
+            class="absolute bottom-24 left-4 glass-panel rounded-xl p-4 pointer-events-auto max-w-xs">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Objectives</h3>
+                <span
+                    class="text-[10px] bg-red-900/50 px-2 py-0.5 rounded text-red-400 border border-red-800 animate-pulse">LIVE</span>
+            </div>
+            <ul class="text-xs text-gray-300 space-y-2 font-mono">
+                <li class="flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-red-500 mr-2 animate-pulse"></span>
+                    Survive Endless Traffic
+                </li>
+                <li id="goal-web" class="flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                    Route WEB traffic to S3
+                </li>
+                <li id="goal-api" class="flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>
+                    Route API traffic to RDS
+                </li>
+                <li id="goal-waf" class="flex items-center">
+                    <span class="w-2 h-2 rounded-full bg-purple-500 mr-2"></span>
+                    Block FRAUD traffic with WAF
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- UI Overlay: Bottom Toolbar -->
+    <div class="absolute bottom-6 left-0 w-full z-10 pointer-events-none flex justify-center">
+        <div class="glass-panel rounded-2xl p-2 pointer-events-auto overflow-y-auto flex items-center gap-2 shadow-2xl">
+
+
+
+            <!-- Help Button -->
+            <button id="tool-help"
+                class="service-btn bg-gray-700 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center mr-2 border border-gray-600"
+                onclick="showFAQ()">
+                <div class="text-xl">?</div>
+                <span class="text-[9px] font-bold mt-1 uppercase">Help</span>
+            </button>
+
+            <!-- Mute Button -->
+            <button id="tool-mute"
+                class="service-btn bg-gray-700 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-gray-600"
+                onclick="toggleMute()">
+                <div class="text-xl" id="mute-icon">🔊</div>
+                <span class="text-[9px] font-bold mt-1 uppercase">Sound</span>
+            </button>
+
+            <!-- Tools -->
+            <div class="flex gap-1 pr-4 border-r border-gray-700">
+                <button id="tool-select"
+                    class="service-btn active bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent"
+                    onclick="setTool('select')">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] uppercase">Select</span>
+                </button>
+
+                <button id="tool-connect"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent"
+                    onclick="setTool('connect')">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] uppercase">Link</span>
+                </button>
+
+                <button id="tool-delete"
+                    class="service-btn bg-red-900/30 text-red-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent hover:bg-red-900/50"
+                    onclick="setTool('delete')">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] uppercase">Demolish</span>
+                </button>
+
+                <button id="tool-unlink"
+                    class="service-btn bg-orange-900/30 text-orange-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent hover:bg-orange-900/50"
+                    onclick="setTool('unlink')">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] uppercase">Unlink</span>
+                </button>
+            </div>
+
+            <!-- Shop -->
+            <div class="flex gap-2 pl-2">
+                <!-- WAF -->
+                <button id="tool-waf"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('waf')">
+                    <div
+                        class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">
+                        $40</div>
+                    <div class="w-4 h-4 bg-purple-500 rounded-sm mb-1 shadow-[0_0_10px_rgba(168,85,247,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">WAF</span>
+                    <span class="text-[8px] text-gray-400">Sec</span>
+                </button>
+
+                <!-- SQS -->
+                <button id="tool-sqs"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('sqs')">
+                    <div class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">$40</div>
+                    <div class="w-5 h-3 bg-orange-500 rounded-sm mb-1 shadow-[0_0_10px_rgba(255,153,0,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">SQS</span>
+                    <span class="text-[8px] text-gray-400">Queue</span>
+                </button>
+
+                <button id="tool-alb"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('alb')">
+                    <div
+                        class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">
+                        $50</div>
+                    <div class="w-4 h-4 bg-blue-500 rounded-sm mb-1 shadow-[0_0_10px_rgba(59,130,246,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">ALB</span>
+                    <span class="text-[8px] text-gray-400">Load</span>
+                </button>
+
+                <button id="tool-lambda"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('lambda')">
+                    <div
+                        class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">
+                        $80</div>
+                    <div class="w-4 h-4 bg-orange-500 rounded-full mb-1 shadow-[0_0_10px_rgba(249,115,22,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">EC2</span>
+                    <span class="text-[8px] text-gray-400">Comp</span>
+                </button>
+
+                <button id="tool-db"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('db')">
+                    <div
+                        class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">
+                        $180</div>
+                    <div
+                        class="w-4 h-4 bg-red-600 rounded-sm mb-1 shadow-[0_0_10px_rgba(220,38,38,0.6)] border-b-2 border-red-800">
+                    </div>
+                    <span class="text-[10px] font-bold mt-1">RDS</span>
+                    <span class="text-[8px] text-gray-400">Data</span>
+                </button>
+
+                <!-- Cache -->
+                <button id="tool-cache"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('cache')">
+                    <div class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">$75</div>
+                    <div class="w-4 h-4 bg-red-600 rounded mb-1 shadow-[0_0_10px_rgba(220,56,45,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">Cache</span>
+                    <span class="text-[8px] text-gray-400">Redis</span>
+                </button>
+
+                <!-- S3 -->
+                <button id="tool-s3"
+                    class="service-btn bg-gray-800 text-gray-200 p-2 rounded-lg w-16 h-16 flex flex-col items-center justify-center border border-transparent group relative overflow-hidden"
+                    onclick="setTool('s3')">
+                    <div
+                        class="absolute top-0 right-0 bg-green-900/80 text-green-400 text-[9px] px-1 rounded-bl font-mono">
+                        $30</div>
+                    <div class="w-4 h-4 bg-emerald-500 rounded-full mb-1 shadow-[0_0_10px_rgba(16,185,129,0.6)]"></div>
+                    <span class="text-[10px] font-bold mt-1">S3</span>
+                    <span class="text-[8px] text-gray-400">Store</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hover Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <!-- Game Canvas -->
+    <div id="canvas-container"></div>
+
+
+
+    <!-- End/Next Level Modal -->
+    <div id="modal"
+        class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-2xl text-center max-w-md border border-gray-600">
+            <h2 id="modal-title" class="text-4xl font-bold mb-4 text-white font-mono tracking-tighter">SYSTEM FAILURE
+            </h2>
+            <div class="h-px w-full bg-gray-700 mb-6"></div>
+            <p id="modal-desc" class="text-gray-300 mb-8 text-sm leading-relaxed">Infrastructure collapsed.</p>
+            <div class="flex justify-center gap-4">
+                <button onclick="restartGame()"
+                    class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg transform transition hover:scale-105 font-mono uppercase text-sm">
+                    Try Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Menu Modal -->
+    <div id="main-menu-modal"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div
+            class="relative bg-gray-900/90 p-12 rounded-2xl border border-blue-500/30 shadow-2xl max-w-md w-full text-center">
+
+            <!-- Menu Mute Button -->
+            <button id="menu-mute-btn" onclick="toggleMute()"
+                class="absolute top-4 right-4 text-gray-400 hover:text-white transition p-2 rounded-full pulse-green">
+                <span id="menu-mute-icon" class="text-xl">🔇</span>
+            </button>
+
+            <h1
+                class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 mb-2 tracking-tighter filter drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+                SERVER<br>SURVIVAL
+            </h1>
+
+            <div class="space-y-4">
+                <button id="resume-btn" onclick="resumeGame()"
+                    class="hidden w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 font-mono uppercase text-lg border border-blue-400/50">
+                    Resume Game
+                </button>
+
+                <button onclick="startGame()"
+                    class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 font-mono uppercase text-lg border border-green-400/50">
+                    Start Survival
+                </button>
+
+                <button onclick="startSandbox()"
+                    class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 font-mono uppercase text-lg border border-purple-400/50">
+                    Sandbox Mode
+                </button>
+
+                <button onclick="loadGameState()" id="load-btn"
+                    class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 px-8 rounded-lg shadow-lg transform transition hover:scale-105 font-mono uppercase text-lg border border-cyan-400/50">
+                    Continue Game
+                </button>
+
+                <button onclick="showFAQ()"
+                    class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-3 px-8 rounded-lg border border-gray-600 transition hover:text-white font-mono uppercase">
+                    Manual / FAQ
+                </button>
+            </div>
+
+            <div class="mt-8 text-xs text-gray-500 font-mono">
+
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Modal -->
+    <div id="faq-modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-50 hidden">
+        <div class="glass-panel p-8 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
+            <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                <h2 class="text-2xl font-bold text-white">OPERATOR MANUAL</h2>
+                <button onclick="closeFAQ()" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Traffic Types -->
+                <div>
+                    <h3 class="text-lg font-bold text-blue-400 mb-4">TRAFFIC TYPES</h3>
+                    <div class="space-y-3">
+                        <div class="bg-gray-800/50 p-3 rounded border border-green-900/50">
+                            <strong class="text-green-400">WEB Traffic</strong>
+                            <p class="text-sm text-gray-400">Route to <span class="text-emerald-400">S3 Storage</span>
+                                via Load Balancer.</p>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded border border-orange-900/50">
+                            <strong class="text-orange-400">API Traffic</strong>
+                            <p class="text-sm text-gray-400">Route to <span class="text-red-400">RDS Database</span> via
+                                Compute.</p>
+                        </div>
+                        <div class="bg-gray-800/50 p-3 rounded border border-purple-900/50">
+                            <strong class="text-purple-400">FRAUD Traffic</strong>
+                            <p class="text-sm text-gray-400">Block with <span class="text-purple-400">WAF
+                                    Firewall</span>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h3 class="text-lg font-bold text-blue-400 mb-4">SERVICES</h3>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li class="flex justify-between"><span class="text-purple-400 font-bold">WAF</span> <span>Blocks
+                                Fraud ($40)</span></li>
+                        <li class="flex justify-between"><span class="text-orange-500 font-bold">SQS</span>
+                            <span>Buffers 200 requests ($40)</span>
+                        </li>
+                        <li class="flex justify-between"><span class="text-blue-400 font-bold">Load Balancer</span>
+                            <span>Distributes Traffic ($50)</span>
+                        </li>
+                        <li class="flex justify-between"><span class="text-orange-400 font-bold">Compute</span>
+                            <span>Processes Requests ($80)</span>
+                        </li>
+                        <li class="flex justify-between"><span class="text-red-400 font-bold">Database</span>
+                            <span>Stores API Data ($180)</span>
+                        </li>
+                        <li class="flex justify-between"><span class="text-red-500 font-bold">ElastiCache</span>
+                            <span>Cache layer ($75)</span>
+                        </li>
+                        <li class="flex justify-between"><span class="text-emerald-400 font-bold">S3</span> <span>Stores
+                                Web Data ($30)</span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tools -->
+            <div class="mt-8">
+                <h3 class="text-lg font-bold text-blue-400 mb-4">TOOLS & CONTROLS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122">
+                                    </path>
+                                </svg>
+                            </div>
+                            <strong class="text-white">SELECT</strong>
+                        </div>
+                        <p class="text-gray-400">
+                            Inspect services to see load and stats. Click Compute/DB to upgrade.
+                        </p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <div class="w-6 h-6 bg-gray-700 rounded flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1">
+                                    </path>
+                                </svg>
+                            </div>
+                            <strong class="text-white">CONNECT</strong>
+                        </div>
+                        <p class="text-gray-400">
+                            Link nodes together. Click <span class="text-green-400">Source</span>
+                            then <span class="text-blue-400">Destination</span>.
+                        </p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <div class="w-6 h-6 bg-red-900/50 rounded flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
+                                </svg>
+                            </div>
+                            <strong class="text-white">DELETE</strong>
+                        </div>
+                        <p class="text-gray-400">Remove services. Refunds 50% of cost.</p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <div class="w-6 h-6 bg-orange-900/50 rounded flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636">
+                                    </path>
+                                </svg>
+                            </div>
+                            <strong class="text-white">UNLINK</strong>
+                        </div>
+                        <p class="text-gray-400">Remove connections between services. Click on a link to delete it.</p>
+                    </div>
+
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <strong class="text-white">HUD</strong>
+                        </div>
+                        <p class="text-gray-400">Press H for hiding HUD.</p>
+                    </div>
+
+                    <div class="bg-gray-800/30 p-3 rounded border border-gray-700">
+                        <div class="flex items-center mb-2">
+                            <strong class="text-white">View</strong>
+                        </div>
+                        <p class="text-gray-400">Press R for reset view.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mechanics -->
+            <div class="mt-8">
+                <h3 class="text-lg font-bold text-blue-400 mb-4">MECHANICS</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-gray-800/30 p-3 rounded">
+                        <strong class="text-white block mb-1">Upgrades</strong>
+                        <p class="text-gray-400">Click existing Compute/DB/Cache instances to upgrade capacity (Tier 1-3).</p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded">
+                        <strong class="text-white block mb-1">Load Balancing</strong>
+                        <p class="text-gray-400">ALBs use Round Robin to distribute traffic evenly.</p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded">
+                        <strong class="text-white block mb-1">Failure Conditions</strong>
+                        <p class="text-gray-400">Reputation reaches 0% or Money reaches -$1000.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Services -->
+            <div class="mt-8">
+                <h3 class="text-lg font-bold text-blue-400 mb-4">ADVANCED SERVICES</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-gray-800/30 p-3 rounded border border-orange-900/50">
+                        <strong class="text-orange-400 block mb-1">SQS Queue</strong>
+                        <p class="text-gray-400 text-xs">
+                            Massive buffer holding 200 requests. Place after WAF to smooth DDoS spikes,
+                            or before Compute to prevent overload. Cheap insurance against traffic bursts.
+                        </p>
+                        <p class="text-gray-500 text-xs mt-1">Flow: WAF → SQS → ALB or ALB → SQS → Compute</p>
+                    </div>
+                    <div class="bg-gray-800/30 p-3 rounded border border-red-900/50">
+                        <strong class="text-red-400 block mb-1">ElastiCache (Redis)</strong>
+                        <p class="text-gray-400 text-xs">
+                            Caching layer with 35-65% hit rate. Cache hits complete instantly without
+                            hitting DB/S3. Upgrade tiers for higher hit rates. Great for reducing DB costs.
+                        </p>
+                        <p class="text-gray-500 text-xs mt-1">Flow: Compute → Cache → DB/S3</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 text-center">
+                <button onclick="closeFAQ()"
+                    class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-8 rounded-lg transition">
+                    Close Manual
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="src/config.js"></script>
+    <script src="src/state.js"></script>
+    <script src="src/entities/Request.js"></script>
+    <script src="src/entities/Service.js"></script>
+    <script src="src/services/SoundService.js"></script>
+    <script src="game.js"></script>
+</body>
+
+</html>
