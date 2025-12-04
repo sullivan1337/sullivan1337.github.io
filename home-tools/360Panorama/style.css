@@ -116,7 +116,7 @@ input, select, textarea {
     top: var(--toolbar-height);
     left: 0;
     right: 0;
-    bottom: var(--controlbar-height);
+    bottom: 0;
     background: var(--bg-void);
     cursor: grab;
     transition: left var(--transition-smooth), right var(--transition-smooth);
@@ -558,7 +558,7 @@ input, select, textarea {
 #properties-sidebar {
     position: fixed;
     top: var(--toolbar-height);
-    bottom: var(--controlbar-height);
+    bottom: 0;
     width: var(--sidebar-width);
     background: var(--bg-deep);
     border-right: 1px solid var(--border-subtle);
@@ -618,6 +618,70 @@ input, select, textarea {
     font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-muted);
+}
+
+/* Sidebar close button (mobile) */
+.sidebar-close-btn {
+    display: none;
+    width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    margin-left: auto;
+}
+
+.sidebar-close-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+/* Sidebar toggle button (mobile) */
+.sidebar-toggle {
+    position: fixed;
+    top: calc(var(--toolbar-height) + var(--space-md));
+    left: var(--space-md);
+    width: 44px;
+    height: 44px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(14, 14, 20, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-visible);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    z-index: 450;
+    transition: var(--transition-fast);
+}
+
+.sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--accent-primary);
+    border-color: var(--accent-dim);
+}
+
+.sidebar-toggle.hidden {
+    display: none !important;
+}
+
+.sidebar-toggle.active {
+    background: var(--accent-subtle);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
 }
 
 .btn-icon-small {
@@ -763,14 +827,19 @@ input, select, textarea {
     left: 0;
     right: 0;
     height: var(--controlbar-height);
-    background: var(--bg-deep);
-    border-top: 1px solid var(--border-subtle);
+    background: transparent;
+    border-top: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 var(--space-lg);
     z-index: 500;
     transition: opacity var(--transition-smooth);
+    pointer-events: none;
+}
+
+#control-bar > * {
+    pointer-events: auto;
 }
 
 #control-bar.hidden {
@@ -783,11 +852,21 @@ input, select, textarea {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
+    background: rgba(14, 14, 20, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: var(--space-sm);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
 }
 
-.control-bar-center {
-    display: flex;
-    align-items: center;
+.control-bar-left {
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-smooth);
+}
+
+#control-bar.no-sidebar .control-bar-left {
+    margin-left: 0;
 }
 
 .control-btn {
@@ -796,9 +875,9 @@ input, select, textarea {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
     color: var(--text-secondary);
     transition: var(--transition-fast);
 }
@@ -809,25 +888,26 @@ input, select, textarea {
 }
 
 .control-btn:hover {
-    background: var(--bg-hover);
+    background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
-    border-color: var(--border-visible);
 }
 
 .control-btn.active {
     background: var(--accent-subtle);
     color: var(--accent-primary);
-    border-color: var(--accent-dim);
 }
 
-/* View Info */
-.view-info {
-    display: flex;
-    gap: var(--space-lg);
-    padding: var(--space-sm) var(--space-lg);
+/* View Info - Now in sidebar footer */
+.sidebar-footer {
+    padding: var(--space-md);
+    border-top: 1px solid var(--border-subtle);
     background: var(--bg-surface);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
+}
+
+.sidebar-footer .view-info {
+    display: flex;
+    justify-content: space-around;
+    gap: var(--space-md);
 }
 
 .info-item {
@@ -1628,7 +1708,7 @@ input, select, textarea {
 
 #toast-container {
     position: fixed;
-    bottom: calc(var(--controlbar-height) + var(--space-lg));
+    bottom: calc(var(--controlbar-height) + var(--space-xl));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -1727,14 +1807,72 @@ input, select, textarea {
         --controlbar-height: 56px;
     }
     
-    #scene-sidebar,
+    /* Mobile sidebar toggle button */
+    .sidebar-toggle {
+        display: flex;
+    }
+    
+    .sidebar-toggle.hidden {
+        display: none !important;
+    }
+    
+    /* Mobile collapsible sidebar */
+    #scene-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        max-width: 85vw;
+        z-index: 600;
+        transform: translateX(-100%);
+        transition: transform var(--transition-smooth);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    #scene-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    
+    #scene-sidebar.hidden {
+        transform: translateX(-100%);
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    #scene-sidebar.hidden.mobile-open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-close-btn {
+        display: flex;
+    }
+    
+    .sidebar-header {
+        padding-top: calc(var(--space-md) + env(safe-area-inset-top, 0px));
+    }
+    
+    /* Sidebar backdrop overlay */
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 550;
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition-smooth);
+    }
+    
+    .sidebar-backdrop.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+    
     #properties-sidebar {
         width: 100%;
         max-width: 320px;
-    }
-    
-    .view-info {
-        display: none;
     }
     
     .zoom-slider-container {
@@ -1744,6 +1882,31 @@ input, select, textarea {
     .modal {
         max-width: calc(100% - 32px);
         margin: 16px;
+    }
+    
+    /* Pano doesn't shift on mobile */
+    #pano.with-sidebar-left {
+        left: 0;
+    }
+    
+    /* Control bar adjustments for mobile */
+    #control-bar {
+        padding: 0 var(--space-sm);
+        padding-bottom: env(safe-area-inset-bottom, var(--space-sm));
+    }
+    
+    .control-bar-left {
+        margin-left: 0;
+    }
+    
+    .control-bar-left,
+    .control-bar-right {
+        padding: var(--space-xs);
+    }
+    
+    .control-btn {
+        width: 36px;
+        height: 36px;
     }
 }
 

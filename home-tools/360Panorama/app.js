@@ -69,6 +69,13 @@
         // Scene sidebar
         el.sceneList = document.getElementById('scene-list');
         el.sceneCount = document.getElementById('scene-count');
+        el.sidebarToggle = document.getElementById('sidebar-toggle');
+        el.sidebarClose = document.getElementById('sidebar-close');
+        
+        // Create sidebar backdrop for mobile
+        el.sidebarBackdrop = document.createElement('div');
+        el.sidebarBackdrop.className = 'sidebar-backdrop';
+        document.body.appendChild(el.sidebarBackdrop);
         
         // Properties sidebar
         el.propertiesContent = document.getElementById('properties-content');
@@ -81,9 +88,11 @@
         el.btnZoomIn = document.getElementById('btn-zoom-in');
         el.btnZoomOut = document.getElementById('btn-zoom-out');
         el.zoomSlider = document.getElementById('zoom-slider');
-        el.infoYaw = document.getElementById('info-yaw');
-        el.infoPitch = document.getElementById('info-pitch');
-        el.infoFov = document.getElementById('info-fov');
+        
+        // View info in sidebar
+        el.sidebarInfoYaw = document.getElementById('sidebar-info-yaw');
+        el.sidebarInfoPitch = document.getElementById('sidebar-info-pitch');
+        el.sidebarInfoFov = document.getElementById('sidebar-info-fov');
         
         // Modals
         el.modalOverlay = document.getElementById('modal-overlay');
@@ -1003,9 +1012,14 @@
         
         const view = marzipanoScene.view();
         
-        el.infoYaw.textContent = radToDeg(view.yaw()) + '°';
-        el.infoPitch.textContent = radToDeg(view.pitch()) + '°';
-        el.infoFov.textContent = radToDeg(view.fov()) + '°';
+        const yawText = radToDeg(view.yaw()) + '°';
+        const pitchText = radToDeg(view.pitch()) + '°';
+        const fovText = radToDeg(view.fov()) + '°';
+        
+        // Update sidebar view info
+        el.sidebarInfoYaw.textContent = yawText;
+        el.sidebarInfoPitch.textContent = pitchText;
+        el.sidebarInfoFov.textContent = fovText;
         
         // Update zoom slider
         const fovDeg = parseFloat(radToDeg(view.fov()));
@@ -1292,7 +1306,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${projectName}</title>
-    <script src="https://www.marzipano.net/releases/0.10.2/marzipano.js"><\/script>
+    <script src="https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/refs/heads/master/home-tools/360Panorama/marzipano.js"><\/script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; }
@@ -1587,6 +1601,8 @@
         el.toolbar.classList.remove('hidden');
         el.sceneSidebar.classList.remove('hidden');
         el.controlBar.classList.remove('hidden');
+        el.controlBar.classList.remove('no-sidebar');
+        el.sidebarToggle.classList.remove('hidden');
         el.pano.classList.add('with-sidebar-left');
     }
 
@@ -1595,8 +1611,32 @@
         el.sceneSidebar.classList.add('hidden');
         el.propertiesSidebar.classList.add('hidden');
         el.controlBar.classList.add('hidden');
+        el.controlBar.classList.add('no-sidebar');
+        el.sidebarToggle.classList.add('hidden');
         el.welcomeScreen.classList.remove('hidden');
         el.pano.classList.remove('with-sidebar-left', 'with-sidebar-right');
+        closeMobileSidebar();
+    }
+    
+    function toggleMobileSidebar() {
+        const isOpen = el.sceneSidebar.classList.contains('mobile-open');
+        if (isOpen) {
+            closeMobileSidebar();
+        } else {
+            openMobileSidebar();
+        }
+    }
+    
+    function openMobileSidebar() {
+        el.sceneSidebar.classList.add('mobile-open');
+        el.sidebarBackdrop.classList.add('visible');
+        el.sidebarToggle.classList.add('active');
+    }
+    
+    function closeMobileSidebar() {
+        el.sceneSidebar.classList.remove('mobile-open');
+        el.sidebarBackdrop.classList.remove('visible');
+        el.sidebarToggle.classList.remove('active');
     }
 
     // ============================================
@@ -1704,6 +1744,11 @@
             el.propertiesSidebar.classList.add('hidden');
             el.pano.classList.remove('with-sidebar-right');
         });
+        
+        // Mobile sidebar toggle
+        el.sidebarToggle.addEventListener('click', toggleMobileSidebar);
+        el.sidebarClose.addEventListener('click', closeMobileSidebar);
+        el.sidebarBackdrop.addEventListener('click', closeMobileSidebar);
         
         // Context menu
         el.pano.addEventListener('contextmenu', (e) => {
