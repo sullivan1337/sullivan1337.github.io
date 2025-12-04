@@ -1306,7 +1306,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${projectName}</title>
-    <script src="https://raw.githubusercontent.com/sullivan1337/sullivan1337.github.io/refs/heads/master/home-tools/360Panorama/marzipano.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/marzipano@0.10.2/dist/marzipano.js"><\/script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; overflow: hidden; font-family: system-ui, sans-serif; }
