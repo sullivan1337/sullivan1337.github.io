@@ -1604,6 +1604,10 @@
         el.controlBar.classList.remove('no-sidebar');
         el.sidebarToggle.classList.remove('hidden');
         el.pano.classList.add('with-sidebar-left');
+        // Update viewer size after layout change
+        setTimeout(() => {
+            if (app.viewer) app.viewer.updateSize();
+        }, 300);
     }
 
     function hideUI() {
@@ -1637,6 +1641,10 @@
         el.sceneSidebar.classList.remove('mobile-open');
         el.sidebarBackdrop.classList.remove('visible');
         el.sidebarToggle.classList.remove('active');
+        // Update viewer size after sidebar animation
+        setTimeout(() => {
+            if (app.viewer) app.viewer.updateSize();
+        }, 300);
     }
 
     // ============================================
@@ -1840,8 +1848,25 @@
         setupFileHandlers();
         setupEventHandlers();
         setupRotationPicker();
+        setupResizeHandler();
         
         console.log('360° Panorama Studio initialized');
+    }
+    
+    function setupResizeHandler() {
+        // Debounced resize handler to update Marzipano when container changes
+        let resizeTimeout;
+        const handleResize = () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (app.viewer) {
+                    app.viewer.updateSize();
+                }
+            }, 100);
+        };
+        
+        window.addEventListener('resize', handleResize);
+        window.addEventListener('orientationchange', handleResize);
     }
 
     // Start

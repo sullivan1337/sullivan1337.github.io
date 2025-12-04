@@ -1708,7 +1708,7 @@ input, select, textarea {
 
 #toast-container {
     position: fixed;
-    bottom: calc(var(--controlbar-height) + var(--space-xl));
+    bottom: calc(var(--controlbar-height) + var(--space-2xl));
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -1716,6 +1716,7 @@ input, select, textarea {
     gap: var(--space-sm);
     z-index: 2000;
     pointer-events: none;
+    max-width: calc(100% - var(--space-2xl));
 }
 
 .toast {
@@ -1884,7 +1885,15 @@ input, select, textarea {
         margin: 16px;
     }
     
-    /* Pano doesn't shift on mobile */
+    /* Pano takes full width on mobile - no transitions needed */
+    #pano {
+        top: var(--toolbar-height);
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0;
+        transition: none;
+    }
+    
     #pano.with-sidebar-left {
         left: 0;
     }
@@ -1907,6 +1916,11 @@ input, select, textarea {
     .control-btn {
         width: 36px;
         height: 36px;
+    }
+    
+    /* Toast positioning for mobile - higher up to clear controls */
+    #toast-container {
+        bottom: calc(var(--controlbar-height) + 80px + env(safe-area-inset-bottom, 0px));
     }
 }
 
