@@ -61,31 +61,56 @@ function calculate() {
       return;
     }
 
-    // Calculate old tire sidewall, diameter, circumference
-    let old_sidewall      = old_tireWidth * (old_aspectRatio / 100);
-    let old_diameter      = (old_wheelDiameter * 25.4) + (2 * old_sidewall);
-    let old_circumference = Math.PI * old_diameter;
-
-    // Calculate new tire sidewall, diameter, circumference
-    let new_sidewall      = new_tireWidth * (new_aspectRatio / 100);
-    let new_diameter      = (new_wheelDiameter * 25.4) + (2 * new_sidewall);
-    let new_circumference = Math.PI * new_diameter;
-
-    // Convert wheel widths from inches to mm
+    // Convert wheel widths from inches to mm (needed for stretch calculation)
     let old_wheelWidth_mm = old_wheelWidth * 25.4;
     let new_wheelWidth_mm = new_wheelWidth * 25.4;
 
-    // Calculate poke and inset
+    // Calculate nominal sidewall heights
+    let old_sidewall_nominal = old_tireWidth * (old_aspectRatio / 100);
+    let new_sidewall_nominal = new_tireWidth * (new_aspectRatio / 100);
+
+    // Account for tire stretch: when wheel is wider than tire, sidewall becomes more vertical
+    // This reduces the effective sidewall height and thus the diameter
+    // Formula: effective_sidewall = nominal_sidewall * (tire_width / wheel_width)^stretch_factor
+    // When wheel > tire (stretched), this reduces the sidewall; when wheel <= tire, use nominal
+    // Using a stretch factor of ~0.4 to approximate real-world stretch effects
+    const STRETCH_FACTOR = 1.2;
+    
+    // Calculate effective sidewall accounting for stretch
+    // If wheel is wider than tire, reduce sidewall; otherwise use nominal
+    let old_stretchFactor = old_wheelWidth_mm > old_tireWidth 
+      ? Math.pow(old_tireWidth / old_wheelWidth_mm, STRETCH_FACTOR)
+      : 1.0;
+    let new_stretchFactor = new_wheelWidth_mm > new_tireWidth 
+      ? Math.pow(new_tireWidth / new_wheelWidth_mm, STRETCH_FACTOR)
+      : 1.0;
+    
+    let old_sidewall_effective = old_sidewall_nominal * old_stretchFactor;
+    let new_sidewall_effective = new_sidewall_nominal * new_stretchFactor;
+
+    // Calculate diameter and circumference with effective sidewall
+    let old_diameter      = (old_wheelDiameter * 25.4) + (2 * old_sidewall_effective);
+    let old_circumference = Math.PI * old_diameter;
+    let new_diameter      = (new_wheelDiameter * 25.4) + (2 * new_sidewall_effective);
+    let new_circumference = Math.PI * new_diameter;
+
+    // Calculate poke and inset (wheelWidth_mm already calculated above)
     let old_poke = ((old_wheelWidth_mm / 2) - old_offset);
     let old_inset = ((old_wheelWidth_mm / 2) + old_offset);
     let new_poke = ((new_wheelWidth_mm / 2) - new_offset);
     let new_inset = ((new_wheelWidth_mm / 2) + new_offset);
 
-    // Speedometer error
-    let speedo_error_ratio = (old_circumference - new_circumference) / old_circumference;
-    let speedo_error_pct   = (speedo_error_ratio * 100).toFixed(2); // string format
-
-    // Speed readouts
+    // Speedometer error calculation
+    // Old setup: 0% (baseline - speedometer is calibrated to this)
+    // New setup: percentage error relative to old setup
+    // Positive = speedometer reads slower (new tire is smaller)
+    // Negative = speedometer reads faster (new tire is larger)
+    let speedo_error_new_pct = ((new_circumference - old_circumference) / old_circumference * 100).toFixed(2);
+    let speedo_error_old_pct = "0%";
+    
+    // Speed readouts - what the speedometer will show at actual speeds
+    // If new tire is smaller, speedometer will read higher than actual speed
+    // If new tire is larger, speedometer will read lower than actual speed
     let readAt30 = 30 * (old_circumference / new_circumference);
     let readAt60 = 60 * (old_circumference / new_circumference);
 
@@ -98,20 +123,40 @@ function calculate() {
     document.getElementById('res_newPoke').innerText     = new_poke.toFixed(1) + " mm";
     document.getElementById('res_oldInset').innerText    = old_inset.toFixed(1) + " mm";
     document.getElementById('res_newInset').innerText    = new_inset.toFixed(1) + " mm";
-    document.getElementById('res_speedoError').innerText = speedo_error_pct + "% (difference)";
+    
+    // Update speedo error - show old and new separately
+    const speedoErrorOldCell = document.getElementById('res_speedoErrorOld');
+    const speedoErrorNewCell = document.getElementById('res_speedoErrorNew');
+    if (speedoErrorOldCell) {
+      speedoErrorOldCell.innerText = speedo_error_old_pct;
+    }
+    if (speedoErrorNewCell) {
+      speedoErrorNewCell.innerText = speedo_error_new_pct + "%";
+      // Highlight if error is more than +/-2.0%
+      let errVal = parseFloat(speedo_error_new_pct);
+      if (Math.abs(errVal) > 2.0) {
+        speedoErrorNewCell.style.backgroundColor = "red";
+        speedoErrorNewCell.style.color = "#fff";
+      } else {
+        speedoErrorNewCell.style.backgroundColor = "";
+        speedoErrorNewCell.style.color = "";
+      }
+    } else {
+      // Fallback for old format (single cell)
+      document.getElementById('res_speedoError').innerText = speedo_error_new_pct + "%";
+      let speedoCell = document.getElementById('res_speedoError');
+      let errVal = parseFloat(speedo_error_new_pct);
+      if (Math.abs(errVal) > 2.0) {
+        speedoCell.style.backgroundColor = "red";
+        speedoCell.style.color = "#fff";
+      } else {
+        speedoCell.style.backgroundColor = "";
+        speedoCell.style.color = "";
+      }
+    }
+    
     document.getElementById('res_30new').innerText       = readAt30.toFixed(2) + " mph";
     document.getElementById('res_60new').innerText       = readAt60.toFixed(2) + " mph";
-
-    // Highlight speedo error cell if more than +/-2.0%
-    let speedoCell = document.getElementById('res_speedoError');
-    let errVal = parseFloat(speedo_error_pct); // number
-    if (Math.abs(errVal) > 2.0) {
-      speedoCell.style.backgroundColor = "red";
-      speedoCell.style.color = "#fff";
-    } else {
-      speedoCell.style.backgroundColor = "";
-      speedoCell.style.color = "";
-    }
 
     // Show results
     document.getElementById('results').style.display = 'block';
