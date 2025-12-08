@@ -138,6 +138,30 @@ body:not(.dark-mode) {
     align-items: center;
 }
 
+.rack-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    position: relative;
+}
+
+.rack-location-label {
+    position: absolute;
+    right: -70px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 5px;
+    font-size: 0.9em;
+    opacity: 0.7;
+    white-space: nowrap;
+    pointer-events: none;
+    height: 20px;
+    box-sizing: border-box;
+    color: inherit;
+    transition: height 0.2s;
+}
+
 .project-name-display {
     width: 200px;
     padding: 10px;
@@ -249,10 +273,13 @@ body:not(.dark-mode) {
     width: fit-content;
     max-width: 1000px;
     padding: 10px;
+    padding-right: 80px; /* Extra space for labels on the right */
     display: flex;
     flex-direction: column-reverse;
     transition: border-color 0.3s;
     box-sizing: border-box;
+    position: relative;
+    overflow: visible;
 }
 
 .dark-mode #rack {
@@ -270,6 +297,7 @@ body:not(.dark-mode) {
     box-sizing: border-box;
     display: flex;
     align-items: center;
+    position: relative;
     transition: background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
@@ -294,6 +322,7 @@ body:not(.dark-mode) {
     gap: 8px;
     width: 100%;
     min-width: 200px;
+    overflow: visible;
 }
 
 .rack-item-placed * {
@@ -344,6 +373,7 @@ body:not(.dark-mode) {
     min-width: 0;
     padding-right: 30px;
 }
+
 
 .item-name {
     cursor: pointer;

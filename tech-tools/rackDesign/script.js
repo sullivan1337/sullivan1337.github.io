@@ -421,6 +421,7 @@ modalImportBtn.addEventListener('click', () => {
             const startUnit = parseInt(item.dataset.unit);
             const size = parseInt(item.dataset.size);
             freeSpaces(startUnit, size);
+            moveLabelsToSpaces(startUnit, size); // Move labels back to spaces
             item.remove();
         });
         
@@ -632,13 +633,25 @@ function updateRack() {
     
     rack.innerHTML = '';
     for (let i = 0; i < totalUnits; i++) {
+        const unit = i + 1;
+        // Create rack space
         const space = document.createElement('div');
         space.className = 'rack-space';
+        // Display unit number reversed (lowest at bottom due to column-reverse)
         space.textContent = `${totalUnits - i}U`;
-        space.dataset.unit = totalUnits - i;
+        space.dataset.unit = unit;
         space.addEventListener('dragover', dragOver);
         space.addEventListener('dragleave', dragLeave);
         space.addEventListener('drop', drop);
+        
+        // Create location label inside the space, positioned to the right
+        // Label shows the actual unit number (1, 2, 3...)
+        const locationLabel = document.createElement('div');
+        locationLabel.className = 'rack-location-label';
+        locationLabel.textContent = `U${unit}`;
+        locationLabel.dataset.unit = unit;
+        space.appendChild(locationLabel);
+        
         rack.appendChild(space);
     }
     
@@ -785,7 +798,7 @@ function highlightSpaces(startUnit, size) {
     const canPlace = canPlaceItem(startUnit, size);
     const highlightClass = canPlace ? 'highlight' : 'highlight-invalid';
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
         if (space) {
             space.classList.add(highlightClass);
         }
@@ -800,11 +813,11 @@ function clearHighlights() {
 
 function canPlaceItem(targetUnit, size) {
     const totalUnits = parseInt(totalUnitsInput.value);
-    if (targetUnit - size + 1 < 1) {
+    if (targetUnit + size - 1 > totalUnits) {
         return false;
     }
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${targetUnit - i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${targetUnit + i}"]`);
         if (!space || space.classList.contains('occupied')) {
             return false;
         }
@@ -817,6 +830,7 @@ function placeItem(targetUnit, size, name, iconData = null) {
     const firstSpace = rack.querySelector(`.rack-space[data-unit="${targetUnit}"]`);
     firstSpace.parentNode.insertBefore(item, firstSpace);
     occupySpaces(targetUnit, size);
+    moveLabelsToItem(targetUnit, size, item); // Move labels from spaces to item
     updateRackWidth();
     return item;
 }
@@ -825,10 +839,12 @@ function moveItem(oldUnit, newUnit, size) {
     const item = rack.querySelector(`.rack-item-placed[data-unit="${oldUnit}"]`);
     if (item) {
         freeSpaces(oldUnit, size);
+        moveLabelsToSpaces(oldUnit, size); // Move labels back to spaces
         item.dataset.unit = newUnit;
         const firstSpace = rack.querySelector(`.rack-space[data-unit="${newUnit}"]`);
         firstSpace.parentNode.insertBefore(item, firstSpace);
         occupySpaces(newUnit, size);
+        moveLabelsToItem(newUnit, size, item); // Move labels to new item position
         updateRackWidth();
     }
 }
@@ -1217,9 +1233,10 @@ function updateRackWidth() {
 }
 
 function applyRackWidth(width) {
-    const rackPadding = 20; // 10px left + 10px right
+    const rackPaddingLeft = 10;
+    const rackPaddingRight = 80; // Extra space for labels
     const finalWidth = Math.min(width, 1000); // Cap at 1000px
-    const spaceWidth = finalWidth - rackPadding; // Spaces are inside the padding
+    const spaceWidth = finalWidth - rackPaddingLeft - rackPaddingRight; // Spaces are inside the padding
     
     // Set the rack width (this will be the container width)
     rack.style.width = finalWidth + 'px';
@@ -1278,6 +1295,9 @@ function startInlineEdit(nameElement, item) {
     input.select();
 }
 
+// Labels are now created with rack spaces, no need for this function
+
+
 function removeItem(e, itemElement = null) {
     e.stopPropagation();
     const item = itemElement || e.target.closest('.rack-item-placed');
@@ -1285,6 +1305,7 @@ function removeItem(e, itemElement = null) {
     const startUnit = parseInt(item.dataset.unit);
     const size = parseInt(item.dataset.size);
     freeSpaces(startUnit, size);
+    moveLabelsToSpaces(startUnit, size); // Move labels back to spaces
     item.remove();
 }
 
@@ -1342,7 +1363,7 @@ itemInfoModal.querySelector('.modal-close').addEventListener('click', () => {
 
 function occupySpaces(startUnit, size) {
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
         space.classList.add('occupied');
         space.style.display = 'none';
     }
@@ -1350,9 +1371,46 @@ function occupySpaces(startUnit, size) {
 
 function freeSpaces(startUnit, size) {
     for (let i = 0; i < size; i++) {
-        const space = rack.querySelector(`.rack-space[data-unit="${startUnit - i}"]`);
+        const space = rack.querySelector(`.rack-space[data-unit="${startUnit + i}"]`);
         space.classList.remove('occupied');
         space.style.display = 'flex';
+    }
+}
+
+function moveLabelsToItem(startUnit, size, item) {
+    // Move labels from spaces to the item
+    // With column-reverse, the first unit (lowest number) should be at the bottom of the item
+    for (let i = 0; i < size; i++) {
+        const unit = startUnit + i;
+        const space = rack.querySelector(`.rack-space[data-unit="${unit}"]`);
+        if (space) {
+            const label = space.querySelector(`.rack-location-label[data-unit="${unit}"]`);
+            if (label) {
+                // Calculate position within item (each unit is 32px)
+                // Reverse the order: lowest unit at bottom, highest at top
+                const offsetTop = (size - 1 - i) * 32;
+                label.style.top = `${offsetTop}px`;
+                label.style.height = '32px';
+                item.appendChild(label);
+            }
+        }
+    }
+}
+
+function moveLabelsToSpaces(startUnit, size) {
+    // Move labels back from item to spaces
+    for (let i = 0; i < size; i++) {
+        const unit = startUnit + i;
+        const space = rack.querySelector(`.rack-space[data-unit="${unit}"]`);
+        if (space) {
+            // Find label that might be in an item or elsewhere
+            const label = rack.querySelector(`.rack-location-label[data-unit="${unit}"]`);
+            if (label && label.parentElement !== space) {
+                label.style.top = '0px';
+                label.style.height = '20px';
+                space.appendChild(label);
+            }
+        }
     }
 }
 
