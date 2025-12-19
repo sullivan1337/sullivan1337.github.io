@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PCAP Analyzer</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="dark-mode">
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <span class="logo-icon">📦</span>
+        <h1>PCAP Analyzer</h1>
+      </div>
+      <div class="file-info" id="fileInfoHeader" style="display: none;">
+        <span class="file-name" id="fileName"></span>
+        <span class="file-meta" id="fileMeta"></span>
+      </div>
+      <div class="header-buttons">
+        <label class="btn-add-file" title="Add another PCAP file">
+          + Add File
+          <input type="file" id="addFileInput" accept=".pcap,.pcapng,.cap" multiple hidden/>
+        </label>
+        <button id="exportBtn" class="btn-export" style="display: none;" title="Export analysis summary">📥 Export</button>
+        <button id="dnsToggle" class="btn-dns active" title="DNS resolution enabled">🌐 DNS On</button>
+        <button id="resetBtn" title="Reset" class="btn-reset">Clear All</button>
+        <button id="themeToggle" title="Toggle light/dark mode">☀️</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- File Tabs (shown when multiple files) -->
+    <div id="fileTabs" class="file-tabs" style="display: none;"></div>
+
+    <!-- Upload Section -->
+    <section id="upload-section" class="upload-section">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-content">
+          <div class="drop-icon">📁</div>
+          <h2>Drop your PCAP files here</h2>
+          <p>or click to browse (multiple files supported)</p>
+          <input type="file" id="fileInput" accept=".pcap,.pcapng,.cap" multiple hidden/>
+          <div class="supported-formats">
+            <span>Supported formats:</span>
+            <code>.pcap</code>
+            <code>.pcapng</code>
+            <code>.cap</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading indicator -->
+    <div id="loading" class="loading" style="display: none;">
+      <div class="loading-spinner"></div>
+      <p>Parsing PCAP file...</p>
+    </div>
+
+    <!-- Analysis Section (hidden until file loaded) -->
+    <section id="analysis-section" class="analysis-section" style="display: none;">
+      <!-- Statistics Dashboard - Full Width -->
+      <div class="stats-dashboard">
+        <div class="stat-card">
+          <div class="stat-value" id="statPackets">0</div>
+          <div class="stat-label">Packets</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statBytes">0</div>
+          <div class="stat-label">Bytes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statDuration">0s</div>
+          <div class="stat-label">Duration</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statProtocols">0</div>
+          <div class="stat-label">Protocols</div>
+        </div>
+      </div>
+
+      <!-- Top Traffic (includes Protocols and Top Talkers) -->
+      <div class="top-traffic-section">
+        <div class="top-traffic-header">
+          <h3>Top Traffic</h3>
+          <div class="top-limit-selector">
+            <label>Show top:</label>
+            <select id="topLimitSelect">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+        </div>
+        <div class="traffic-grid">
+          <div class="talker-card protocol-card">
+            <h4>Protocols</h4>
+            <div id="protocolBars" class="talker-list"></div>
+          </div>
+          <div class="talker-card ip-card">
+            <h4>Source IPs</h4>
+            <div id="topSources" class="talker-list"></div>
+          </div>
+          <div class="talker-card ip-card">
+            <h4>Destination IPs</h4>
+            <div id="topDests" class="talker-list"></div>
+          </div>
+          <div class="talker-card conversation-card">
+            <h4>Conversations</h4>
+            <div id="topConversations" class="talker-list"></div>
+          </div>
+          <div class="talker-card port-card">
+            <h4>Source Ports</h4>
+            <div id="topSrcPorts" class="talker-list"></div>
+          </div>
+          <div class="talker-card port-card">
+            <h4>Destination Ports</h4>
+            <div id="topDstPorts" class="talker-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <div class="quick-filters" id="quickFilters"></div>
+        <div class="filter-group">
+          <input type="text" id="filterInput" placeholder="Filter: protocol==TCP, protocol!=UDP, ip.src==192.168.1.1 (click items to add)" class="filter-input"/>
+          <button id="clearFilterBtn" class="btn-filter-clear">Clear</button>
+        </div>
+        <div class="active-filters" id="activeFilters"></div>
+      </div>
+
+      <!-- Packet List and Details - 2 Column Layout -->
+      <div class="packet-grid">
+        <!-- Packet List -->
+        <div class="packet-list-container">
+          <div class="packet-count">
+            Showing <span id="displayedCount">0</span> of <span id="totalCount">0</span> packets
+          </div>
+          <table class="packet-table" id="packetTable">
+            <thead>
+              <tr>
+                <th class="col-no">#</th>
+                <th class="col-time">Time</th>
+                <th class="col-src">Source</th>
+                <th class="col-dst">Destination</th>
+                <th class="col-proto">Protocol</th>
+                <th class="col-len">Length</th>
+                <th class="col-info">Info</th>
+              </tr>
+            </thead>
+            <tbody id="packetTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Packet Details Panel -->
+        <div class="packet-details-panel" id="packetDetailsPanel">
+          <div class="details-placeholder" id="detailsPlaceholder">
+            <div class="placeholder-icon">📋</div>
+            <p>Select a packet to view details</p>
+          </div>
+          <div class="details-active" id="detailsActive" style="display: none;">
+            <div class="details-header">
+              <h3>Packet <span id="detailsPacketNum">#1</span></h3>
+              <button id="closeDetailsBtn" class="btn-close-details">×</button>
+            </div>
+            <div class="details-content">
+              <!-- Layer Tree -->
+              <div class="layer-tree" id="layerTree"></div>
+              
+              <!-- Hex View -->
+              <div class="hex-view-container">
+                <h4>Hex Dump</h4>
+                <div class="hex-view" id="hexView"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
