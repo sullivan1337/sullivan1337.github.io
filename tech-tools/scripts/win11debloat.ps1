@@ -476,9 +476,18 @@ function Test-AppInstalled {
     if ($AppKey -eq "Discord") {
         # Discord uses Update.exe --processStart Discord.exe
         # Update.exe is the launcher that starts Discord.exe from app-* folders
-        $discordUpdate = "${env:LOCALAPPDATA}\Discord\Update.exe"
+        $discordBase = "${env:LOCALAPPDATA}\Discord"
+        $discordUpdate = "$discordBase\Update.exe"
+        
+        # Must have Update.exe AND at least one app-* folder with Discord.exe
         if (Test-Path $discordUpdate) {
-            return $true
+            # Check for actual Discord.exe in app-* folders (required for it to launch)
+            $appFolders = Get-ChildItem -Path $discordBase -Directory -Filter "app-*" -ErrorAction SilentlyContinue
+            foreach ($folder in $appFolders) {
+                if (Test-Path "$($folder.FullName)\Discord.exe") {
+                    return $true
+                }
+            }
         }
         return $false
     }
@@ -582,7 +591,7 @@ function Install-App {
         
         # Wait a moment for installation to finalize
         # Discord needs extra time to extract to versioned folders
-        $waitTime = if ($AppKey -eq "Discord") { 5 } else { 2 }
+        $waitTime = if ($AppKey -eq "Discord") { 8 } else { 2 }
         Start-Sleep -Seconds $waitTime
         
         # Clean up installer
@@ -595,19 +604,40 @@ function Install-App {
             Write-Host " Completed in $([int]$elapsed) seconds        " -ForegroundColor DarkGray
             return $true
         } else {
-            # Some apps install elsewhere or need a moment (Discord especially)
-            $retryWait = if ($AppKey -eq "Discord") { 5 } else { 3 }
-            Start-Sleep -Seconds $retryWait
-            if (Test-AppInstalled -AppKey $AppKey) {
+            # Some apps install elsewhere or need a moment (Discord especially needs multiple retries)
+            if ($AppKey -eq "Discord") {
+                # Discord can take a while to extract - try multiple times
+                $maxRetries = 6
+                $retryCount = 0
+                while ($retryCount -lt $maxRetries) {
+                    Start-Sleep -Seconds 3
+                    $retryCount++
+                    if (Test-AppInstalled -AppKey $AppKey) {
+                        Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+                        Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
+                        Write-Host " Completed (after $($retryCount * 3) sec wait)        " -ForegroundColor DarkGray
+                        return $true
+                    }
+                    Write-Host "`r    Installing: / Waiting for Discord to extract... ($($retryCount * 3) sec)   " -NoNewline -ForegroundColor DarkGray
+                }
+                Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[WARNING]" -NoNewline -ForegroundColor Yellow
+                Write-Host " Discord may still be installing...              " -ForegroundColor DarkGray
+                return $true
+            } else {
+                # Other apps - single retry
+                Start-Sleep -Seconds 3
+                if (Test-AppInstalled -AppKey $AppKey) {
+                    Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+                    Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
+                    Write-Host " Completed                          " -ForegroundColor DarkGray
+                    return $true
+                }
                 Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
                 Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
-                Write-Host " Completed                          " -ForegroundColor DarkGray
+                Write-Host " (verify path manually)              " -ForegroundColor DarkGray
                 return $true
             }
-            Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
-            Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
-            Write-Host " (verify path manually)              " -ForegroundColor DarkGray
-            return $true
         }
     } catch {
         Write-Host "`r    Installing: [FAILED] $_                                  " -ForegroundColor Red
