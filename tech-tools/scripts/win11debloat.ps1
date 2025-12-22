@@ -292,6 +292,78 @@ function Pin-ToTaskbar {
     return $false
 }
 
+function Show-DownloadProgress {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Url,
+        [Parameter(Mandatory=$true)]
+        [string]$OutFile,
+        [Parameter(Mandatory=$true)]
+        [string]$AppName
+    )
+    
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        
+        $uri = New-Object System.Uri($Url)
+        $request = [System.Net.HttpWebRequest]::Create($uri)
+        $request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        $request.Timeout = 30000
+        
+        $response = $request.GetResponse()
+        $totalBytes = $response.ContentLength
+        $responseStream = $response.GetResponseStream()
+        $fileStream = New-Object System.IO.FileStream($OutFile, [System.IO.FileMode]::Create)
+        
+        $buffer = New-Object byte[] 65536
+        $bytesRead = 0
+        $totalBytesRead = 0
+        $lastPercent = -1
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        
+        Write-Host "    Downloading: [" -NoNewline -ForegroundColor DarkGray
+        $progressWidth = 30
+        
+        while (($bytesRead = $responseStream.Read($buffer, 0, $buffer.Length)) -gt 0) {
+            $fileStream.Write($buffer, 0, $bytesRead)
+            $totalBytesRead += $bytesRead
+            
+            if ($totalBytes -gt 0) {
+                $percent = [int](($totalBytesRead / $totalBytes) * 100)
+                $filledWidth = [int](($percent / 100) * $progressWidth)
+                
+                # Only update every 5% to reduce flicker
+                if ($percent -ge ($lastPercent + 5) -or $percent -eq 100) {
+                    $filled = "=" * $filledWidth
+                    $empty = " " * ($progressWidth - $filledWidth)
+                    $speed = if ($stopwatch.Elapsed.TotalSeconds -gt 0) { 
+                        [math]::Round($totalBytesRead / 1MB / $stopwatch.Elapsed.TotalSeconds, 1) 
+                    } else { 0 }
+                    
+                    # Move cursor back and rewrite
+                    Write-Host "`r    Downloading: [$filled$empty] $percent% ($speed MB/s)  " -NoNewline -ForegroundColor DarkGray
+                    $lastPercent = $percent
+                }
+            }
+        }
+        
+        $fileStream.Close()
+        $responseStream.Close()
+        $response.Close()
+        
+        $finalSize = [math]::Round($totalBytesRead / 1MB, 1)
+        Write-Host "`r    Downloading: [" -NoNewline -ForegroundColor DarkGray
+        Write-Host ("=" * $progressWidth) -NoNewline -ForegroundColor Green
+        Write-Host "] 100% ($finalSize MB)    " -ForegroundColor Green
+        
+        return $true
+    } catch {
+        Write-Host ""
+        Write-Host "    [FAILED] Download error: $_" -ForegroundColor Red
+        return $false
+    }
+}
+
 function Install-App {
     param (
         [Parameter(Mandatory=$true)]
@@ -305,9 +377,9 @@ function Install-App {
         return $false
     }
     
-    Write-Host "  Installing " -NoNewline
-    Write-Host $app.Name -ForegroundColor White -NoNewline
-    Write-Host "..." -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  ► " -NoNewline -ForegroundColor Cyan
+    Write-Host $app.Name -ForegroundColor White
     
     # Check if already installed
     if (Test-Path $app.ExePath) {
@@ -316,49 +388,77 @@ function Install-App {
         return $true
     }
     
-    # Download installer
+    # Download installer with progress
     $tempFile = "$env:TEMP\$AppKey`_installer.exe"
-    Write-Host "    Downloading..." -ForegroundColor DarkGray
     
-    try {
-        # Use TLS 1.2 for HTTPS
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        
-        $webClient = New-Object System.Net.WebClient
-        $webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
-        $webClient.DownloadFile($app.URL, $tempFile)
-    } catch {
-        Write-Host "    [FAILED] Download failed: $_" -ForegroundColor Red
-        return $false
+    # Remove old installer if exists
+    if (Test-Path $tempFile) {
+        Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
     }
     
-    if (-not (Test-Path $tempFile)) {
+    $downloadSuccess = Show-DownloadProgress -Url $app.URL -OutFile $tempFile -AppName $app.Name
+    
+    if (-not $downloadSuccess -or -not (Test-Path $tempFile)) {
         Write-Host "    [FAILED] Download failed - file not found" -ForegroundColor Red
         return $false
     }
     
-    # Run installer
-    Write-Host "    Installing (please wait)..." -ForegroundColor DarkGray
+    # Run installer with timeout and spinner
+    Write-Host "    Installing: " -NoNewline -ForegroundColor DarkGray
+    
+    $spinChars = @('|', '/', '-', '\')
+    $spinIndex = 0
+    $timeout = 300 # 5 minute timeout
+    $elapsed = 0
+    
     try {
-        $process = Start-Process -FilePath $tempFile -ArgumentList $app.Args -NoNewWindow -Wait -PassThru
+        # Start installer process (non-blocking)
+        $process = Start-Process -FilePath $tempFile -ArgumentList $app.Args -PassThru
+        
+        # Wait with spinner animation
+        while (-not $process.HasExited -and $elapsed -lt $timeout) {
+            Write-Host "`r    Installing: $($spinChars[$spinIndex]) Please wait... ($elapsed sec)   " -NoNewline -ForegroundColor DarkGray
+            $spinIndex = ($spinIndex + 1) % 4
+            Start-Sleep -Milliseconds 500
+            $elapsed += 0.5
+        }
+        
+        if (-not $process.HasExited) {
+            # Timeout - try to kill and continue
+            Write-Host "`r    Installing: Timeout reached, continuing...              " -ForegroundColor Yellow
+            try { $process.Kill() } catch { }
+        }
+        
+        # Wait a moment for installation to finalize
         Start-Sleep -Seconds 2
         
         # Clean up installer
         Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
         
-        # Verify installation
-        Start-Sleep -Seconds 2
+        # Check if installed
         if (Test-Path $app.ExePath) {
-            Write-Host "    [SUCCESS] Installed" -ForegroundColor Green
+            Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+            Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
+            Write-Host " Completed in $([int]$elapsed) seconds        " -ForegroundColor DarkGray
             if ($Pin) { Pin-ToTaskbar -ExePath $app.ExePath -AppName $app.Name }
             return $true
         } else {
-            # Some apps install to different locations, assume success if no error
-            Write-Host "    [SUCCESS] Installed (verify manually)" -ForegroundColor Green
+            # Some apps install elsewhere or need a moment
+            Start-Sleep -Seconds 3
+            if (Test-Path $app.ExePath) {
+                Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+                Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
+                Write-Host " Completed                          " -ForegroundColor DarkGray
+                if ($Pin) { Pin-ToTaskbar -ExePath $app.ExePath -AppName $app.Name }
+                return $true
+            }
+            Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
+            Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
+            Write-Host " (verify path manually)              " -ForegroundColor DarkGray
             return $true
         }
     } catch {
-        Write-Host "    [FAILED] Installation error: $_" -ForegroundColor Red
+        Write-Host "`r    Installing: [FAILED] $_                                  " -ForegroundColor Red
         Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
         return $false
     }
@@ -368,45 +468,66 @@ function Install-EssentialApps {
     param([switch]$Pin)
     
     Write-Host ""
-    Write-Host "  ====== Essential Applications ======" -ForegroundColor Cyan
-    Write-Host ""
+    Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "  ║   Essential Applications                              ║" -ForegroundColor Cyan
+    Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     
-    Install-App -AppKey "Chrome" -Pin:$Pin
-    Install-App -AppKey "VSCode" -Pin:$Pin
+    $success = 0
+    $total = 2
+    
+    if (Install-App -AppKey "Chrome" -Pin:$Pin) { $success++ }
+    if (Install-App -AppKey "VSCode" -Pin:$Pin) { $success++ }
     
     Write-Host ""
-    Write-Host "  Essential tools installation complete!" -ForegroundColor Green
+    Write-Host "  ────────────────────────────────────────────────────────" -ForegroundColor DarkGray
+    Write-Host "  Essential apps: " -NoNewline
+    Write-Host "$success/$total completed" -ForegroundColor $(if ($success -eq $total) { "Green" } else { "Yellow" })
 }
 
 function Install-OptionalApps {
     param([switch]$Pin, [switch]$NoPrompt)
     
     Write-Host ""
-    Write-Host "  ====== Optional Applications ======" -ForegroundColor Cyan
-    Write-Host ""
+    Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "  ║   Optional Applications                               ║" -ForegroundColor Cyan
+    Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    
+    $success = 0
+    $attempted = 0
     
     if ($NoPrompt) {
-        Install-App -AppKey "GeForce" -Pin:$Pin
-        Install-App -AppKey "Steam" -Pin:$Pin
-        Install-App -AppKey "VLC" -Pin:$Pin
-        Install-App -AppKey "Discord" -Pin:$Pin
+        $attempted = 4
+        if (Install-App -AppKey "GeForce" -Pin:$Pin) { $success++ }
+        if (Install-App -AppKey "Steam" -Pin:$Pin) { $success++ }
+        if (Install-App -AppKey "VLC" -Pin:$Pin) { $success++ }
+        if (Install-App -AppKey "Discord" -Pin:$Pin) { $success++ }
     } else {
         if (Confirm-Action "  Install GeForce Experience (Nvidia GPU)?") { 
-            Install-App -AppKey "GeForce" -Pin:$Pin
+            $attempted++
+            if (Install-App -AppKey "GeForce" -Pin:$Pin) { $success++ }
         }
         if (Confirm-Action "  Install Steam (Gaming platform)?") { 
-            Install-App -AppKey "Steam" -Pin:$Pin
+            $attempted++
+            if (Install-App -AppKey "Steam" -Pin:$Pin) { $success++ }
         }
         if (Confirm-Action "  Install VLC Media Player?") { 
-            Install-App -AppKey "VLC" -Pin:$Pin
+            $attempted++
+            if (Install-App -AppKey "VLC" -Pin:$Pin) { $success++ }
         }
         if (Confirm-Action "  Install Discord?") { 
-            Install-App -AppKey "Discord" -Pin:$Pin
+            $attempted++
+            if (Install-App -AppKey "Discord" -Pin:$Pin) { $success++ }
         }
     }
     
     Write-Host ""
-    Write-Host "  Optional apps installation complete!" -ForegroundColor Green
+    Write-Host "  ────────────────────────────────────────────────────────" -ForegroundColor DarkGray
+    if ($attempted -gt 0) {
+        Write-Host "  Optional apps: " -NoNewline
+        Write-Host "$success/$attempted completed" -ForegroundColor $(if ($success -eq $attempted) { "Green" } else { "Yellow" })
+    } else {
+        Write-Host "  No optional apps selected." -ForegroundColor DarkGray
+    }
 }
 
 # ==========================================
