@@ -226,7 +226,7 @@ $AppInstallers = @{
     }
     "VLC" = @{
         Name = "VLC Media Player"
-        URL = "https://get.videolan.org/vlc/last/win64/vlc-3.0.21-win64.exe"
+        URL = "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"
         Args = "/S /L=1033"
         ExePath = "${env:ProgramFiles}\VideoLAN\VLC\vlc.exe"
     }
