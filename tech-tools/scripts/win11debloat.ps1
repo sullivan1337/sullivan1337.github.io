@@ -359,11 +359,9 @@ $AppInstallers = @{
         Name = "Discord"
         URL = "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64"
         Args = "-s"
-        # Discord installs to versioned folders like app-1.0.9219, need to check dynamically
+        # Discord uses Update.exe as launcher: Update.exe --processStart Discord.exe
+        # Actual Discord.exe is in versioned folders like app-1.0.9219
         ExePath = "${env:LOCALAPPDATA}\Discord\Update.exe"
-        ExePaths = @(
-            "${env:LOCALAPPDATA}\Discord\Update.exe"
-        )
     }
     "NvidiaApp" = @{
         Name = "NVIDIA App"
@@ -474,20 +472,13 @@ function Test-AppInstalled {
     $app = $AppInstallers[$AppKey]
     if (-not $app) { return $false }
     
-    # Special handling for Discord (versioned folders)
+    # Special handling for Discord (uses Update.exe as launcher)
     if ($AppKey -eq "Discord") {
-        $discordBase = "${env:LOCALAPPDATA}\Discord"
-        if (Test-Path $discordBase) {
-            # Check for Update.exe (launcher)
-            if (Test-Path "$discordBase\Update.exe") {
-                # Also check for actual Discord.exe in any app-* folder
-                $appFolders = Get-ChildItem -Path $discordBase -Directory -Filter "app-*" -ErrorAction SilentlyContinue
-                foreach ($folder in $appFolders) {
-                    if (Test-Path "$($folder.FullName)\Discord.exe") {
-                        return $true
-                    }
-                }
-            }
+        # Discord uses Update.exe --processStart Discord.exe
+        # Update.exe is the launcher that starts Discord.exe from app-* folders
+        $discordUpdate = "${env:LOCALAPPDATA}\Discord\Update.exe"
+        if (Test-Path $discordUpdate) {
+            return $true
         }
         return $false
     }
