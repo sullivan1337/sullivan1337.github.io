@@ -358,7 +358,7 @@ $AppInstallers = @{
     "Discord" = @{
         Name = "Discord"
         URL = "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64"
-        Args = "-s"
+        Args = ""
         # Discord uses Update.exe as launcher: Update.exe --processStart Discord.exe
         # Actual Discord.exe is in versioned folders like app-1.0.9219
         ExePath = "${env:LOCALAPPDATA}\Discord\Update.exe"
