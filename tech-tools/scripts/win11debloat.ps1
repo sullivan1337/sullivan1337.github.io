@@ -154,25 +154,46 @@ function Configure-Taskbar {
     Write-Host "   Configuring Taskbar & Shell Preferences" -ForegroundColor Cyan
     Write-Host "=====================================================" -ForegroundColor Cyan
     
+    # Show what will be changed
+    Write-Host ""
+    Write-Host "  The following taskbar items will be " -NoNewline -ForegroundColor White
+    Write-Host "HIDDEN:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  • Search Box (taskbar search field)                │" -ForegroundColor DarkGray
+    Write-Host "  │  • Task View Button (virtual desktops)              │" -ForegroundColor DarkGray
+    Write-Host "  │  • Widgets Button (news/weather panel)              │" -ForegroundColor DarkGray
+    Write-Host "  │  • Chat/Meet Now Icon (Teams integration)           │" -ForegroundColor DarkGray
+    Write-Host "  │  • Copilot Button (AI assistant)                    │" -ForegroundColor DarkGray
+    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    $confirm = Read-Host "  Apply these taskbar changes? (y/n)"
+    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
+        Write-Host "  Taskbar customization cancelled." -ForegroundColor Yellow
+        return
+    }
+    
+    Write-Host ""
     $AdvancedKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
     
     # Hide Search Box (0 = Hidden, 1 = Icon only, 2 = Search box)
-    Write-Host "  [1/6] Hiding Search Box..." -ForegroundColor White
+    Write-Host "  [1/5] Hiding Search Box..." -ForegroundColor White
     Set-ItemProperty -Path $AdvancedKey -Name "SearchboxTaskbarMode" -Value 0 -Force -ErrorAction SilentlyContinue
     Write-Host "        Done" -ForegroundColor Green
     
     # Hide Task View Button (0 = Hidden, 1 = Visible)
-    Write-Host "  [2/6] Hiding Task View Button..." -ForegroundColor White
+    Write-Host "  [2/5] Hiding Task View Button..." -ForegroundColor White
     Set-ItemProperty -Path $AdvancedKey -Name "ShowTaskViewButton" -Value 0 -Force -ErrorAction SilentlyContinue
     Write-Host "        Done" -ForegroundColor Green
     
     # Hide Widgets Button (0 = Hidden, 1 = Visible)
-    Write-Host "  [3/6] Hiding Widgets Button..." -ForegroundColor White
+    Write-Host "  [3/5] Hiding Widgets Button..." -ForegroundColor White
     Set-ItemProperty -Path $AdvancedKey -Name "TaskbarDa" -Value 0 -Force -ErrorAction SilentlyContinue
     Write-Host "        Done" -ForegroundColor Green
     
     # Hide Meet Now / Chat Icon (3 = Hidden)
-    Write-Host "  [4/6] Hiding Chat/Meet Now Icon..." -ForegroundColor White
+    Write-Host "  [4/5] Hiding Chat/Meet Now Icon..." -ForegroundColor White
     $ChatPolicy = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
     if (!(Test-Path $ChatPolicy)) { New-Item -Path $ChatPolicy -Force | Out-Null }
     Set-ItemProperty -Path $ChatPolicy -Name "ChatIcon" -Value 3 -Force -ErrorAction SilentlyContinue
@@ -180,21 +201,23 @@ function Configure-Taskbar {
     Write-Host "        Done" -ForegroundColor Green
     
     # Hide Copilot Button
-    Write-Host "  [5/6] Hiding Copilot Button..." -ForegroundColor White
+    Write-Host "  [5/5] Hiding Copilot Button..." -ForegroundColor White
     Set-ItemProperty -Path $AdvancedKey -Name "ShowCopilotButton" -Value 0 -Force -ErrorAction SilentlyContinue
     Write-Host "        Done" -ForegroundColor Green
     
+    Write-Host "`n  All taskbar items hidden!" -ForegroundColor Green
+    
     # Align Taskbar to Left (0 = Left, 1 = Center) - Optional, ask user
-    $AlignLeft = Read-Host "`n  [6/6] Align taskbar icons to LEFT instead of center? (y/n)"
-    if ($AlignLeft -eq 'y') {
+    Write-Host ""
+    $AlignLeft = Read-Host "  OPTIONAL: Align taskbar icons to LEFT instead of center? (y/n)"
+    if ($AlignLeft -eq 'y' -or $AlignLeft -eq 'Y') {
         Set-ItemProperty -Path $AdvancedKey -Name "TaskbarAl" -Value 0 -Force -ErrorAction SilentlyContinue
         Write-Host "        Taskbar aligned to left" -ForegroundColor Green
     } else {
         Write-Host "        Keeping center alignment" -ForegroundColor DarkGray
     }
     
-    Write-Host "`n  All taskbar settings applied!" -ForegroundColor Green
-    Write-Host "  Explorer will restart to apply changes..." -ForegroundColor Yellow
+    Write-Host "`n  Explorer will restart to apply changes..." -ForegroundColor Yellow
 }
 
 # ==========================================
@@ -213,7 +236,10 @@ $AppInstallers = @{
         Name = "Visual Studio Code"
         URL = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
         Args = "/verysilent /norestart /mergetasks=!runcode,addcontextmenufiles,addcontextmenufolders,addtopath"
-        ExePath = "${env:LOCALAPPDATA}\Programs\Microsoft VS Code\Code.exe"
+        ExePaths = @(
+            "${env:ProgramFiles}\Microsoft VS Code\Code.exe",
+            "${env:LOCALAPPDATA}\Programs\Microsoft VS Code\Code.exe"
+        )
     }
     "Steam" = @{
         Name = "Steam"
@@ -227,9 +253,9 @@ $AppInstallers = @{
     "VLC" = @{
         Name = "VLC Media Player"
         URLs = @(
-            "https://mirror.downloadvn.com/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
-            "https://mirrors.kernel.org/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
-            "https://ftp.osuosl.org/pub/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"
+            "https://ftp.osuosl.org/pub/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+            "https://mirror.init7.net/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+            "https://opencolo.mm.fcix.net/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"
         )
         Args = "/S /L=1033"
         ExePath = "${env:ProgramFiles}\VideoLAN\VLC\vlc.exe"
@@ -244,7 +270,7 @@ $AppInstallers = @{
         Name = "NVIDIA App"
         URL = "https://us.download.nvidia.com/nvapp/client/11.0.5.420/NVIDIA_app_v11.0.5.420.exe"
         Args = "-s -n"
-        ExePath = "${env:ProgramFiles}\NVIDIA Corporation\NVIDIA App\NVIDIAApp.exe"
+        ExePath = "${env:ProgramFiles}\NVIDIA Corporation\NVIDIA App\NVIDIA app.exe"
     }
 }
 
@@ -264,11 +290,31 @@ function Show-DownloadProgress {
         $uri = New-Object System.Uri($Url)
         $request = [System.Net.HttpWebRequest]::Create($uri)
         $request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-        $request.Timeout = 30000
+        $request.Timeout = 15000  # 15 second timeout for connection
+        $request.ReadWriteTimeout = 30000  # 30 second timeout for read/write
+        $request.AllowAutoRedirect = $true
+        $request.MaximumAutomaticRedirections = 5
         
         $response = $request.GetResponse()
+        
+        # Check for valid response
+        if ($response.StatusCode -ne [System.Net.HttpStatusCode]::OK) {
+            Write-Host "    [FAILED] Server returned: $($response.StatusCode)" -ForegroundColor Red
+            $response.Close()
+            return $false
+        }
+        
         $totalBytes = $response.ContentLength
+        
+        # Check if we got a reasonable file size (at least 100KB expected for installers)
+        if ($totalBytes -lt 100000 -and $totalBytes -gt 0) {
+            Write-Host "    [FAILED] File too small ($totalBytes bytes) - likely error page" -ForegroundColor Red
+            $response.Close()
+            return $false
+        }
+        
         $responseStream = $response.GetResponseStream()
+        $responseStream.ReadTimeout = 30000  # 30 second read timeout
         $fileStream = New-Object System.IO.FileStream($OutFile, [System.IO.FileMode]::Create)
         
         $buffer = New-Object byte[] 65536
@@ -320,6 +366,26 @@ function Show-DownloadProgress {
     }
 }
 
+function Test-AppInstalled {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$AppKey
+    )
+    
+    $app = $AppInstallers[$AppKey]
+    if (-not $app) { return $false }
+    
+    # Check single ExePath or array of ExePaths
+    $pathsToCheck = if ($app.ExePaths) { $app.ExePaths } else { @($app.ExePath) }
+    
+    foreach ($path in $pathsToCheck) {
+        if (Test-Path $path) {
+            return $true
+        }
+    }
+    return $false
+}
+
 function Install-App {
     param (
         [Parameter(Mandatory=$true)]
@@ -336,8 +402,8 @@ function Install-App {
     Write-Host "  ► " -NoNewline -ForegroundColor Cyan
     Write-Host $app.Name -ForegroundColor White
     
-    # Check if already installed
-    if (Test-Path $app.ExePath) {
+    # Check if already installed (supports multiple paths)
+    if (Test-AppInstalled -AppKey $AppKey) {
         Write-Host "    [SKIPPED] Already installed" -ForegroundColor Yellow
         return $true
     }
@@ -412,8 +478,8 @@ function Install-App {
         # Clean up installer
         Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
         
-        # Check if installed
-        if (Test-Path $app.ExePath) {
+        # Check if installed (supports multiple paths)
+        if (Test-AppInstalled -AppKey $AppKey) {
             Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
             Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
             Write-Host " Completed in $([int]$elapsed) seconds        " -ForegroundColor DarkGray
@@ -421,7 +487,7 @@ function Install-App {
         } else {
             # Some apps install elsewhere or need a moment
             Start-Sleep -Seconds 3
-            if (Test-Path $app.ExePath) {
+            if (Test-AppInstalled -AppKey $AppKey) {
                 Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
                 Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
                 Write-Host " Completed                          " -ForegroundColor DarkGray
@@ -456,14 +522,15 @@ function Show-AppStatus {
     foreach ($key in $AppKeys) {
         $app = $AppInstallers[$key]
         if ($app) {
-            $status = if (Test-Path $app.ExePath) { 
+            $isInstalled = Test-AppInstalled -AppKey $key
+            $status = if ($isInstalled) { 
                 $alreadyInstalled += $key
                 "[INSTALLED]"
             } else { 
                 $toInstall += $key
                 "[MISSING]  "
             }
-            $color = if (Test-Path $app.ExePath) { "Green" } else { "Yellow" }
+            $color = if ($isInstalled) { "Green" } else { "Yellow" }
             Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
             Write-Host $status -NoNewline -ForegroundColor $color
             Write-Host " $($app.Name)" -NoNewline -ForegroundColor White
