@@ -867,7 +867,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "3" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Customize UI (Taskbar & Explorer)                    │" -ForegroundColor White
+    Write-Host ". Customize UI (Taskbar & Explorer)                      │" -ForegroundColor White
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "INSTALLATION" -ForegroundColor Yellow -NoNewline
@@ -878,7 +878,7 @@ Do {
     Write-Host ". Install Essential Apps (Browser, VS Code)              │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "5" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Install Optional Apps (NVIDIA, Steam, VLC, Discord)   │" -ForegroundColor White
+    Write-Host ". Install Optional Apps (NVIDIA, Steam, VLC, Discord)    │" -ForegroundColor White
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "QUICK START" -ForegroundColor Green -NoNewline
@@ -886,15 +886,15 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "6" -ForegroundColor Magenta -NoNewline
-    Write-Host ". Remove & Customize All (Options 1-3)                  │" -ForegroundColor White
+    Write-Host ". Remove & Customize All (Options 1-3)                   │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "7" -ForegroundColor Magenta -NoNewline
-    Write-Host ". Install All Apps (Options 4+5)                        │" -ForegroundColor White
+    Write-Host ". Install All Apps (Options 4+5)                         │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "8" -ForegroundColor Green -NoNewline
     Write-Host ". " -ForegroundColor White -NoNewline
     Write-Host "RUN EVERYTHING" -ForegroundColor Green -NoNewline
-    Write-Host " - Fresh Install (Recommended)          │" -ForegroundColor White
+    Write-Host " - Fresh Install (Recommended)           │" -ForegroundColor White
     Write-Host "  └─────────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  " -NoNewline
