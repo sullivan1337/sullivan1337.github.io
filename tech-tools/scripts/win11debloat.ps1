@@ -321,6 +321,12 @@ $AppInstallers = @{
         Args = "/silent /install"
         ExePath = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
     }
+    "Firefox" = @{
+        Name = "Mozilla Firefox"
+        URL = "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US"
+        Args = "/S"
+        ExePath = "${env:ProgramFiles}\Mozilla Firefox\firefox.exe"
+    }
     "VSCode" = @{
         Name = "Visual Studio Code"
         URL = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
@@ -353,7 +359,11 @@ $AppInstallers = @{
         Name = "Discord"
         URL = "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64"
         Args = "-s"
+        # Discord installs to versioned folders like app-1.0.9219, need to check dynamically
         ExePath = "${env:LOCALAPPDATA}\Discord\Update.exe"
+        ExePaths = @(
+            "${env:LOCALAPPDATA}\Discord\Update.exe"
+        )
     }
     "NvidiaApp" = @{
         Name = "NVIDIA App"
@@ -464,6 +474,24 @@ function Test-AppInstalled {
     $app = $AppInstallers[$AppKey]
     if (-not $app) { return $false }
     
+    # Special handling for Discord (versioned folders)
+    if ($AppKey -eq "Discord") {
+        $discordBase = "${env:LOCALAPPDATA}\Discord"
+        if (Test-Path $discordBase) {
+            # Check for Update.exe (launcher)
+            if (Test-Path "$discordBase\Update.exe") {
+                # Also check for actual Discord.exe in any app-* folder
+                $appFolders = Get-ChildItem -Path $discordBase -Directory -Filter "app-*" -ErrorAction SilentlyContinue
+                foreach ($folder in $appFolders) {
+                    if (Test-Path "$($folder.FullName)\Discord.exe") {
+                        return $true
+                    }
+                }
+            }
+        }
+        return $false
+    }
+    
     # Check single ExePath or array of ExePaths
     $pathsToCheck = if ($app.ExePaths) { $app.ExePaths } else { @($app.ExePath) }
     
@@ -562,7 +590,9 @@ function Install-App {
         }
         
         # Wait a moment for installation to finalize
-        Start-Sleep -Seconds 2
+        # Discord needs extra time to extract to versioned folders
+        $waitTime = if ($AppKey -eq "Discord") { 5 } else { 2 }
+        Start-Sleep -Seconds $waitTime
         
         # Clean up installer
         Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
@@ -574,8 +604,9 @@ function Install-App {
             Write-Host " Completed in $([int]$elapsed) seconds        " -ForegroundColor DarkGray
             return $true
         } else {
-            # Some apps install elsewhere or need a moment
-            Start-Sleep -Seconds 3
+            # Some apps install elsewhere or need a moment (Discord especially)
+            $retryWait = if ($AppKey -eq "Discord") { 5 } else { 3 }
+            Start-Sleep -Seconds $retryWait
             if (Test-AppInstalled -AppKey $AppKey) {
                 Write-Host "`r    Installing: " -NoNewline -ForegroundColor DarkGray
                 Write-Host "[SUCCESS]" -NoNewline -ForegroundColor Green
@@ -654,8 +685,33 @@ function Install-EssentialApps {
     Write-Host "  ║   Essential Applications                              ║" -ForegroundColor Cyan
     Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     
-    # Preflight check
-    $toInstall = Show-AppStatus -AppKeys @("Chrome", "VSCode")
+    # Browser selection
+    Write-Host ""
+    Write-Host "  Browser Selection:" -ForegroundColor White
+    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
+    Write-Host "c" -ForegroundColor Cyan -NoNewline
+    Write-Host " = Chrome" -ForegroundColor White
+    Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
+    Write-Host "f" -ForegroundColor Cyan -NoNewline
+    Write-Host " = Firefox" -ForegroundColor White
+    Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
+    Write-Host "b" -ForegroundColor Cyan -NoNewline
+    Write-Host " = Both" -ForegroundColor White
+    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    $browserChoice = Read-Host "  Select browser (c/f/b)"
+    $installChrome = ($browserChoice -eq 'c' -or $browserChoice -eq 'C' -or $browserChoice -eq 'b' -or $browserChoice -eq 'B')
+    $installFirefox = ($browserChoice -eq 'f' -or $browserChoice -eq 'F' -or $browserChoice -eq 'b' -or $browserChoice -eq 'B')
+    
+    # Preflight check for browsers and VS Code
+    $browserKeys = @()
+    if ($installChrome) { $browserKeys += "Chrome" }
+    if ($installFirefox) { $browserKeys += "Firefox" }
+    $allKeys = $browserKeys + @("VSCode")
+    
+    $toInstall = Show-AppStatus -AppKeys $allKeys
     
     if ($toInstall.Count -eq 0) {
         Write-Host "  All essential apps are already installed!" -ForegroundColor Green
@@ -665,8 +721,18 @@ function Install-EssentialApps {
     $success = 0
     $total = $toInstall.Count
     
-    if (Install-App -AppKey "Chrome") { $success++ }
-    if (Install-App -AppKey "VSCode") { $success++ }
+    # Install browsers
+    if ($installChrome -and "Chrome" -in $toInstall) {
+        if (Install-App -AppKey "Chrome") { $success++ }
+    }
+    if ($installFirefox -and "Firefox" -in $toInstall) {
+        if (Install-App -AppKey "Firefox") { $success++ }
+    }
+    
+    # Install VS Code
+    if ("VSCode" -in $toInstall) {
+        if (Install-App -AppKey "VSCode") { $success++ }
+    }
     
     Write-Host ""
     Write-Host "  ────────────────────────────────────────────────────────" -ForegroundColor DarkGray
@@ -783,7 +849,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "4" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Install Essential Apps (Chrome, VS Code)              │" -ForegroundColor White
+    Write-Host ". Install Essential Apps (Browser, VS Code)              │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "5" -ForegroundColor Cyan -NoNewline
     Write-Host ". Install Optional Apps (NVIDIA, Steam, VLC, Discord)   │" -ForegroundColor White
@@ -886,7 +952,7 @@ Do {
             Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Magenta
             Write-Host ""
             
-            if (-not (Confirm-Action "  Install Chrome, VS Code, Steam, VLC, Discord, NVIDIA App?")) {
+            if (-not (Confirm-Action "  Install browser (selectable), VS Code, Steam, VLC, Discord, NVIDIA App?")) {
                 Write-Host "  Operation cancelled." -ForegroundColor Yellow
                 Pause
                 continue
