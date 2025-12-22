@@ -830,10 +830,10 @@ function Show-Banner {
     Write-Host "  ║                                                               ║" -ForegroundColor Cyan
     Write-Host "  ║   " -ForegroundColor Cyan -NoNewline
     Write-Host "WINDOWS 11 DE-BLOAT & SETUP AUTOMATION" -ForegroundColor White -NoNewline
-    Write-Host "                  ║" -ForegroundColor Cyan
+    Write-Host "                      ║" -ForegroundColor Cyan
     Write-Host "  ║   " -ForegroundColor Cyan -NoNewline
     Write-Host "by sullivan1337" -ForegroundColor DarkGray -NoNewline
-    Write-Host "                                            ║" -ForegroundColor Cyan
+    Write-Host "                                             ║" -ForegroundColor Cyan
     Write-Host "  ║                                                               ║" -ForegroundColor Cyan
     Write-Host "  ╚═══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
@@ -852,18 +852,18 @@ Do {
     Write-Host "  ┌─────────────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "REMOVAL OPTIONS" -ForegroundColor Yellow -NoNewline
-    Write-Host "                                              │" -ForegroundColor DarkGray
+    Write-Host "                                            │" -ForegroundColor DarkGray
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "1" -ForegroundColor Cyan -NoNewline
     Write-Host ". Remove Microsoft Bloat (Bing, Copilot, Teams, etc.)    │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "2" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Remove Third-Party Apps (Social, Games, Streaming)    │" -ForegroundColor White
+    Write-Host ". Remove Third-Party Apps (Social, Games, Streaming)     │" -ForegroundColor White
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "CUSTOMIZATION" -ForegroundColor Yellow -NoNewline
-    Write-Host "                                                │" -ForegroundColor DarkGray
+    Write-Host "                                              │" -ForegroundColor DarkGray
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "3" -ForegroundColor Cyan -NoNewline
@@ -871,7 +871,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "INSTALLATION" -ForegroundColor Yellow -NoNewline
-    Write-Host "                                                 │" -ForegroundColor DarkGray
+    Write-Host "                                               │" -ForegroundColor DarkGray
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "4" -ForegroundColor Cyan -NoNewline
@@ -882,7 +882,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "QUICK START" -ForegroundColor Green -NoNewline
-    Write-Host "                                                  │" -ForegroundColor DarkGray
+    Write-Host "                                                │" -ForegroundColor DarkGray
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "6" -ForegroundColor Magenta -NoNewline
@@ -894,7 +894,7 @@ Do {
     Write-Host "8" -ForegroundColor Green -NoNewline
     Write-Host ". " -ForegroundColor White -NoNewline
     Write-Host "RUN EVERYTHING" -ForegroundColor Green -NoNewline
-    Write-Host " - Fresh Install (Recommended)       │" -ForegroundColor White
+    Write-Host " - Fresh Install (Recommended)          │" -ForegroundColor White
     Write-Host "  └─────────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  " -NoNewline
