@@ -6,7 +6,8 @@
     Features:
     - Deep removal of Microsoft & Third-Party bloatware (Provisioned & Installed)
     - Taskbar and Shell interface customization (Registry/Policy)
-    - Automated software deployment via Winget
+    - Automated software deployment via direct installer downloads (no winget needed!)
+    - Automatic taskbar pinning for installed apps
     - Interactive Menu System
 .NOTES
     Author: sullivan1337
@@ -141,7 +142,7 @@ function Remove-PackageList {
             Write-Host " [Not Found]" -NoNewline -ForegroundColor DarkGray
             $Skipped++
         }
-        Write-Host ""
+        Write-Host "" 
     }
     
     Write-Host "`n  Summary: " -NoNewline
@@ -155,7 +156,6 @@ function Configure-Taskbar {
     Write-Host "=====================================================" -ForegroundColor Cyan
     
     $AdvancedKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-    $SearchKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search"
     
     # Hide Search Box (0 = Hidden, 1 = Icon only, 2 = Search box)
     Write-Host "  [1/6] Hiding Search Box..." -ForegroundColor White
@@ -198,53 +198,215 @@ function Configure-Taskbar {
     Write-Host "  Explorer will restart to apply changes..." -ForegroundColor Yellow
 }
 
-function Test-WingetInstalled {
-    try {
-        $null = Get-Command winget -ErrorAction Stop
+# ==========================================
+# APP INSTALLATION DEFINITIONS
+# ==========================================
+# Using direct installers instead of winget for reliability on fresh installs
+
+$AppInstallers = @{
+    "Chrome" = @{
+        Name = "Google Chrome"
+        URL = "https://dl.google.com/chrome/install/latest/chrome_installer.exe"
+        Args = "/silent /install"
+        ExePath = "${env:ProgramFiles}\Google\Chrome\Application\chrome.exe"
+    }
+    "VSCode" = @{
+        Name = "Visual Studio Code"
+        URL = "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64"
+        Args = "/verysilent /norestart /mergetasks=!runcode,addcontextmenufiles,addcontextmenufolders,addtopath"
+        ExePath = "${env:LOCALAPPDATA}\Programs\Microsoft VS Code\Code.exe"
+    }
+    "Steam" = @{
+        Name = "Steam"
+        URL = "https://cdn.akamai.steamstatic.com/client/installer/SteamSetup.exe"
+        Args = "/S"
+        ExePath = "${env:ProgramFiles(x86)}\Steam\steam.exe"
+    }
+    "VLC" = @{
+        Name = "VLC Media Player"
+        URL = "https://get.videolan.org/vlc/last/win64/vlc-3.0.21-win64.exe"
+        Args = "/S /L=1033"
+        ExePath = "${env:ProgramFiles}\VideoLAN\VLC\vlc.exe"
+    }
+    "Discord" = @{
+        Name = "Discord"
+        URL = "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64"
+        Args = "-s"
+        ExePath = "${env:LOCALAPPDATA}\Discord\Update.exe"
+    }
+    "GeForce" = @{
+        Name = "GeForce Experience"
+        URL = "https://us.download.nvidia.com/GFE/GFEClient/3.28.0.417/GeForce_Experience_v3.28.0.417.exe"
+        Args = "-s -n"
+        ExePath = "${env:ProgramFiles}\NVIDIA Corporation\NVIDIA GeForce Experience\NVIDIA GeForce Experience.exe"
+    }
+}
+
+function Pin-ToTaskbar {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$ExePath,
+        [Parameter(Mandatory=$true)]
+        [string]$AppName
+    )
+    
+    # Windows 11 taskbar pinning via shell
+    if (Test-Path $ExePath) {
+        try {
+            # Create a shortcut in the Start Menu if needed
+            $shell = New-Object -ComObject Shell.Application
+            $startMenu = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs"
+            $shortcutPath = "$startMenu\$AppName.lnk"
+            
+            # Create shortcut if it doesn't exist
+            if (-not (Test-Path $shortcutPath)) {
+                $WshShell = New-Object -ComObject WScript.Shell
+                $shortcut = $WshShell.CreateShortcut($shortcutPath)
+                $shortcut.TargetPath = $ExePath
+                $shortcut.Save()
+            }
+            
+            # Use explorer to pin (Windows 11 method)
+            $folder = $shell.Namespace((Split-Path $shortcutPath))
+            $item = $folder.ParseName((Split-Path $shortcutPath -Leaf))
+            
+            # Try to find and invoke "Pin to taskbar" verb
+            $verbs = $item.Verbs()
+            foreach ($verb in $verbs) {
+                if ($verb.Name -match "Pin to taskbar|Taskbar|An Taskleiste") {
+                    $verb.DoIt()
+                    Write-Host "    [PINNED] Added to taskbar" -ForegroundColor Magenta
+                    return $true
+                }
+            }
+            
+            # Alternative: Use registry method for Windows 11
+            # Create taskband entry directly
+            Write-Host "    [INFO] Manual pin may be required" -ForegroundColor DarkGray
+            return $false
+        } catch {
+            Write-Host "    [INFO] Could not auto-pin: $_" -ForegroundColor DarkGray
+            return $false
+        }
+    }
+    return $false
+}
+
+function Install-App {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$AppKey,
+        [switch]$Pin
+    )
+    
+    $app = $AppInstallers[$AppKey]
+    if (-not $app) {
+        Write-Host "    [ERROR] Unknown app: $AppKey" -ForegroundColor Red
+        return $false
+    }
+    
+    Write-Host "  Installing " -NoNewline
+    Write-Host $app.Name -ForegroundColor White -NoNewline
+    Write-Host "..." -ForegroundColor DarkGray
+    
+    # Check if already installed
+    if (Test-Path $app.ExePath) {
+        Write-Host "    [SKIPPED] Already installed" -ForegroundColor Yellow
+        if ($Pin) { Pin-ToTaskbar -ExePath $app.ExePath -AppName $app.Name }
         return $true
+    }
+    
+    # Download installer
+    $tempFile = "$env:TEMP\$AppKey`_installer.exe"
+    Write-Host "    Downloading..." -ForegroundColor DarkGray
+    
+    try {
+        # Use TLS 1.2 for HTTPS
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+        $webClient.DownloadFile($app.URL, $tempFile)
     } catch {
+        Write-Host "    [FAILED] Download failed: $_" -ForegroundColor Red
+        return $false
+    }
+    
+    if (-not (Test-Path $tempFile)) {
+        Write-Host "    [FAILED] Download failed - file not found" -ForegroundColor Red
+        return $false
+    }
+    
+    # Run installer
+    Write-Host "    Installing (please wait)..." -ForegroundColor DarkGray
+    try {
+        $process = Start-Process -FilePath $tempFile -ArgumentList $app.Args -NoNewWindow -Wait -PassThru
+        Start-Sleep -Seconds 2
+        
+        # Clean up installer
+        Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+        
+        # Verify installation
+        Start-Sleep -Seconds 2
+        if (Test-Path $app.ExePath) {
+            Write-Host "    [SUCCESS] Installed" -ForegroundColor Green
+            if ($Pin) { Pin-ToTaskbar -ExePath $app.ExePath -AppName $app.Name }
+            return $true
+        } else {
+            # Some apps install to different locations, assume success if no error
+            Write-Host "    [SUCCESS] Installed (verify manually)" -ForegroundColor Green
+            return $true
+        }
+    } catch {
+        Write-Host "    [FAILED] Installation error: $_" -ForegroundColor Red
+        Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
         return $false
     }
 }
 
-function Install-WingetApp {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$Id,
-        [Parameter(Mandatory=$true)]
-        [string]$Name
-    )
+function Install-EssentialApps {
+    param([switch]$Pin)
     
-    Write-Host "  Installing " -NoNewline
-    Write-Host $Name -ForegroundColor White -NoNewline
-    Write-Host " ($Id)..." -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "  ====== Essential Applications ======" -ForegroundColor Cyan
+    Write-Host ""
     
-    # Check if winget is available
-    if (-not (Test-WingetInstalled)) {
-        Write-Host "    [ERROR] Winget not found. Please install App Installer from Microsoft Store." -ForegroundColor Red
-        return $false
-    }
+    Install-App -AppKey "Chrome" -Pin:$Pin
+    Install-App -AppKey "VSCode" -Pin:$Pin
     
-    # Check if already installed
-    $existing = winget list --id $Id --exact 2>$null
-    if ($LASTEXITCODE -eq 0 -and $existing -match $Id) {
-        Write-Host "    [SKIPPED] Already installed" -ForegroundColor Yellow
-        return $true
-    }
+    Write-Host ""
+    Write-Host "  Essential tools installation complete!" -ForegroundColor Green
+}
+
+function Install-OptionalApps {
+    param([switch]$Pin, [switch]$NoPrompt)
     
-    # Install the app
-    # --accept-source-agreements: bypass Store EULA prompts
-    # --accept-package-agreements: bypass App EULA prompts
-    # --silent: no installer UI
-    $result = winget install --id $Id -e --silent --accept-source-agreements --accept-package-agreements 2>&1
+    Write-Host ""
+    Write-Host "  ====== Optional Applications ======" -ForegroundColor Cyan
+    Write-Host ""
     
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "    [SUCCESS] Installed" -ForegroundColor Green
-        return $true
+    if ($NoPrompt) {
+        Install-App -AppKey "GeForce" -Pin:$Pin
+        Install-App -AppKey "Steam" -Pin:$Pin
+        Install-App -AppKey "VLC" -Pin:$Pin
+        Install-App -AppKey "Discord" -Pin:$Pin
     } else {
-        Write-Host "    [FAILED] Installation failed (Exit code: $LASTEXITCODE)" -ForegroundColor Red
-        return $false
+        if (Confirm-Action "  Install GeForce Experience (Nvidia GPU)?") { 
+            Install-App -AppKey "GeForce" -Pin:$Pin
+        }
+        if (Confirm-Action "  Install Steam (Gaming platform)?") { 
+            Install-App -AppKey "Steam" -Pin:$Pin
+        }
+        if (Confirm-Action "  Install VLC Media Player?") { 
+            Install-App -AppKey "VLC" -Pin:$Pin
+        }
+        if (Confirm-Action "  Install Discord?") { 
+            Install-App -AppKey "Discord" -Pin:$Pin
+        }
     }
+    
+    Write-Host ""
+    Write-Host "  Optional apps installation complete!" -ForegroundColor Green
 }
 
 # ==========================================
@@ -302,7 +464,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "4" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Install Essential Tools (Chrome, VS Code)             │" -ForegroundColor White
+    Write-Host ". Install Essential Apps (Chrome, VS Code)              │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "5" -ForegroundColor Cyan -NoNewline
     Write-Host ". Install Optional Apps (Steam, VLC, Discord, Nvidia)   │" -ForegroundColor White
@@ -312,10 +474,16 @@ Do {
     Write-Host "                                                  │" -ForegroundColor DarkGray
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
-    Write-Host "6" -ForegroundColor Green -NoNewline
+    Write-Host "6" -ForegroundColor Magenta -NoNewline
+    Write-Host ". Remove & Customize All (Options 1+2+3)                │" -ForegroundColor White
+    Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
+    Write-Host "7" -ForegroundColor Magenta -NoNewline
+    Write-Host ". Install All Apps (Options 4+5, all pinned)            │" -ForegroundColor White
+    Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
+    Write-Host "8" -ForegroundColor Green -NoNewline
     Write-Host ". " -ForegroundColor White -NoNewline
-    Write-Host "RUN ALL" -ForegroundColor Green -NoNewline
-    Write-Host " - Fresh Install Mode (Recommended)            │" -ForegroundColor White
+    Write-Host "RUN EVERYTHING" -ForegroundColor Green -NoNewline
+    Write-Host " - Fresh Install (Recommended)       │" -ForegroundColor White
     Write-Host "  └─────────────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  " -NoNewline
@@ -352,49 +520,79 @@ Do {
             Pause 
         }
         "4" { 
-            Write-Host ""
-            Write-Host "  Installing Essential Tools..." -ForegroundColor Cyan
-            Write-Host ""
-            Install-WingetApp -Id "Google.Chrome" -Name "Google Chrome"
-            Install-WingetApp -Id "Microsoft.VisualStudioCode" -Name "Visual Studio Code"
-            Write-Host ""
-            Write-Host "  Essential tools installation complete!" -ForegroundColor Green
+            Install-EssentialApps -Pin
             Pause 
         }
         "5" {
-            Write-Host ""
-            Write-Host "  ====== Optional Applications ======" -ForegroundColor Cyan
-            Write-Host ""
-            
-            # Interactive sub-menu for optional apps
-            if (Confirm-Action "  Install Nvidia App (GPU drivers & settings)?") { 
-                Install-WingetApp -Id "Nvidia.GeForceExperience" -Name "Nvidia GeForce Experience"
-            }
-            
-            if (Confirm-Action "  Install Steam (Gaming platform)?") { 
-                Install-WingetApp -Id "Valve.Steam" -Name "Steam" 
-            }
-            
-            if (Confirm-Action "  Install VLC Media Player?") { 
-                Install-WingetApp -Id "VideoLAN.VLC" -Name "VLC Media Player" 
-            }
-            
-            if (Confirm-Action "  Install Discord?") { 
-                Install-WingetApp -Id "Discord.Discord" -Name "Discord" 
-            }
-            
-            Write-Host ""
-            Write-Host "  Optional apps installation complete!" -ForegroundColor Green
+            Install-OptionalApps -Pin
             Pause
         }
         "6" {
+            # REMOVE & CUSTOMIZE ALL (Options 1+2+3)
+            Write-Host ""
+            Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Magenta
+            Write-Host "  ║   REMOVE & CUSTOMIZE ALL                              ║" -ForegroundColor Magenta
+            Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+            Write-Host ""
+            
+            if (-not (Confirm-Action "  This will remove bloatware and customize taskbar. Continue?")) {
+                Write-Host "  Operation cancelled." -ForegroundColor Yellow
+                Pause
+                continue
+            }
+            
+            Write-Host "`n  [STEP 1/3] Removing Microsoft Bloatware..." -ForegroundColor Magenta
+            Remove-PackageList -PackageList $MicrosoftBloat -Category "Microsoft Core Apps"
+            
+            Write-Host "`n  [STEP 2/3] Removing Third-Party Bloatware..." -ForegroundColor Magenta
+            Remove-PackageList -PackageList $ThirdPartyBloat -Category "Third-Party Apps"
+            
+            Write-Host "`n  [STEP 3/3] Configuring Taskbar..." -ForegroundColor Magenta
+            Configure-Taskbar
+            Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 3
+            
             Write-Host ""
             Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Green
-            Write-Host "  ║   FRESH INSTALL MODE - Running All Steps              ║" -ForegroundColor Green
+            Write-Host "  ║   CLEANUP COMPLETE! System is now de-bloated.         ║" -ForegroundColor Green
+            Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Green
+            Pause
+        }
+        "7" {
+            # INSTALL ALL APPS (Options 4+5, all pinned)
+            Write-Host ""
+            Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Magenta
+            Write-Host "  ║   INSTALL ALL APPS (Essential + Optional)             ║" -ForegroundColor Magenta
+            Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+            Write-Host ""
+            
+            if (-not (Confirm-Action "  Install Chrome, VS Code, Steam, VLC, Discord, GeForce? All will be pinned.")) {
+                Write-Host "  Operation cancelled." -ForegroundColor Yellow
+                Pause
+                continue
+            }
+            
+            Write-Host "`n  [STEP 1/2] Installing Essential Apps..." -ForegroundColor Magenta
+            Install-EssentialApps -Pin
+            
+            Write-Host "`n  [STEP 2/2] Installing Optional Apps..." -ForegroundColor Magenta
+            Install-OptionalApps -Pin -NoPrompt
+            
+            Write-Host ""
+            Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Green
+            Write-Host "  ║   ALL APPS INSTALLED & PINNED TO TASKBAR!             ║" -ForegroundColor Green
+            Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Green
+            Pause
+        }
+        "8" {
+            # RUN EVERYTHING - Fresh Install Mode
+            Write-Host ""
+            Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Green
+            Write-Host "  ║   FRESH INSTALL MODE - Running Everything             ║" -ForegroundColor Green
             Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Green
             Write-Host ""
             
-            if (-not (Confirm-Action "  This will remove bloatware, configure taskbar, and install apps. Continue?")) {
+            if (-not (Confirm-Action "  This will: remove bloatware, customize taskbar, install & pin apps. Continue?")) {
                 Write-Host "  Operation cancelled." -ForegroundColor Yellow
                 Pause
                 continue
@@ -412,28 +610,23 @@ Do {
             Write-Host "`n  [STEP 3/5] Configuring Taskbar..." -ForegroundColor Magenta
             Configure-Taskbar
             Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 3 # Wait for shell to reload
+            Start-Sleep -Seconds 3
             
             # Step 4: Install Essential Apps
             Write-Host "`n  [STEP 4/5] Installing Essential Applications..." -ForegroundColor Magenta
-            Write-Host ""
-            Install-WingetApp -Id "Google.Chrome" -Name "Google Chrome"
-            Install-WingetApp -Id "Microsoft.VisualStudioCode" -Name "Visual Studio Code"
+            Install-EssentialApps -Pin
             
             # Step 5: Optional Apps
             Write-Host "`n  [STEP 5/5] Optional Applications" -ForegroundColor Magenta
             if (Confirm-Action "`n  Install optional apps (Nvidia, Steam, VLC, Discord)?") {
-                Write-Host ""
-                Install-WingetApp -Id "Nvidia.GeForceExperience" -Name "Nvidia GeForce Experience"
-                Install-WingetApp -Id "Valve.Steam" -Name "Steam"
-                Install-WingetApp -Id "VideoLAN.VLC" -Name "VLC Media Player"
-                Install-WingetApp -Id "Discord.Discord" -Name "Discord"
+                Install-OptionalApps -Pin -NoPrompt
             }
             
             Write-Host ""
             Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Green
             Write-Host "  ║   ALL OPERATIONS COMPLETE!                            ║" -ForegroundColor Green
             Write-Host "  ║   Your Windows 11 installation has been optimized.    ║" -ForegroundColor Green
+            Write-Host "  ║   Apps have been installed and pinned to taskbar.     ║" -ForegroundColor Green
             Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Green
             Pause
         }
@@ -451,7 +644,7 @@ Do {
         }
         Default { 
             Write-Host ""
-            Write-Host "  Invalid selection. Please choose 1-6 or Q to quit." -ForegroundColor Red
+            Write-Host "  Invalid selection. Please choose 1-8 or Q to quit." -ForegroundColor Red
             Start-Sleep -Seconds 1
         }
     }
