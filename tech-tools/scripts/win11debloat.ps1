@@ -226,7 +226,11 @@ $AppInstallers = @{
     }
     "VLC" = @{
         Name = "VLC Media Player"
-        URL = "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"
+        URLs = @(
+            "https://mirror.downloadvn.com/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+            "https://mirrors.kernel.org/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+            "https://ftp.osuosl.org/pub/videolan/vlc/3.0.21/win64/vlc-3.0.21-win64.exe"
+        )
         Args = "/S /L=1033"
         ExePath = "${env:ProgramFiles}\VideoLAN\VLC\vlc.exe"
     }
@@ -353,13 +357,26 @@ function Install-App {
     foreach ($url in $urlList) {
         $downloadSuccess = Show-DownloadProgress -Url $url -OutFile $tempFile -AppName $app.Name
         if ($downloadSuccess -and (Test-Path $tempFile)) {
-            break
+            # Validate the downloaded file is actually an executable
+            $fileSize = (Get-Item $tempFile).Length
+            $fileHeader = [System.IO.File]::ReadAllBytes($tempFile)[0..1]
+            
+            # Check for MZ header (Windows executable) and minimum size
+            if ($fileHeader[0] -eq 0x4D -and $fileHeader[1] -eq 0x5A -and $fileSize -gt 100000) {
+                break  # Valid executable
+            } else {
+                Write-Host "    [WARNING] Downloaded file appears invalid (may be HTML error page)" -ForegroundColor Yellow
+                Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+                $downloadSuccess = $false
+            }
         }
-        Write-Host "    Trying alternate download source..." -ForegroundColor Yellow
+        if (-not $downloadSuccess) {
+            Write-Host "    Trying alternate download source..." -ForegroundColor Yellow
+        }
     }
     
     if (-not $downloadSuccess -or -not (Test-Path $tempFile)) {
-        Write-Host "    [FAILED] Download failed - file not found" -ForegroundColor Red
+        Write-Host "    [FAILED] Download failed - could not get valid installer" -ForegroundColor Red
         return $false
     }
     
@@ -422,14 +439,75 @@ function Install-App {
     }
 }
 
+function Show-AppStatus {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string[]]$AppKeys
+    )
+    
+    Write-Host ""
+    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  PREFLIGHT CHECK                                    │" -ForegroundColor DarkGray
+    Write-Host "  ├─────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
+    
+    $toInstall = @()
+    $alreadyInstalled = @()
+    
+    foreach ($key in $AppKeys) {
+        $app = $AppInstallers[$key]
+        if ($app) {
+            $status = if (Test-Path $app.ExePath) { 
+                $alreadyInstalled += $key
+                "[INSTALLED]"
+            } else { 
+                $toInstall += $key
+                "[MISSING]  "
+            }
+            $color = if (Test-Path $app.ExePath) { "Green" } else { "Yellow" }
+            Write-Host "  │  " -NoNewline -ForegroundColor DarkGray
+            Write-Host $status -NoNewline -ForegroundColor $color
+            Write-Host " $($app.Name)" -NoNewline -ForegroundColor White
+            # Pad to align the box
+            $padding = 36 - $app.Name.Length
+            Write-Host (" " * [Math]::Max(1, $padding)) -NoNewline
+            Write-Host "│" -ForegroundColor DarkGray
+        }
+    }
+    
+    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    if ($alreadyInstalled.Count -gt 0) {
+        Write-Host "  Already installed: " -NoNewline -ForegroundColor DarkGray
+        Write-Host "$($alreadyInstalled.Count)" -ForegroundColor Green -NoNewline
+        Write-Host " apps will be skipped" -ForegroundColor DarkGray
+    }
+    if ($toInstall.Count -gt 0) {
+        Write-Host "  To be installed: " -NoNewline -ForegroundColor DarkGray
+        Write-Host "$($toInstall.Count)" -ForegroundColor Yellow -NoNewline
+        Write-Host " apps" -ForegroundColor DarkGray
+    }
+    Write-Host ""
+    
+    return $toInstall
+}
+
 function Install-EssentialApps {
     Write-Host ""
     Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Cyan
     Write-Host "  ║   Essential Applications                              ║" -ForegroundColor Cyan
     Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     
+    # Preflight check
+    $toInstall = Show-AppStatus -AppKeys @("Chrome", "VSCode")
+    
+    if ($toInstall.Count -eq 0) {
+        Write-Host "  All essential apps are already installed!" -ForegroundColor Green
+        return
+    }
+    
     $success = 0
-    $total = 2
+    $total = $toInstall.Count
     
     if (Install-App -AppKey "Chrome") { $success++ }
     if (Install-App -AppKey "VSCode") { $success++ }
@@ -448,11 +526,19 @@ function Install-OptionalApps {
     Write-Host "  ║   Optional Applications                               ║" -ForegroundColor Cyan
     Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     
+    # Preflight check
+    $toInstall = Show-AppStatus -AppKeys @("NvidiaApp", "Steam", "VLC", "Discord")
+    
+    if ($toInstall.Count -eq 0) {
+        Write-Host "  All optional apps are already installed!" -ForegroundColor Green
+        return
+    }
+    
     $success = 0
     $attempted = 0
     
     if ($NoPrompt) {
-        $attempted = 4
+        $attempted = $toInstall.Count
         if (Install-App -AppKey "NvidiaApp") { $success++ }
         if (Install-App -AppKey "Steam") { $success++ }
         if (Install-App -AppKey "VLC") { $success++ }
