@@ -573,7 +573,12 @@ function Install-App {
     
     try {
         # Start installer process (non-blocking)
-        $process = Start-Process -FilePath $tempFile -ArgumentList $app.Args -PassThru
+        # Handle Args - only pass if specified and not empty
+        if ($app.Args -and $app.Args.Trim() -ne "") {
+            $process = Start-Process -FilePath $tempFile -ArgumentList $app.Args -PassThru
+        } else {
+            $process = Start-Process -FilePath $tempFile -PassThru
+        }
         
         # Wait with spinner animation
         while (-not $process.HasExited -and $elapsed -lt $timeout) {
