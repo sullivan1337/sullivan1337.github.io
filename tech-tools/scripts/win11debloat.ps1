@@ -149,14 +149,14 @@ function Remove-PackageList {
     Write-Host ", $Skipped not found/already gone" -ForegroundColor DarkGray
 }
 
-function Configure-Taskbar {
+function Configure-UI {
     Write-Host "`n=====================================================" -ForegroundColor Cyan
-    Write-Host "   Configuring Taskbar & Shell Preferences" -ForegroundColor Cyan
+    Write-Host "   UI Customization (Taskbar & Explorer)" -ForegroundColor Cyan
     Write-Host "=====================================================" -ForegroundColor Cyan
     
-    # Show what will be changed
+    # Show Taskbar changes
     Write-Host ""
-    Write-Host "  The following taskbar items will be " -NoNewline -ForegroundColor White
+    Write-Host "  TASKBAR - The following items will be " -NoNewline -ForegroundColor White
     Write-Host "HIDDEN:" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
@@ -168,56 +168,145 @@ function Configure-Taskbar {
     Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
     Write-Host ""
     
-    $confirm = Read-Host "  Apply these taskbar changes? (y/n)"
-    if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-        Write-Host "  Taskbar customization cancelled." -ForegroundColor Yellow
+    $taskbarConfirm = Read-Host "  Apply taskbar changes? (y/n)"
+    $applyTaskbar = ($taskbarConfirm -eq 'y' -or $taskbarConfirm -eq 'Y')
+    
+    # Show Explorer changes
+    Write-Host ""
+    Write-Host "  EXPLORER - The following settings will be " -NoNewline -ForegroundColor White
+    Write-Host "CHANGED:" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor DarkGray
+    Write-Host "  │  • Open Explorer to 'This PC' (instead of Home)     │" -ForegroundColor DarkGray
+    Write-Host "  │  • Show hidden files, folders, and drives           │" -ForegroundColor DarkGray
+    Write-Host "  │  • Show file extensions (e.g., .txt, .exe)          │" -ForegroundColor DarkGray
+    Write-Host "  │  • Unpin Videos, Music, Pictures from Quick Access  │" -ForegroundColor DarkGray
+    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    $explorerConfirm = Read-Host "  Apply Explorer changes? (y/n)"
+    $applyExplorer = ($explorerConfirm -eq 'y' -or $explorerConfirm -eq 'Y')
+    
+    if (-not $applyTaskbar -and -not $applyExplorer) {
+        Write-Host "  No customizations selected. Cancelled." -ForegroundColor Yellow
         return
     }
     
     Write-Host ""
-    $AdvancedKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+    $ExplorerKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer"
+    $AdvancedKey = "$ExplorerKey\Advanced"
     
-    # Hide Search Box (0 = Hidden, 1 = Icon only, 2 = Search box)
-    Write-Host "  [1/5] Hiding Search Box..." -ForegroundColor White
-    Set-ItemProperty -Path $AdvancedKey -Name "SearchboxTaskbarMode" -Value 0 -Force -ErrorAction SilentlyContinue
-    Write-Host "        Done" -ForegroundColor Green
-    
-    # Hide Task View Button (0 = Hidden, 1 = Visible)
-    Write-Host "  [2/5] Hiding Task View Button..." -ForegroundColor White
-    Set-ItemProperty -Path $AdvancedKey -Name "ShowTaskViewButton" -Value 0 -Force -ErrorAction SilentlyContinue
-    Write-Host "        Done" -ForegroundColor Green
-    
-    # Hide Widgets Button (0 = Hidden, 1 = Visible)
-    Write-Host "  [3/5] Hiding Widgets Button..." -ForegroundColor White
-    Set-ItemProperty -Path $AdvancedKey -Name "TaskbarDa" -Value 0 -Force -ErrorAction SilentlyContinue
-    Write-Host "        Done" -ForegroundColor Green
-    
-    # Hide Meet Now / Chat Icon (3 = Hidden)
-    Write-Host "  [4/5] Hiding Chat/Meet Now Icon..." -ForegroundColor White
+    # Apply Taskbar changes
+    if ($applyTaskbar) {
+        Write-Host "  ═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+        Write-Host "  Configuring Taskbar..." -ForegroundColor Cyan
+        Write-Host "  ═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+        
+        # Hide Search Box (0 = Hidden, 1 = Icon only, 2 = Search box)
+        Write-Host "  [1/5] Hiding Search Box..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "SearchboxTaskbarMode" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # Hide Task View Button (0 = Hidden, 1 = Visible)
+        Write-Host "  [2/5] Hiding Task View Button..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "ShowTaskViewButton" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # Hide Widgets Button (0 = Hidden, 1 = Visible)
+        Write-Host "  [3/5] Hiding Widgets Button..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "TaskbarDa" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # Hide Meet Now / Chat Icon (3 = Hidden)
+        Write-Host "  [4/5] Hiding Chat/Meet Now Icon..." -ForegroundColor White
     $ChatPolicy = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Chat"
     if (!(Test-Path $ChatPolicy)) { New-Item -Path $ChatPolicy -Force | Out-Null }
-    Set-ItemProperty -Path $ChatPolicy -Name "ChatIcon" -Value 3 -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path $AdvancedKey -Name "TaskbarMn" -Value 0 -Force -ErrorAction SilentlyContinue
-    Write-Host "        Done" -ForegroundColor Green
-    
-    # Hide Copilot Button
-    Write-Host "  [5/5] Hiding Copilot Button..." -ForegroundColor White
-    Set-ItemProperty -Path $AdvancedKey -Name "ShowCopilotButton" -Value 0 -Force -ErrorAction SilentlyContinue
-    Write-Host "        Done" -ForegroundColor Green
-    
-    Write-Host "`n  All taskbar items hidden!" -ForegroundColor Green
-    
-    # Align Taskbar to Left (0 = Left, 1 = Center) - Optional, ask user
-    Write-Host ""
-    $AlignLeft = Read-Host "  OPTIONAL: Align taskbar icons to LEFT instead of center? (y/n)"
-    if ($AlignLeft -eq 'y' -or $AlignLeft -eq 'Y') {
-        Set-ItemProperty -Path $AdvancedKey -Name "TaskbarAl" -Value 0 -Force -ErrorAction SilentlyContinue
-        Write-Host "        Taskbar aligned to left" -ForegroundColor Green
-    } else {
-        Write-Host "        Keeping center alignment" -ForegroundColor DarkGray
+        Set-ItemProperty -Path $ChatPolicy -Name "ChatIcon" -Value 3 -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $AdvancedKey -Name "TaskbarMn" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # Hide Copilot Button
+        Write-Host "  [5/5] Hiding Copilot Button..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "ShowCopilotButton" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        Write-Host "`n  All taskbar items hidden!" -ForegroundColor Green
+        
+        # Align Taskbar to Left (0 = Left, 1 = Center) - Optional, ask user
+        Write-Host ""
+        $AlignLeft = Read-Host "  OPTIONAL: Align taskbar icons to LEFT instead of center? (y/n)"
+        if ($AlignLeft -eq 'y' -or $AlignLeft -eq 'Y') {
+            Set-ItemProperty -Path $AdvancedKey -Name "TaskbarAl" -Value 0 -Force -ErrorAction SilentlyContinue
+            Write-Host "        Taskbar aligned to left" -ForegroundColor Green
+        } else {
+            Write-Host "        Keeping center alignment" -ForegroundColor DarkGray
+        }
     }
     
-    Write-Host "`n  Explorer will restart to apply changes..." -ForegroundColor Yellow
+    # Apply Explorer changes
+    if ($applyExplorer) {
+        Write-Host ""
+        Write-Host "  ═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+        Write-Host "  Configuring Explorer..." -ForegroundColor Cyan
+        Write-Host "  ═══════════════════════════════════════════════════════" -ForegroundColor Cyan
+        
+        # 1. Open File Explorer to "This PC" (1 = This PC, 2 = Quick Access, 3 = Home)
+        Write-Host "  [1/4] Setting Explorer to open to 'This PC'..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "LaunchTo" -Value 1 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # 2. Show hidden files, folders, and drives (1 = Show, 2 = Hide)
+        Write-Host "  [2/4] Enabling hidden files/folders/drives..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "Hidden" -Value 1 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # 3. Show file extensions (0 = Show, 1 = Hide)
+        Write-Host "  [3/4] Showing file extensions..." -ForegroundColor White
+        Set-ItemProperty -Path $AdvancedKey -Name "HideFileExt" -Value 0 -Force -ErrorAction SilentlyContinue
+        Write-Host "        Done" -ForegroundColor Green
+        
+        # 4. Unpin Videos, Music, and Pictures from Quick Access / Navigation Pane
+        Write-Host "  [4/4] Unpinning Videos, Music, Pictures from Explorer..." -ForegroundColor White
+        
+        # These are the shell folder GUIDs that control visibility in navigation pane
+        $foldersToHide = @{
+            "3D Objects" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}"
+            "Music" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}"
+            "Videos" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}"
+            "Pictures" = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}"
+        }
+        
+        foreach ($folder in $foldersToHide.GetEnumerator()) {
+            if (Test-Path $folder.Value) {
+                Remove-Item -Path $folder.Value -Force -ErrorAction SilentlyContinue
+                Write-Host "        Removed $($folder.Key) from This PC" -ForegroundColor DarkGray
+            }
+        }
+        
+        # Also hide from Quick Access by removing the pin (if pinned)
+        try {
+            $shell = New-Object -ComObject Shell.Application
+            $quickAccess = $shell.Namespace("shell:::{679f85cb-0220-4080-b29b-5540cc05aab6}")
+            if ($quickAccess) {
+                $items = $quickAccess.Items()
+                foreach ($item in $items) {
+                    $name = $item.Name
+                    if ($name -match "Videos|Music|Pictures") {
+                        $item.InvokeVerb("unpinfromhome")
+                        Write-Host "        Unpinned $name from Quick Access" -ForegroundColor DarkGray
+                    }
+                }
+            }
+        } catch {
+            Write-Host "        Quick Access unpin skipped (may need manual removal)" -ForegroundColor DarkGray
+        }
+        
+        Write-Host "        Done" -ForegroundColor Green
+        Write-Host "`n  All Explorer settings applied!" -ForegroundColor Green
+    }
+    
+    Write-Host ""
+    Write-Host "  Explorer will restart to apply changes..." -ForegroundColor Yellow
 }
 
 # ==========================================
@@ -270,7 +359,7 @@ $AppInstallers = @{
         Name = "NVIDIA App"
         URL = "https://us.download.nvidia.com/nvapp/client/11.0.5.420/NVIDIA_app_v11.0.5.420.exe"
         Args = "-s -n"
-        ExePath = "${env:ProgramFiles}\NVIDIA Corporation\NVIDIA App\NVIDIA app.exe"
+        ExePath = "${env:ProgramFiles}\NVIDIA Corporation\NVIDIA App\CEF\NVIDIA app.exe"
     }
 }
 
@@ -686,7 +775,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "3" -ForegroundColor Cyan -NoNewline
-    Write-Host ". Customize Taskbar (Hide Search, Widgets, Chat, etc.)  │" -ForegroundColor White
+    Write-Host ". Customize UI (Taskbar & Explorer)                    │" -ForegroundColor White
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "INSTALLATION" -ForegroundColor Yellow -NoNewline
@@ -705,7 +794,7 @@ Do {
     Write-Host "  ├─────────────────────────────────────────────────────────────┤" -ForegroundColor DarkGray
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "6" -ForegroundColor Magenta -NoNewline
-    Write-Host ". Remove & Customize All (Options 1+2+3)                │" -ForegroundColor White
+    Write-Host ". Remove & Customize All (Options 1-3)                  │" -ForegroundColor White
     Write-Host "  │  " -ForegroundColor DarkGray -NoNewline
     Write-Host "7" -ForegroundColor Magenta -NoNewline
     Write-Host ". Install All Apps (Options 4+5)                        │" -ForegroundColor White
@@ -744,7 +833,7 @@ Do {
         }
         "3" { 
             Write-Host ""
-            Configure-Taskbar
+            Configure-UI
             Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 2
             Pause 
@@ -758,14 +847,14 @@ Do {
             Pause
         }
         "6" {
-            # REMOVE & CUSTOMIZE ALL (Options 1+2+3)
+            # REMOVE & CUSTOMIZE ALL (Options 1-3)
             Write-Host ""
             Write-Host "  ╔═══════════════════════════════════════════════════════╗" -ForegroundColor Magenta
             Write-Host "  ║   REMOVE & CUSTOMIZE ALL                              ║" -ForegroundColor Magenta
             Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Magenta
             Write-Host ""
             
-            if (-not (Confirm-Action "  This will remove bloatware and customize taskbar. Continue?")) {
+            if (-not (Confirm-Action "  This will remove bloatware and customize UI. Continue?")) {
                 Write-Host "  Operation cancelled." -ForegroundColor Yellow
                 Pause
                 continue
@@ -777,8 +866,9 @@ Do {
             Write-Host "`n  [STEP 2/3] Removing Third-Party Bloatware..." -ForegroundColor Magenta
             Remove-PackageList -PackageList $ThirdPartyBloat -Category "Third-Party Apps"
             
-            Write-Host "`n  [STEP 3/3] Configuring Taskbar..." -ForegroundColor Magenta
-            Configure-Taskbar
+            Write-Host "`n  [STEP 3/3] Configuring UI (Taskbar & Explorer)..." -ForegroundColor Magenta
+            Configure-UI
+            
             Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
             
@@ -822,7 +912,7 @@ Do {
             Write-Host "  ╚═══════════════════════════════════════════════════════╝" -ForegroundColor Green
             Write-Host ""
             
-            if (-not (Confirm-Action "  This will: remove bloatware, customize taskbar, install apps. Continue?")) {
+            if (-not (Confirm-Action "  This will: remove bloatware, customize UI, install apps. Continue?")) {
                 Write-Host "  Operation cancelled." -ForegroundColor Yellow
                 Pause
                 continue
@@ -836,9 +926,10 @@ Do {
             Write-Host "`n  [STEP 2/5] Removing Third-Party Bloatware..." -ForegroundColor Magenta
             Remove-PackageList -PackageList $ThirdPartyBloat -Category "Third-Party Apps"
             
-            # Step 3: Configure Taskbar
-            Write-Host "`n  [STEP 3/5] Configuring Taskbar..." -ForegroundColor Magenta
-            Configure-Taskbar
+            # Step 3: Configure UI (Taskbar & Explorer)
+            Write-Host "`n  [STEP 3/5] Configuring UI (Taskbar & Explorer)..." -ForegroundColor Magenta
+            Configure-UI
+            
             Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
             Start-Sleep -Seconds 3
             
