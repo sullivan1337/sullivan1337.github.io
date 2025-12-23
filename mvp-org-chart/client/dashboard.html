@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Org Chart Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/assets/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/save-svg-as-png@1.4.17/lib/saveSvgAsPng.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.9.0/dist/pptxgen.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
+    <link rel="stylesheet" href="/assets/style.css" />
+</head>
+<body>
+    <div class="p-4 flex justify-between items-center" style="background-color:var(--panel-bg);">
+        <div class="flex items-center gap-4">
+            <input id="companyName" class="px-2 py-1 rounded" style="background-color:var(--bg);color:var(--text);border:1px solid var(--border);" />
+            <button id="addRoot" class="bg-blue-500 px-2 py-1 rounded">Add Member</button>
+            <button id="toggleJson" class="px-2 py-1 rounded" style="background-color:var(--border);">Import/Export</button>
+            <button id="themeToggle" class="px-2 py-1 rounded" style="background-color:var(--border);"></button>
+        </div>
+        <button id="logout" class="bg-red-500 px-3 py-1 rounded">Logout</button>
+    </div>
+    <div id="chart-container"></div>
+    <div id="jsonOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="p-4 rounded w-3/4 max-w-2xl" style="background-color:var(--panel-bg);">
+            <textarea id="jsonBox" class="w-full h-40 mb-2"></textarea>
+            <div class="flex flex-wrap gap-2">
+                <button id="importBtn" class="bg-blue-500 px-2 py-1 rounded">Import</button>
+                <button id="copyBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Copy</button>
+                <button id="downloadBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Download</button>
+                <button id="pngBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">PNG</button>
+                <button id="pptBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">PPTX</button>
+                <button id="gslideBtn" class="px-2 py-1 rounded" style="background-color:var(--border);">Google Slides</button>
+                <button id="closeModal" class="ml-auto bg-red-500 px-2 py-1 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+    <script src="/assets/script.js"></script>
+    <script>
+    if(!localStorage.getItem('token')) window.location.href = '/login.html';
+    async function fetchData(){
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/org-chart', { headers:{ 'Authorization': 'Bearer '+token }});
+        if(res.ok){
+            const json = await res.json();
+            document.getElementById('companyName').value = json.company;
+            window.orgData = json;
+            window.initChart(json); // we'll expose a function in script.js to init
+        }else if(res.status===401){
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        }
+    }
+    document.getElementById('logout').onclick = ()=>{ localStorage.removeItem('token'); window.location.href='/login.html'; };
+    document.getElementById('toggleJson').onclick = ()=>{
+        document.getElementById('jsonOverlay').classList.remove('hidden');
+        updateJSON();
+    };
+    document.getElementById('closeModal').onclick = ()=>{
+        document.getElementById('jsonOverlay').classList.add('hidden');
+    };
+    document.getElementById('copyBtn').onclick = async ()=>{
+        await navigator.clipboard.writeText(document.getElementById('jsonBox').value);
+    };
+    document.getElementById('downloadBtn').onclick = ()=>{
+        const blob = new Blob([document.getElementById('jsonBox').value],{type:'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'org-chart.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    };
+    document.getElementById('importBtn').onclick = async ()=>{
+        const json = JSON.parse(document.getElementById('jsonBox').value);
+        await api('POST','/api/import',{members:json, company:document.getElementById('companyName').value});
+        window.initChart(json);
+        document.getElementById('jsonOverlay').classList.add('hidden');
+    };
+    document.getElementById('pngBtn').onclick = ()=>{
+        const svgEl = document.querySelector('#chart-container svg');
+        saveSvgAsPng(svgEl, 'org-chart.png');
+    };
+    document.getElementById('pptBtn').onclick = ()=>{
+        const svgEl = document.querySelector('#chart-container svg');
+        svgAsPngUri(svgEl).then(uri=>{
+            const ppt = new PptxGenJS();
+            const slide = ppt.addSlide();
+            slide.addImage({data:uri,x:0.5,y:0.5,w:9,h:5});
+            ppt.writeFile('org-chart.pptx');
+        });
+    };
+    document.getElementById('gslideBtn').onclick = ()=>{
+        const svgEl = document.querySelector('#chart-container svg');
+        svgAsPngUri(svgEl).then(async uri=>{
+            await navigator.clipboard.writeText(uri);
+            window.open('https://docs.google.com/presentation/u/0/create','_blank');
+        });
+    };
+    document.getElementById('companyName').addEventListener('input', async ()=>{
+        const name = document.getElementById('companyName').value;
+        await api('PUT','/api/org',{name});
+        if(window.updateCompany) window.updateCompany(name);
+    });
+    document.getElementById('addRoot').onclick = (e)=>{
+        if(window.openAddForm) window.openAddForm(e, null);
+    };
+    fetchData();
+    </script>
+</body>
+</html>
