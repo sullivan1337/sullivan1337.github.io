@@ -12,6 +12,8 @@ const modalTitle = document.getElementById('modalTitle');
 const modalCopyBtn = document.getElementById('modalCopyBtn');
 const modalImportBtn = document.getElementById('modalImportBtn');
 const modalCloseBtn = document.getElementById('modalCloseBtn');
+const simpleExportCheckbox = document.getElementById('simpleExportCheckbox');
+const exportOptions = document.getElementById('exportOptions');
 const iconModal = document.getElementById('iconModal');
 const iconGrid = document.getElementById('iconGrid');
 const iconSearchInput = document.getElementById('iconSearchInput');
@@ -331,6 +333,8 @@ function showConfirm(message) {
 
 // JSON Export functionality
 exportBtn.addEventListener('click', () => {
+    const isSimple = simpleExportCheckbox.checked;
+    
     const rackData = {
         projectName: projectNameDisplay.textContent || 'Untitled Rack',
         totalUnits: parseInt(totalUnitsInput.value),
@@ -340,30 +344,36 @@ exportBtn.addEventListener('click', () => {
 
     const placedItems = rack.querySelectorAll('.rack-item-placed');
     placedItems.forEach(item => {
-        const icon = item.querySelector('.rack-item-icon');
-        let iconData = null;
-        if (icon) {
-            if (icon.dataset.iconType === 'material') {
-                iconData = { type: 'material', value: icon.dataset.iconValue || icon.textContent };
-            } else if (icon.dataset.iconType === 'url') {
-                iconData = { type: 'url', value: icon.dataset.iconValue || (icon.querySelector('img')?.src) };
-            } else if (icon.querySelector('img')) {
-                iconData = { type: 'url', value: icon.querySelector('img').src };
-            } else if (icon.textContent) {
-                iconData = { type: 'material', value: icon.textContent };
-            }
-        }
-        const metadata = item.dataset.metadata ? JSON.parse(item.dataset.metadata) : {};
-        rackData.items.push({
+        const itemData = {
             unit: parseInt(item.dataset.unit),
             size: parseInt(item.dataset.size),
-            name: item.querySelector('.item-name').textContent,
-            icon: iconData,
-            mfg: metadata.mfg || '',
-            model: metadata.model || '',
-            cost: metadata.cost || '',
-            description: metadata.description || ''
-        });
+            name: item.querySelector('.item-name').textContent
+        };
+        
+        if (!isSimple) {
+            // Include full data for non-simple exports
+            const icon = item.querySelector('.rack-item-icon');
+            let iconData = null;
+            if (icon) {
+                if (icon.dataset.iconType === 'material') {
+                    iconData = { type: 'material', value: icon.dataset.iconValue || icon.textContent };
+                } else if (icon.dataset.iconType === 'url') {
+                    iconData = { type: 'url', value: icon.dataset.iconValue || (icon.querySelector('img')?.src) };
+                } else if (icon.querySelector('img')) {
+                    iconData = { type: 'url', value: icon.querySelector('img').src };
+                } else if (icon.textContent) {
+                    iconData = { type: 'material', value: icon.textContent };
+                }
+            }
+            const metadata = item.dataset.metadata ? JSON.parse(item.dataset.metadata) : {};
+            itemData.icon = iconData;
+            itemData.mfg = metadata.mfg || '';
+            itemData.model = metadata.model || '';
+            itemData.cost = metadata.cost || '';
+            itemData.description = metadata.description || '';
+        }
+        
+        rackData.items.push(itemData);
     });
 
     const jsonString = JSON.stringify(rackData, null, 2);
@@ -371,6 +381,7 @@ exportBtn.addEventListener('click', () => {
     modalTitle.textContent = 'Export JSON';
     modalImportBtn.style.display = 'none';
     modalCopyBtn.style.display = 'inline-block';
+    exportOptions.style.display = 'block'; // Show export options
     openModal(jsonModal);
 });
 
@@ -394,6 +405,7 @@ importBtn.addEventListener('click', () => {
     modalTitle.textContent = 'Import JSON';
     modalImportBtn.style.display = 'inline-block';
     modalCopyBtn.style.display = 'none';
+    exportOptions.style.display = 'none'; // Hide export options for import
     openModal(jsonModal);
 });
 
@@ -456,8 +468,22 @@ modalImportBtn.addEventListener('click', () => {
     }
 });
 
-modalCloseBtn.addEventListener('click', () => closeModal(jsonModal));
-jsonModal.querySelector('.modal-close').addEventListener('click', () => closeModal(jsonModal));
+modalCloseBtn.addEventListener('click', () => {
+    simpleExportCheckbox.checked = false; // Reset checkbox when closing
+    closeModal(jsonModal);
+});
+jsonModal.querySelector('.modal-close').addEventListener('click', () => {
+    simpleExportCheckbox.checked = false; // Reset checkbox when closing
+    closeModal(jsonModal);
+});
+
+// Re-export when simple checkbox is toggled
+simpleExportCheckbox.addEventListener('change', () => {
+    if (modalTitle.textContent === 'Export JSON' && jsonModal.classList.contains('active')) {
+        // Trigger export again to regenerate with new simple setting
+        exportBtn.click();
+    }
+});
 
 // Reset functionality
 resetBtn.addEventListener('click', async () => {

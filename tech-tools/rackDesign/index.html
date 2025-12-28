@@ -63,6 +63,12 @@
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="export-options" style="margin-bottom: 10px; display: none;" id="exportOptions">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="simpleExportCheckbox">
+                        <span>Simple (unit, size, name only)</span>
+                    </label>
+                </div>
                 <textarea id="jsonTextarea" placeholder="Paste JSON here or copy from above..."></textarea>
             </div>
             <div class="modal-footer">
