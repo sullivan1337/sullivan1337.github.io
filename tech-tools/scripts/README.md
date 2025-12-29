@@ -1,6 +1,6 @@
 # Windows 11 De-Bloat & Setup Automation
 
-A comprehensive PowerShell script designed to clean up and configure fresh Windows 11 installations. This script removes bloatware, customizes the UI, and installs essential software automatically.
+A quick PowerShell script designed to clean up and configure fresh Windows 11 installations. This script removes bloatware, customizes the UI, and installs certain everyday software automatically.
 
 ## 🚀 Quick Start
 
@@ -38,9 +38,7 @@ iwr -UseBasicParsing "https://raw.githubusercontent.com/sullivan1337/sullivan133
 
 ### 📦 Software Installation
 - **Direct Downloads**: No winget required - downloads installers directly from official sources
-- **Progress Indicators**: Real-time download progress bars and installation spinners
 - **Browser Selection**: Choose Chrome, Firefox, or both
-- **Preflight Checks**: Shows what's already installed before attempting installation
 
 ## 📋 Menu Options
 
