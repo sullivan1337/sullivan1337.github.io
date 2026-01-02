@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Metadata Remover</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛡️ Metadata Remover</h1>
+      <p class="subtitle">Remove EXIF and metadata from images and videos - all processed client-side</p>
+    </header>
+
+    <main>
+      <div class="top-section">
+        <div class="upload-section">
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <h2>Drop files or folders here</h2>
+              <p>or click to browse</p>
+              <p class="file-types">Supports: Images (JPG, PNG, GIF, WebP) and Videos (MP4, WebM, MOV)</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept="image/*,video/*" style="display: none;"/>
+          </div>
+        </div>
+
+        <div class="controls-section" id="controlsSection">
+          <div class="controls">
+            <div class="options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="sanitizeNames" checked />
+                <span>Sanitize file names</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="autoProcess" />
+                <span>Auto-process on upload</span>
+              </label>
+            </div>
+            <div class="button-row">
+              <button id="processAllBtn" class="btn btn-primary">Process All Files</button>
+              <button id="clearAllBtn" class="btn btn-secondary">Clear All</button>
+            </div>
+            <div class="progress-info">
+              <span id="progressText">0 / 0 files processed</span>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="files-results-section" id="filesResultsSection" style="display: none;">
+        <div class="files-section">
+          <h2>Files to Process</h2>
+          <div class="files-list" id="filesList"></div>
+        </div>
+
+        <div class="results-section">
+          <div class="results-header">
+            <h2>Processed Files</h2>
+            <button id="bulkDownloadBtn" class="btn btn-success" style="display: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Download All
+            </button>
+          </div>
+          <div class="results-list" id="resultsList"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>All processing happens in your browser - no files are uploaded to any server</p>
+    </footer>
+  </div>
+
+  <!-- Metadata Modal -->
+  <div id="metadataModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">File Metadata</h2>
+        <button class="modal-close" onclick="closeMetadataModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="metadataContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
