@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PEX Radiant Floor Designer</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo-icon">
+          <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 16 C8 12, 12 12, 12 16 C12 20, 16 20, 16 16 C16 12, 20 12, 20 16 C20 20, 24 20, 24 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1>PEX Radiant Floor Designer</h1>
+      </div>
+      <div class="header-buttons">
+        <button id="newRoomBtn" class="btn-secondary" title="New Room">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+          <span>New Room</span>
+        </button>
+        <button id="exportBtn" class="btn-secondary" title="Export Design">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Export</span>
+        </button>
+        <button id="generatePexBtn" class="btn-primary" title="Generate PEX Layout">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span>Generate PEX</span>
+        </button>
+        <div class="divider"></div>
+        <button id="themeToggle" title="Toggle light/dark mode">
+          <svg id="sunIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg id="moonIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="main-layout">
+      <!-- Left Sidebar - Controls -->
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+              </svg>
+              Room Dimensions
+            </span>
+          </div>
+          <div class="panel-body">
+            <div class="input-group">
+              <label for="roomWidth">Width (ft)</label>
+              <input type="number" id="roomWidth" value="20" min="5" max="100" step="0.5"/>
+            </div>
+            <div class="input-group">
+              <label for="roomHeight">Length (ft)</label>
+              <input type="number" id="roomHeight" value="15" min="5" max="100" step="0.5"/>
+            </div>
+            <div class="input-group">
+              <label>Area</label>
+              <div class="calculated-value" id="areaDisplay">300 sq ft</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/>
+              </svg>
+              Room Shape
+            </span>
+          </div>
+          <div class="panel-body">
+            <button id="addCornerBtn" class="btn-full">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 3h12v8H3V3z"/>
+                <path d="M3 11h18v10H3V11z"/>
+              </svg>
+              Add L-Shape Corner
+            </button>
+            <div id="cornerControls" class="corner-controls">
+              <div id="cutoutList">
+                <!-- Cutouts will be populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 12 C8 10, 10 10, 10 12 C10 14, 12 14, 12 12 C12 10, 14 10, 14 12 C14 14, 16 14, 16 12"/>
+              </svg>
+              PEX Settings
+            </span>
+          </div>
+          <div class="panel-body">
+            <div class="input-group">
+              <label for="tubeSpacing">Tube Spacing</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" name="spacing" value="6" checked/>
+                  <span>6"</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="spacing" value="9"/>
+                  <span>9"</span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" name="spacing" value="12"/>
+                  <span>12"</span>
+                </label>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="maxLoopLength">Max Loop Length</label>
+              <div class="input-with-unit">
+                <input type="number" id="maxLoopLength" value="300" min="100" max="500" step="10"/>
+                <span class="unit">ft</span>
+              </div>
+            </div>
+            <div class="input-group">
+              <label for="wallOffset">Wall Offset</label>
+              <div class="input-with-unit">
+                <input type="number" id="wallOffset" value="6" min="2" max="12" step="1"/>
+                <span class="unit">in</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <circle cx="15.5" cy="8.5" r="1.5"/>
+                <circle cx="15.5" cy="15.5" r="1.5"/>
+                <circle cx="8.5" cy="15.5" r="1.5"/>
+              </svg>
+              Manifold Location
+            </span>
+          </div>
+          <div class="panel-body">
+            <p class="panel-hint">Drag manifold on canvas or select preset:</p>
+            <div class="manifold-position">
+              <label class="radio-option">
+                <input type="radio" name="manifold" value="auto" checked/>
+                <span>Auto (Optimal)</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="manifold" value="top"/>
+                <span>Top Edge</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="manifold" value="bottom"/>
+                <span>Bottom Edge</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="manifold" value="left"/>
+                <span>Left Edge</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="manifold" value="right"/>
+                <span>Right Edge</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+              Wall Types
+            </span>
+          </div>
+          <div class="panel-body">
+            <p class="panel-hint">Click EXT/INT on canvas or toggle here:</p>
+            <div id="wallTypeControls" class="wall-type-grid">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Canvas Area -->
+      <div class="canvas-area">
+        <div class="canvas-container">
+          <canvas id="roomCanvas"></canvas>
+          <div class="canvas-overlay" id="canvasOverlay">
+            <div class="dimension-label top" id="dimTop">20 ft</div>
+            <div class="dimension-label right" id="dimRight">15 ft</div>
+          </div>
+        </div>
+        <div class="zoom-controls">
+          <button id="zoomOutBtn" class="zoom-btn" title="Zoom Out">−</button>
+          <span id="zoomLevel" class="zoom-level">100%</span>
+          <button id="zoomInBtn" class="zoom-btn" title="Zoom In">+</button>
+          <button id="resetZoomBtn" class="zoom-btn" title="Reset Zoom">⟲</button>
+        </div>
+      </div>
+
+      <!-- Right Sidebar - Results -->
+      <aside class="sidebar sidebar-right">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+              </svg>
+              Loop Summary
+            </span>
+          </div>
+          <div class="panel-body" id="loopSummary">
+            <div class="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 12 C8 10, 10 10, 10 12 C10 14, 12 14, 12 12 C12 10, 14 10, 14 12 C14 14, 16 14, 16 12"/>
+              </svg>
+              <p>Click "Generate PEX" to create your radiant floor layout</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <path d="M14 2v6h6"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              Totals
+            </span>
+          </div>
+          <div class="panel-body">
+            <div class="stat-row">
+              <span class="stat-label">Total Loops</span>
+              <span class="stat-value" id="totalLoops">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Total PEX Length</span>
+              <span class="stat-value" id="totalLength">0 ft</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Coverage Area</span>
+              <span class="stat-value" id="coverageArea">0 sq ft</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Manifold Ports</span>
+              <span class="stat-value" id="manifoldPorts">0</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-left">
+        <span id="mousePos">X: 0 ft, Y: 0 ft</span>
+        <span class="separator">|</span>
+        <span id="roomShape">Rectangle</span>
+      </div>
+      <div class="status-center">
+        <span class="hint">💡 Drag handles to resize • Drag manifold to reposition • Click EXT/INT to toggle wall type • ↔/↕ to change loop direction</span>
+      </div>
+      <div class="status-right">
+        <span id="statusMessage" class="status-ok">Ready</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Color Picker Modal -->
+  <div class="modal" id="colorModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Select Loop Color</h3>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="color-grid" id="colorGrid">
+          <!-- Colors populated by JS -->
+        </div>
+        <div class="custom-color">
+          <label for="customColor">Custom Color:</label>
+          <input type="color" id="customColor" value="#ff6b6b"/>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="cancelColor">Cancel</button>
+        <button class="btn-primary" id="applyColor">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    <span id="toastMessage">Copied to clipboard!</span>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
