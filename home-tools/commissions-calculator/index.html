@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commissions Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-mode">
+    <div class="container">
+        <header>
+            <h1>Commissions Calculator</h1>
+            <div class="header-controls">
+                <div class="fy-payout-group">
+                    <div class="form-group">
+                        <label for="fyStartDate">Fiscal Year Start Date</label>
+                        <input type="date" id="fyStartDate" value="2025-02-01">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payoutFrequency">Payout Frequency</label>
+                        <select id="payoutFrequency">
+                            <option value="monthly" selected>Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="bi-annually">Bi-Annually</option>
+                            <option value="annually">Annually</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <button id="exportBtn" class="btn btn-secondary">Export JSON</button>
+                <button id="importBtn" class="btn btn-secondary">Import JSON</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
+                <div class="section-header">
+                    <h2>Input Configuration</h2>
+                </div>
+
+                <div class="settings-three-column">
+                    <div class="individual-section">
+                        <h3>Individual Settings</h3>
+                        <div class="form-group">
+                            <label for="individualVariable">Individual On Target Earnings ($)</label>
+                            <input type="text" id="individualVariable" class="currency-input" placeholder="$0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="individualQuota">Individual Quota</label>
+                            <input type="text" id="individualQuota" class="currency-input" placeholder="$0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="individualBaseRate">Individual Base Payout Rate (%)</label>
+                            <input type="number" id="individualBaseRate" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="team-section">
+                        <h3>Team Settings</h3>
+                        <div class="form-group">
+                            <label for="teamVariable">Team On Target Earnings ($)</label>
+                            <input type="text" id="teamVariable" class="currency-input" placeholder="$0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="teamQuota">Team Quota</label>
+                            <input type="text" id="teamQuota" class="currency-input" placeholder="$0.00">
+                        </div>
+                        <div class="form-group">
+                            <label for="teamBaseRate">Team Base Payout Rate (%)</label>
+                            <input type="number" id="teamBaseRate" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="rate-table-section">
+                        <div class="rate-table-header">
+                            <h3>Payout Rate Table / Accelerators</h3>
+                            <button id="addRateRow" class="btn btn-small">+ Add Rate Level</button>
+                        </div>
+                        <div id="rateTableError" class="error-message" style="display: none;"></div>
+                        <div class="table-wrapper">
+                            <table id="rateTable">
+                                <thead>
+                                    <tr>
+                                        <th>Rate Level</th>
+                                        <th>Quota Attainment %</th>
+                                        <th>Payout Rate (Multiplier)</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rateTableBody">
+                                    <!-- Rate rows will be dynamically added -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Deal Section -->
+            <section class="deal-section">
+                <div class="deal-section-header">
+                    <h2>Deals</h2>
+                    <div class="quarter-legend" id="quarterLegend">
+                        <div class="legend-item" data-quarter="1">
+                            <span class="legend-color" style="background-color: rgba(255, 0, 0, 0.15);"></span>
+                            <span class="legend-label">Q1</span>
+                        </div>
+                        <div class="legend-item" data-quarter="2">
+                            <span class="legend-color" style="background-color: rgba(255, 255, 0, 0.15);"></span>
+                            <span class="legend-label">Q2</span>
+                        </div>
+                        <div class="legend-item" data-quarter="3">
+                            <span class="legend-color" style="background-color: rgba(0, 0, 255, 0.15);"></span>
+                            <span class="legend-label">Q3</span>
+                        </div>
+                        <div class="legend-item" data-quarter="4">
+                            <span class="legend-color" style="background-color: rgba(0, 255, 0, 0.15);"></span>
+                            <span class="legend-label">Q4</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="dealTable">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-column="teamOnly">Team Deal</th>
+                                <th class="sortable" data-column="name">Opp Name</th>
+                                <th class="sortable" data-column="closeDate">Close Date</th>
+                                <th class="sortable" data-column="acv">ACV</th>
+                                <th class="sortable" data-column="individualCommission">Individual Commissions + Accelerators</th>
+                                <th class="sortable" data-column="teamCommission">Team Commissions + Accelerators</th>
+                                <th class="sortable" data-column="totalCommission">Total Commission</th>
+                                <th class="actions-column"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="dealTableBody">
+                            <!-- Deal rows will be dynamically added -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6" style="text-align: right; font-weight: bold;">TOTAL TOTAL:</td>
+                                <td id="totalTotalCommission" style="font-weight: bold;">$0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Output Section -->
+            <section class="output-section">
+                <h2>Results</h2>
+                
+                <div class="results-text">
+                    <div class="result-group">
+                        <h3>Individual Metrics</h3>
+                        <div class="result-item">
+                            <span class="result-label">Your YTD Individual ACV is:</span>
+                            <span class="result-value" id="individualACVYTD">$0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label" id="individualQuotaLabel">Your FY Individual Quota is:</span>
+                            <span class="result-value" id="individualQuotaDisplay">$0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Your YTD individual attainment % is:</span>
+                            <span class="result-value" id="individualAttainment">0.00%</span>
+                        </div>
+                    </div>
+
+                    <div class="result-group">
+                        <h3>Team Metrics</h3>
+                        <div class="result-item">
+                            <span class="result-label">Your YTD Team ACV is:</span>
+                            <span class="result-value" id="teamACVYTD">$0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label" id="teamQuotaLabel">Your FY Team Quota is:</span>
+                            <span class="result-value" id="teamQuotaDisplay">$0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Your YTD Team attainment % is:</span>
+                            <span class="result-value" id="teamAttainment">0.00%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>Individual YTD ACV vs Plan</h3>
+                        <canvas id="individualChart"></canvas>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>Team YTD ACV vs Plan</h3>
+                        <canvas id="teamChart"></canvas>
+                    </div>
+                </div>
+
+            </section>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" style="display: none;">
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Import/Export Modal -->
+    <div id="jsonModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Export JSON</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="jsonTextarea" rows="15" style="width: 100%; font-family: monospace; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-primary);"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="copyBtn" class="btn btn-secondary" style="display: none;">Copy to Clipboard</button>
+                <button id="importConfirmBtn" class="btn" style="display: none;">Import</button>
+                <button id="cancelBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
