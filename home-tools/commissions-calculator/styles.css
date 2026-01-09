@@ -548,22 +548,53 @@ tfoot td {
     margin-left: 4px;
 }
 
+.progress-label-header {
+    width: 0;
+    padding: 12px 0;
+    border-bottom: 2px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.progress-label-cell {
+    width: 0;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.progress-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-end;
+    padding-right: 8px;
+}
+
+.progress-label-item {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+    height: 10px;
+    line-height: 10px;
+}
+
+.rate-level-cell {
+    width: 135px;
+    min-width: 135px;
+    max-width: 135px;
+}
+
 .progress-cell {
-    min-width: 200px;
-    width: 200px;
+    min-width: 250px;
+    width: 250px;
     padding: 4px 8px;
 }
 
 .progress-bar-container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-}
-
-.progress-bar-label {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+    gap: 6px;
 }
 
 .progress-bar {
@@ -634,9 +665,9 @@ table select:focus {
 }
 
 .attainment-range-cell {
-    width: 122px;
-    min-width: 122px;
-    max-width: 122px;
+    width: 135px;
+    min-width: 135px;
+    max-width: 135px;
 }
 
 .attainment-range-input {
@@ -655,8 +686,14 @@ table select:focus {
     font-weight: 500;
 }
 
+.rate-payout-cell {
+    width: 135px;
+    min-width: 135px;
+    max-width: 135px;
+}
+
 table .rate-payout-input {
-    width: 60px;
+    width: calc(100% - 25px);
     display: inline-block;
 }
 

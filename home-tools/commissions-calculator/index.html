@@ -121,6 +121,7 @@
                                         <th>Rate Level</th>
                                         <th>Quota Attainment %</th>
                                         <th>Payout Rate (Multiplier)</th>
+                                        <th class="progress-label-header"></th>
                                         <th>Progress</th>
                                         <th>Actions</th>
                                     </tr>
@@ -288,6 +289,49 @@
                 <button id="resetColorBtn" class="btn btn-secondary" style="margin-right: auto;">Reset to Default</button>
                 <button id="applyColorBtn" class="btn">Apply Color</button>
                 <button id="cancelColorBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payout Rate Override Modal -->
+    <div id="payoutRateModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="payoutRateTitle">Override Base Payout Rate</h2>
+                <button class="modal-close" id="closePayoutRateModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Current Calculation:</label>
+                        <div style="padding: 12px; background-color: var(--bg-tertiary); border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="margin-bottom: 8px;">
+                                <span style="color: var(--text-secondary);">Base Commission:</span>
+                                <span id="modalBaseCommission" style="margin-left: 10px; font-weight: 600;">$0.00</span>
+                            </div>
+                            <div id="modalAcceleratorSection" style="margin-bottom: 8px; display: none;">
+                                <span style="color: var(--text-secondary);">Accelerator Bonus:</span>
+                                <span id="modalAccelerator" style="margin-left: 10px; font-weight: 600; color: #4caf50;">+$0.00</span>
+                            </div>
+                            <div style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;">
+                                <span style="color: var(--text-secondary);">Total Commission:</span>
+                                <span id="modalTotalCommission" style="margin-left: 10px; font-weight: 600;">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="overrideBaseRate" style="display: block; margin-bottom: 8px; font-weight: 600;">Override Base Payout Rate (%):</label>
+                        <input type="number" id="overrideBaseRate" step="0.01" placeholder="Enter rate %" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--input-bg); color: var(--text-primary); font-size: 1rem;">
+                        <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                            Leave empty to use calculated rate
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="clearOverrideBtn" class="btn btn-secondary" style="margin-right: auto; display: none;">Clear Override</button>
+                <button id="applyPayoutRateBtn" class="btn">Apply</button>
+                <button id="cancelPayoutRateBtn" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>

@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     initializeCharts();
     initializeQuarterLegend();
+    initializePayoutRateModal();
     
     // Sync mobile inputs with desktop inputs on load
     const fyStartDate = document.getElementById('fyStartDate');
@@ -343,7 +344,7 @@ function renderRateTable() {
         }
         
         row.innerHTML = `
-            <td>Rate ${rate.level}</td>
+            <td class="rate-level-cell">Rate ${rate.level}</td>
             <td class="attainment-range-cell">
                 <input type="text" 
                        class="attainment-range-input" 
@@ -351,7 +352,7 @@ function renderRateTable() {
                        value="${rangeDisplay}"
                        placeholder="0-100%">
             </td>
-            <td>
+            <td class="rate-payout-cell">
                 <input type="number" 
                        class="rate-payout-input" 
                        data-index="${index}" 
@@ -360,13 +361,17 @@ function renderRateTable() {
                        placeholder="1.0">
                 <span class="multiplier-suffix">x</span>
             </td>
+            <td class="progress-label-cell">
+                <div class="progress-labels">
+                    <div class="progress-label-item">Ind: ${individualProgress.toFixed(1)}%</div>
+                    <div class="progress-label-item">Team: ${teamProgress.toFixed(1)}%</div>
+                </div>
+            </td>
             <td class="progress-cell">
                 <div class="progress-bar-container">
-                    <div class="progress-bar-label">Ind: ${individualProgress.toFixed(1)}%</div>
                     <div class="progress-bar">
                         <div class="progress-bar-fill" style="width: ${individualProgress}%; background-color: #4a9eff;"></div>
                     </div>
-                    <div class="progress-bar-label">Team: ${teamProgress.toFixed(1)}%</div>
                     <div class="progress-bar">
                         <div class="progress-bar-fill" style="width: ${teamProgress}%; background-color: #4caf50;"></div>
                     </div>
@@ -590,7 +595,7 @@ function addDealRow() {
     
     // Initialize deal object (defaults to individual, not team-only)
     if (!deals[rowIndex]) {
-        deals[rowIndex] = { name: '', closeDate: '', acv: 0, teamOnly: false };
+        deals[rowIndex] = { name: '', closeDate: '', acv: 0, teamOnly: false, individualBaseRateOverride: null, teamBaseRateOverride: null };
     }
     
     // Calculate quarter for this deal
@@ -633,7 +638,7 @@ function addDealRow() {
     
     // Initialize deal object (defaults to individual, not team-only)
     if (!deals[rowIndex]) {
-        deals[rowIndex] = { name: '', closeDate: '', acv: 0, teamOnly: false };
+        deals[rowIndex] = { name: '', closeDate: '', acv: 0, teamOnly: false, individualBaseRateOverride: null, teamBaseRateOverride: null };
     }
     
     setupDealRowListeners(row, rowIndex);
@@ -668,7 +673,7 @@ function renderDealTable() {
     tbody.innerHTML = '';
     
     if (deals.length === 0) {
-        deals.push({ name: '', closeDate: '', acv: 0, teamOnly: false });
+        deals.push({ name: '', closeDate: '', acv: 0, teamOnly: false, individualBaseRateOverride: null, teamBaseRateOverride: null });
     }
     
     // Sort deals by close date (empty dates go to end)
@@ -1456,17 +1461,28 @@ function calculateDealCommissions() {
                 rateTable
             );
             
+            // Calculate accelerator first (based on original calculation, not override)
             individualCommission = individualResult.acceleratedCommission;
-            const individualBase = individualResult.baseCommission;
-            individualAccelerator = individualCommission - individualBase;
+            const originalIndividualBase = individualResult.baseCommission;
+            individualAccelerator = individualCommission - originalIndividualBase;
+            
+            // Apply base rate override if it exists
+            let actualIndividualBase = originalIndividualBase;
+            if (deal.individualBaseRateOverride !== null && deal.individualBaseRateOverride !== undefined) {
+                // Override: calculate base commission using the override rate
+                const overrideRate = deal.individualBaseRateOverride / 100; // Convert % to decimal
+                actualIndividualBase = deal.acv * (individualOnTargetEarnings / individualQuota) * overrideRate;
+                // Keep the accelerator amount the same, but apply it to the new base
+                individualCommission = actualIndividualBase + individualAccelerator;
+            }
             
             // Calculate individual payout rate
             const individualRate = deal.acv > 0 ? (individualCommission / deal.acv) * 100 : 0;
-            const individualRateText = individualRate > 0 ? `<span class="payout-rate">(${individualRate.toFixed(2)}%)</span>` : '';
+            const individualRateText = individualRate > 0 ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="individual" style="cursor: pointer; text-decoration: underline;">(${individualRate.toFixed(2)}%)</span>` : '';
             
             const indCell = row.querySelector('.individual-accelerated-commission-cell');
             if (individualAccelerator > 0) {
-                indCell.innerHTML = `${formatCurrency(individualBase)} <span class="accelerator-bonus">(+${formatCurrency(individualAccelerator)})</span>${individualRateText}`;
+                indCell.innerHTML = `${formatCurrency(actualIndividualBase)} <span class="accelerator-bonus">(+${formatCurrency(individualAccelerator)})</span>${individualRateText}`;
             } else {
                 indCell.innerHTML = `${formatCurrency(individualCommission)}${individualRateText}`;
             }
@@ -1497,28 +1513,259 @@ function calculateDealCommissions() {
             rateTable
         );
         
+        // Calculate accelerator first (based on original calculation, not override)
         const teamCommission = teamResult.acceleratedCommission;
-        const teamBase = teamResult.baseCommission;
-        const teamAccelerator = teamCommission - teamBase;
+        const originalTeamBase = teamResult.baseCommission;
+        const teamAccelerator = teamCommission - originalTeamBase;
+        
+        // Apply base rate override if it exists
+        let actualTeamBase = originalTeamBase;
+        let actualTeamCommission = teamCommission;
+        if (deal.teamBaseRateOverride !== null && deal.teamBaseRateOverride !== undefined) {
+            // Override: calculate base commission using the override rate
+            const overrideRate = deal.teamBaseRateOverride / 100; // Convert % to decimal
+            actualTeamBase = deal.acv * (teamOnTargetEarnings / teamQuota) * overrideRate;
+            // Keep the accelerator amount the same, but apply it to the new base
+            actualTeamCommission = actualTeamBase + teamAccelerator;
+        }
         
         // Calculate team payout rate
-        const teamRate = deal.acv > 0 ? (teamCommission / deal.acv) * 100 : 0;
-        const teamRateText = teamRate > 0 ? `<span class="payout-rate">(${teamRate.toFixed(2)}%)</span>` : '';
+        const teamRate = deal.acv > 0 ? (actualTeamCommission / deal.acv) * 100 : 0;
+        const teamRateText = teamRate > 0 ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="team" style="cursor: pointer; text-decoration: underline;">(${teamRate.toFixed(2)}%)</span>` : '';
         
         const teamCell = row.querySelector('.team-accelerated-commission-cell');
         if (teamAccelerator > 0) {
-            teamCell.innerHTML = `${formatCurrency(teamBase)} <span class="accelerator-bonus">(+${formatCurrency(teamAccelerator)})</span>${teamRateText}`;
+            teamCell.innerHTML = `${formatCurrency(actualTeamBase)} <span class="accelerator-bonus">(+${formatCurrency(teamAccelerator)})</span>${teamRateText}`;
         } else {
-            teamCell.innerHTML = `${formatCurrency(teamCommission)}${teamRateText}`;
+            teamCell.innerHTML = `${formatCurrency(actualTeamCommission)}${teamRateText}`;
         }
         
-        // Calculate total commission
-        const totalCommission = individualCommission + teamCommission;
+        // Calculate total commission (use actual commissions which may include overrides)
+        const totalCommission = individualCommission + actualTeamCommission;
         row.querySelector('.total-commission-cell').textContent = formatCurrency(totalCommission);
+    });
+    
+    // Add click listeners to payout rates
+    document.querySelectorAll('.clickable-rate').forEach(rateSpan => {
+        rateSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const dealIndex = parseInt(rateSpan.dataset.dealIndex);
+            const rateType = rateSpan.dataset.type; // 'individual' or 'team'
+            openPayoutRateModal(dealIndex, rateType);
+        });
     });
     
     // Calculate and display TOTAL TOTAL
     updateTotalTotal();
+}
+
+// Open payout rate override modal
+let currentPayoutRateDealIndex = null;
+let currentPayoutRateType = null;
+
+function openPayoutRateModal(dealIndex, rateType) {
+    const deal = deals[dealIndex];
+    if (!deal || !deal.name || !deal.closeDate || deal.acv <= 0) return;
+    
+    currentPayoutRateDealIndex = dealIndex;
+    currentPayoutRateType = rateType;
+    
+    const modal = document.getElementById('payoutRateModal');
+    const title = document.getElementById('payoutRateTitle');
+    const baseCommissionEl = document.getElementById('modalBaseCommission');
+    const acceleratorEl = document.getElementById('modalAccelerator');
+    const acceleratorSection = document.getElementById('modalAcceleratorSection');
+    const totalCommissionEl = document.getElementById('modalTotalCommission');
+    const overrideInput = document.getElementById('overrideBaseRate');
+    const clearBtn = document.getElementById('clearOverrideBtn');
+    
+    // Get current commission values (need to recalculate to get base and accelerator)
+    const teamBaseRate = parseFloat(document.getElementById('teamBaseRate').value) || 0;
+    const teamOnTargetEarnings = parseCurrency(document.getElementById('teamVariable').value);
+    const individualBaseRate = parseFloat(document.getElementById('individualBaseRate').value) || 0;
+    const individualOnTargetEarnings = parseCurrency(document.getElementById('individualVariable').value);
+    const teamQuota = parseCurrency(document.getElementById('teamQuota').value);
+    const individualQuota = parseCurrency(document.getElementById('individualQuota').value);
+    const ytdPeriod = getYTDPeriod();
+    const dealDate = new Date(deal.closeDate);
+    
+    let baseCommission = 0;
+    let accelerator = 0;
+    let totalCommission = 0;
+    let currentOverride = null;
+    
+    if (rateType === 'individual' && !deal.teamOnly) {
+        const individualDealsUpToThis = deals.filter(d => {
+            if (!d.closeDate || d.teamOnly) return false;
+            const closeDate = new Date(d.closeDate);
+            return closeDate >= ytdPeriod.start && closeDate <= dealDate;
+        });
+        const individualACVBeforeThis = individualDealsUpToThis.filter(d => d !== deal).reduce((sum, d) => sum + d.acv, 0);
+        const individualACVAfterThis = individualACVBeforeThis + deal.acv;
+        const individualAttainmentBefore = individualQuota > 0 ? (individualACVBeforeThis / individualQuota) * 100 : 0;
+        const individualAttainmentAfter = individualQuota > 0 ? (individualACVAfterThis / individualQuota) * 100 : 0;
+        
+        const result = calculateProgressiveCommission(
+            deal.acv,
+            individualAttainmentBefore,
+            individualAttainmentAfter,
+            individualQuota,
+            individualOnTargetEarnings,
+            individualBaseRate,
+            rateTable
+        );
+        
+        const originalBase = result.baseCommission;
+        totalCommission = result.acceleratedCommission;
+        accelerator = totalCommission - originalBase; // Accelerator is based on original calculation
+        currentOverride = deal.individualBaseRateOverride;
+        
+        // If override exists, show the overridden base
+        if (currentOverride !== null && currentOverride !== undefined) {
+            const overrideRate = currentOverride / 100;
+            baseCommission = deal.acv * (individualOnTargetEarnings / individualQuota) * overrideRate;
+            totalCommission = baseCommission + accelerator; // Apply accelerator to new base
+        } else {
+            baseCommission = originalBase;
+        }
+    } else if (rateType === 'team') {
+        const teamDealsUpToThis = deals.filter(d => {
+            if (!d.closeDate) return false;
+            const closeDate = new Date(d.closeDate);
+            return closeDate >= ytdPeriod.start && closeDate <= dealDate;
+        });
+        const teamACVBeforeThis = teamDealsUpToThis.filter(d => d !== deal).reduce((sum, d) => sum + d.acv, 0);
+        const teamACVAfterThis = teamACVBeforeThis + deal.acv;
+        const teamAttainmentBefore = teamQuota > 0 ? (teamACVBeforeThis / teamQuota) * 100 : 0;
+        const teamAttainmentAfter = teamQuota > 0 ? (teamACVAfterThis / teamQuota) * 100 : 0;
+        
+        const result = calculateProgressiveCommission(
+            deal.acv,
+            teamAttainmentBefore,
+            teamAttainmentAfter,
+            teamQuota,
+            teamOnTargetEarnings,
+            teamBaseRate,
+            rateTable
+        );
+        
+        const originalBase = result.baseCommission;
+        totalCommission = result.acceleratedCommission;
+        accelerator = totalCommission - originalBase; // Accelerator is based on original calculation
+        currentOverride = deal.teamBaseRateOverride;
+        
+        // If override exists, show the overridden base
+        if (currentOverride !== null && currentOverride !== undefined) {
+            const overrideRate = currentOverride / 100;
+            baseCommission = deal.acv * (teamOnTargetEarnings / teamQuota) * overrideRate;
+            totalCommission = baseCommission + accelerator; // Apply accelerator to new base
+        } else {
+            baseCommission = originalBase;
+        }
+    }
+    
+    // Update modal content
+    title.textContent = `Override Base Payout Rate - ${rateType === 'individual' ? 'Individual' : 'Team'}`;
+    baseCommissionEl.textContent = formatCurrency(baseCommission);
+    if (accelerator > 0) {
+        acceleratorSection.style.display = 'block';
+        acceleratorEl.textContent = `+${formatCurrency(accelerator)}`;
+    } else {
+        acceleratorSection.style.display = 'none';
+    }
+    totalCommissionEl.textContent = formatCurrency(totalCommission);
+    
+    // Set override input
+    if (currentOverride !== null && currentOverride !== undefined) {
+        overrideInput.value = currentOverride;
+        clearBtn.style.display = 'inline-block';
+    } else {
+        overrideInput.value = '';
+        clearBtn.style.display = 'none';
+    }
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+// Initialize payout rate modal event listeners
+function initializePayoutRateModal() {
+    const modal = document.getElementById('payoutRateModal');
+    const closeBtn = document.getElementById('closePayoutRateModal');
+    const cancelBtn = document.getElementById('cancelPayoutRateBtn');
+    const applyBtn = document.getElementById('applyPayoutRateBtn');
+    const clearBtn = document.getElementById('clearOverrideBtn');
+    const overrideInput = document.getElementById('overrideBaseRate');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+    
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (currentPayoutRateDealIndex !== null && currentPayoutRateType) {
+                const deal = deals[currentPayoutRateDealIndex];
+                if (deal) {
+                    if (currentPayoutRateType === 'individual') {
+                        deal.individualBaseRateOverride = null;
+                    } else {
+                        deal.teamBaseRateOverride = null;
+                    }
+                    overrideInput.value = '';
+                    clearBtn.style.display = 'none';
+                    calculate();
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            if (currentPayoutRateDealIndex !== null && currentPayoutRateType) {
+                const deal = deals[currentPayoutRateDealIndex];
+                if (deal) {
+                    const overrideValue = overrideInput.value.trim();
+                    if (overrideValue === '') {
+                        // Clear override
+                        if (currentPayoutRateType === 'individual') {
+                            deal.individualBaseRateOverride = null;
+                        } else {
+                            deal.teamBaseRateOverride = null;
+                        }
+                    } else {
+                        const overrideRate = parseFloat(overrideValue);
+                        if (!isNaN(overrideRate) && overrideRate >= 0) {
+                            if (currentPayoutRateType === 'individual') {
+                                deal.individualBaseRateOverride = overrideRate;
+                            } else {
+                                deal.teamBaseRateOverride = overrideRate;
+                            }
+                        }
+                    }
+                    calculate();
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Close on backdrop click
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
 }
 
 // Calculate and update the TOTAL TOTAL row
@@ -1917,7 +2164,9 @@ function importFromJSON() {
             // New unified format
             deals = data.deals.map(deal => ({
                 ...deal,
-                teamOnly: deal.teamOnly || false
+                teamOnly: deal.teamOnly || false,
+                individualBaseRateOverride: deal.individualBaseRateOverride !== undefined ? deal.individualBaseRateOverride : null,
+                teamBaseRateOverride: deal.teamBaseRateOverride !== undefined ? deal.teamBaseRateOverride : null
             }));
             renderDealTable();
         } else if (data.teamDeals && Array.isArray(data.teamDeals) || data.individualDeals && Array.isArray(data.individualDeals)) {
@@ -1925,12 +2174,22 @@ function importFromJSON() {
             deals = [];
             if (data.teamDeals && Array.isArray(data.teamDeals)) {
                 data.teamDeals.forEach(deal => {
-                    deals.push({ ...deal, teamOnly: true });
+                    deals.push({ 
+                        ...deal, 
+                        teamOnly: true,
+                        individualBaseRateOverride: deal.individualBaseRateOverride !== undefined ? deal.individualBaseRateOverride : null,
+                        teamBaseRateOverride: deal.teamBaseRateOverride !== undefined ? deal.teamBaseRateOverride : null
+                    });
                 });
             }
             if (data.individualDeals && Array.isArray(data.individualDeals)) {
                 data.individualDeals.forEach(deal => {
-                    deals.push({ ...deal, teamOnly: false });
+                    deals.push({ 
+                        ...deal, 
+                        teamOnly: false,
+                        individualBaseRateOverride: deal.individualBaseRateOverride !== undefined ? deal.individualBaseRateOverride : null,
+                        teamBaseRateOverride: deal.teamBaseRateOverride !== undefined ? deal.teamBaseRateOverride : null
+                    });
                 });
             }
             renderDealTable();
