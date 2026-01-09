@@ -1469,9 +1469,9 @@ function calculateDealCommissions() {
             // Apply base rate override if it exists
             let actualIndividualBase = originalIndividualBase;
             if (deal.individualBaseRateOverride !== null && deal.individualBaseRateOverride !== undefined) {
-                // Override: calculate base commission using the override rate
+                // Override: calculate base commission using the override rate directly as a percentage of ACV
                 const overrideRate = deal.individualBaseRateOverride / 100; // Convert % to decimal
-                actualIndividualBase = deal.acv * (individualOnTargetEarnings / individualQuota) * overrideRate;
+                actualIndividualBase = deal.acv * overrideRate; // Direct percentage of ACV
                 // Keep the accelerator amount the same, but apply it to the new base
                 individualCommission = actualIndividualBase + individualAccelerator;
             }
@@ -1522,9 +1522,9 @@ function calculateDealCommissions() {
         let actualTeamBase = originalTeamBase;
         let actualTeamCommission = teamCommission;
         if (deal.teamBaseRateOverride !== null && deal.teamBaseRateOverride !== undefined) {
-            // Override: calculate base commission using the override rate
+            // Override: calculate base commission using the override rate directly as a percentage of ACV
             const overrideRate = deal.teamBaseRateOverride / 100; // Convert % to decimal
-            actualTeamBase = deal.acv * (teamOnTargetEarnings / teamQuota) * overrideRate;
+            actualTeamBase = deal.acv * overrideRate; // Direct percentage of ACV
             // Keep the accelerator amount the same, but apply it to the new base
             actualTeamCommission = actualTeamBase + teamAccelerator;
         }
@@ -1623,7 +1623,7 @@ function openPayoutRateModal(dealIndex, rateType) {
         // If override exists, show the overridden base
         if (currentOverride !== null && currentOverride !== undefined) {
             const overrideRate = currentOverride / 100;
-            baseCommission = deal.acv * (individualOnTargetEarnings / individualQuota) * overrideRate;
+            baseCommission = deal.acv * overrideRate; // Direct percentage of ACV
             totalCommission = baseCommission + accelerator; // Apply accelerator to new base
         } else {
             baseCommission = originalBase;
@@ -1657,7 +1657,7 @@ function openPayoutRateModal(dealIndex, rateType) {
         // If override exists, show the overridden base
         if (currentOverride !== null && currentOverride !== undefined) {
             const overrideRate = currentOverride / 100;
-            baseCommission = deal.acv * (teamOnTargetEarnings / teamQuota) * overrideRate;
+            baseCommission = deal.acv * overrideRate; // Direct percentage of ACV
             totalCommission = baseCommission + accelerator; // Apply accelerator to new base
         } else {
             baseCommission = originalBase;
