@@ -10,29 +10,57 @@
 <body class="dark-mode">
     <div class="container">
         <header>
-            <h1>Commissions Calculator</h1>
-            <div class="header-controls">
-                <div class="fy-payout-group">
+            <div class="header-title-row">
+                <h1>Commissions Calculator</h1>
+                <button id="themeToggleMobile" class="theme-toggle mobile-only" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <div class="header-controls desktop-only">
+                    <div class="fy-payout-group">
+                        <div class="form-group">
+                            <label for="fyStartDate">Fiscal Year Start Date</label>
+                            <input type="date" id="fyStartDate" value="2025-02-01">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="payoutFrequency">Payout Frequency</label>
+                            <select id="payoutFrequency">
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="bi-annually">Bi-Annually</option>
+                                <option value="annually">Annually</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="header-right-controls">
+                        <button id="themeToggle" class="theme-toggle desktop-only" aria-label="Toggle theme">
+                            <span class="theme-icon">🌙</span>
+                        </button>
+                        <div class="header-buttons">
+                            <button id="exportBtn" class="btn btn-secondary">Export JSON</button>
+                            <button id="importBtn" class="btn btn-secondary">Import JSON</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-controls mobile-only">
                     <div class="form-group">
                         <label for="fyStartDate">Fiscal Year Start Date</label>
-                        <input type="date" id="fyStartDate" value="2025-02-01">
+                        <input type="date" id="fyStartDateMobile" value="2025-02-01">
                     </div>
-
                     <div class="form-group">
                         <label for="payoutFrequency">Payout Frequency</label>
-                        <select id="payoutFrequency">
+                        <select id="payoutFrequencyMobile">
                             <option value="monthly" selected>Monthly</option>
                             <option value="quarterly">Quarterly</option>
                             <option value="bi-annually">Bi-Annually</option>
                             <option value="annually">Annually</option>
                         </select>
                     </div>
+                    <div class="header-buttons">
+                        <button id="exportBtnMobile" class="btn btn-secondary">Export JSON</button>
+                        <button id="importBtnMobile" class="btn btn-secondary">Import JSON</button>
+                    </div>
                 </div>
-                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
-                    <span class="theme-icon">🌙</span>
-                </button>
-                <button id="exportBtn" class="btn btn-secondary">Export JSON</button>
-                <button id="importBtn" class="btn btn-secondary">Import JSON</button>
             </div>
         </header>
 

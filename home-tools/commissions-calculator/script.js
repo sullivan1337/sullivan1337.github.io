@@ -29,6 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     initializeCharts();
     initializeQuarterLegend();
+    
+    // Sync mobile inputs with desktop inputs on load
+    const fyStartDate = document.getElementById('fyStartDate');
+    const payoutFrequency = document.getElementById('payoutFrequency');
+    const fyStartDateMobile = document.getElementById('fyStartDateMobile');
+    const payoutFrequencyMobile = document.getElementById('payoutFrequencyMobile');
+    
+    if (fyStartDate && fyStartDateMobile) {
+        fyStartDateMobile.value = fyStartDate.value;
+    }
+    if (payoutFrequency && payoutFrequencyMobile) {
+        payoutFrequencyMobile.value = payoutFrequency.value;
+    }
+    
     calculate();
 });
 
@@ -88,32 +102,40 @@ function initializeQuarterLegend() {
 // Theme toggle
 function initializeTheme() {
     const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const themeToggleMobile = document.getElementById('themeToggleMobile');
+    const themeIcons = document.querySelectorAll('.theme-icon');
     
     // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme') || 'dark';
     if (savedTheme === 'light') {
         document.body.classList.remove('dark-mode');
         document.body.classList.add('light-mode');
-        themeIcon.textContent = '☀️';
+        themeIcons.forEach(icon => icon.textContent = '☀️');
     } else {
-        themeIcon.textContent = '🌙';
+        themeIcons.forEach(icon => icon.textContent = '🌙');
     }
     
-    themeToggle.addEventListener('click', () => {
+    const toggleTheme = () => {
         const isDark = document.body.classList.contains('dark-mode');
         if (isDark) {
             document.body.classList.remove('dark-mode');
             document.body.classList.add('light-mode');
-            themeIcon.textContent = '☀️';
+            themeIcons.forEach(icon => icon.textContent = '☀️');
             localStorage.setItem('theme', 'light');
         } else {
             document.body.classList.remove('light-mode');
             document.body.classList.add('dark-mode');
-            themeIcon.textContent = '🌙';
+            themeIcons.forEach(icon => icon.textContent = '🌙');
             localStorage.setItem('theme', 'dark');
         }
-    });
+    };
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+    if (themeToggleMobile) {
+        themeToggleMobile.addEventListener('click', toggleTheme);
+    }
 }
 
 // Initialize rate table
@@ -168,8 +190,8 @@ function renderRateTable() {
                        placeholder="1.0">
                 <span class="multiplier-suffix">x</span>
             </td>
-            <td>
-                <button class="btn btn-danger btn-small delete-rate-row" data-index="${index}">Delete</button>
+            <td class="actions-column">
+                <button class="delete-btn-icon delete-rate-row" data-index="${index}" title="Delete">🗑️</button>
             </td>
         `;
         tbody.appendChild(row);
@@ -741,12 +763,47 @@ function setupAutoCalculate(oteId, quotaId, payoutRateId) {
 
 // Initialize event listeners
 function initializeEventListeners() {
-    // Input fields
-    document.getElementById('fyStartDate').addEventListener('input', () => {
-        calculate();
-        renderDealTable(); // Re-render to update quarter colors
-    });
-    document.getElementById('payoutFrequency').addEventListener('change', calculate);
+    // Input fields - Desktop
+    const fyStartDate = document.getElementById('fyStartDate');
+    const payoutFrequency = document.getElementById('payoutFrequency');
+    
+    if (fyStartDate) {
+        fyStartDate.addEventListener('input', () => {
+            // Sync with mobile input if it exists
+            const mobileInput = document.getElementById('fyStartDateMobile');
+            if (mobileInput) mobileInput.value = fyStartDate.value;
+            calculate();
+            renderDealTable(); // Re-render to update quarter colors
+        });
+    }
+    
+    if (payoutFrequency) {
+        payoutFrequency.addEventListener('change', () => {
+            // Sync with mobile input if it exists
+            const mobileSelect = document.getElementById('payoutFrequencyMobile');
+            if (mobileSelect) mobileSelect.value = payoutFrequency.value;
+            calculate();
+        });
+    }
+    
+    // Mobile inputs - sync with desktop
+    const fyStartDateMobile = document.getElementById('fyStartDateMobile');
+    const payoutFrequencyMobile = document.getElementById('payoutFrequencyMobile');
+    
+    if (fyStartDateMobile) {
+        fyStartDateMobile.addEventListener('input', () => {
+            if (fyStartDate) fyStartDate.value = fyStartDateMobile.value;
+            calculate();
+            renderDealTable();
+        });
+    }
+    
+    if (payoutFrequencyMobile) {
+        payoutFrequencyMobile.addEventListener('change', () => {
+            if (payoutFrequency) payoutFrequency.value = payoutFrequencyMobile.value;
+            calculate();
+        });
+    }
     
     // Currency inputs
     setupCurrencyInput('teamQuota');
@@ -762,30 +819,40 @@ function initializeEventListeners() {
     document.getElementById('teamBaseRate').addEventListener('input', calculate);
     document.getElementById('individualBaseRate').addEventListener('input', calculate);
     
-    // Export/Import
+    // Export/Import - Desktop
     const exportBtn = document.getElementById('exportBtn');
     const importBtn = document.getElementById('importBtn');
+    
+    // Export/Import - Mobile
+    const exportBtnMobile = document.getElementById('exportBtnMobile');
+    const importBtnMobile = document.getElementById('importBtnMobile');
+    
     const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const copyBtn = document.getElementById('copyBtn');
     const importConfirmBtn = document.getElementById('importConfirmBtn');
     const jsonModal = document.getElementById('jsonModal');
     
-    if (exportBtn) {
-        exportBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showExportModal();
-        });
-    }
+    const setupExportImport = (exportBtnEl, importBtnEl) => {
+        if (exportBtnEl) {
+            exportBtnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showExportModal();
+            });
+        }
+        
+        if (importBtnEl) {
+            importBtnEl.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showImportModal();
+            });
+        }
+    };
     
-    if (importBtn) {
-        importBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            showImportModal();
-        });
-    }
+    setupExportImport(exportBtn, importBtn);
+    setupExportImport(exportBtnMobile, importBtnMobile);
     
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', (e) => {
