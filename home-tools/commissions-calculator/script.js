@@ -1466,9 +1466,9 @@ function calculateDealCommissions() {
             const originalIndividualBase = individualResult.baseCommission;
             individualAccelerator = individualCommission - originalIndividualBase;
             
-            // Apply base rate override if it exists
+            // Apply base rate override if it exists (including 0 as a valid value)
             let actualIndividualBase = originalIndividualBase;
-            if (deal.individualBaseRateOverride !== null && deal.individualBaseRateOverride !== undefined) {
+            if (typeof deal.individualBaseRateOverride === 'number') {
                 // Override: calculate base commission using the override rate directly as a percentage of ACV
                 const overrideRate = deal.individualBaseRateOverride / 100; // Convert % to decimal
                 actualIndividualBase = deal.acv * overrideRate; // Direct percentage of ACV
@@ -1478,7 +1478,7 @@ function calculateDealCommissions() {
             
             // Calculate individual payout rate
             const individualRate = deal.acv > 0 ? (individualCommission / deal.acv) * 100 : 0;
-            const individualRateText = individualRate > 0 ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="individual" style="cursor: pointer; text-decoration: underline;">(${individualRate.toFixed(2)}%)</span>` : '';
+            const individualRateText = !isNaN(individualRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="individual" style="cursor: pointer; text-decoration: underline;">(${individualRate.toFixed(2)}%)</span>` : '';
             
             const indCell = row.querySelector('.individual-accelerated-commission-cell');
             if (individualAccelerator > 0) {
@@ -1518,10 +1518,10 @@ function calculateDealCommissions() {
         const originalTeamBase = teamResult.baseCommission;
         const teamAccelerator = teamCommission - originalTeamBase;
         
-        // Apply base rate override if it exists
+        // Apply base rate override if it exists (including 0 as a valid value)
         let actualTeamBase = originalTeamBase;
         let actualTeamCommission = teamCommission;
-        if (deal.teamBaseRateOverride !== null && deal.teamBaseRateOverride !== undefined) {
+        if (typeof deal.teamBaseRateOverride === 'number') {
             // Override: calculate base commission using the override rate directly as a percentage of ACV
             const overrideRate = deal.teamBaseRateOverride / 100; // Convert % to decimal
             actualTeamBase = deal.acv * overrideRate; // Direct percentage of ACV
@@ -1531,7 +1531,7 @@ function calculateDealCommissions() {
         
         // Calculate team payout rate
         const teamRate = deal.acv > 0 ? (actualTeamCommission / deal.acv) * 100 : 0;
-        const teamRateText = teamRate > 0 ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="team" style="cursor: pointer; text-decoration: underline;">(${teamRate.toFixed(2)}%)</span>` : '';
+        const teamRateText = !isNaN(teamRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="team" style="cursor: pointer; text-decoration: underline;">(${teamRate.toFixed(2)}%)</span>` : '';
         
         const teamCell = row.querySelector('.team-accelerated-commission-cell');
         if (teamAccelerator > 0) {
@@ -1620,8 +1620,8 @@ function openPayoutRateModal(dealIndex, rateType) {
         accelerator = totalCommission - originalBase; // Accelerator is based on original calculation
         currentOverride = deal.individualBaseRateOverride;
         
-        // If override exists, show the overridden base
-        if (currentOverride !== null && currentOverride !== undefined) {
+        // If override exists, show the overridden base (including 0 as a valid value)
+        if (typeof currentOverride === 'number') {
             const overrideRate = currentOverride / 100;
             baseCommission = deal.acv * overrideRate; // Direct percentage of ACV
             totalCommission = baseCommission + accelerator; // Apply accelerator to new base
@@ -1654,8 +1654,8 @@ function openPayoutRateModal(dealIndex, rateType) {
         accelerator = totalCommission - originalBase; // Accelerator is based on original calculation
         currentOverride = deal.teamBaseRateOverride;
         
-        // If override exists, show the overridden base
-        if (currentOverride !== null && currentOverride !== undefined) {
+        // If override exists, show the overridden base (including 0 as a valid value)
+        if (typeof currentOverride === 'number') {
             const overrideRate = currentOverride / 100;
             baseCommission = deal.acv * overrideRate; // Direct percentage of ACV
             totalCommission = baseCommission + accelerator; // Apply accelerator to new base
@@ -1675,8 +1675,8 @@ function openPayoutRateModal(dealIndex, rateType) {
     }
     totalCommissionEl.textContent = formatCurrency(totalCommission);
     
-    // Set override input
-    if (currentOverride !== null && currentOverride !== undefined) {
+    // Set override input (including 0 as a valid value)
+    if (typeof currentOverride === 'number') {
         overrideInput.value = currentOverride;
         clearBtn.style.display = 'inline-block';
     } else {
