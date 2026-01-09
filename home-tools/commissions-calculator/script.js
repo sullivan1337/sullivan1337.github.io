@@ -266,6 +266,29 @@ function renderRateTable() {
     tbody.innerHTML = '';
     hideRateTableError();
     
+    // Get current attainment percentages
+    const individualQuota = parseCurrency(document.getElementById('individualQuota')?.value || '0');
+    const teamQuota = parseCurrency(document.getElementById('teamQuota')?.value || '0');
+    const ytdPeriod = getYTDPeriod();
+    
+    // Calculate individual YTD ACV
+    const individualYtdDeals = deals.filter(deal => {
+        if (!deal.closeDate || deal.teamOnly) return false;
+        const closeDate = new Date(deal.closeDate);
+        return closeDate >= ytdPeriod.start && closeDate <= ytdPeriod.end;
+    });
+    const individualACVYTD = individualYtdDeals.reduce((sum, deal) => sum + deal.acv, 0);
+    const individualAttainment = individualQuota > 0 ? (individualACVYTD / individualQuota) * 100 : 0;
+    
+    // Calculate team YTD ACV
+    const teamYtdDeals = deals.filter(deal => {
+        if (!deal.closeDate) return false;
+        const closeDate = new Date(deal.closeDate);
+        return closeDate >= ytdPeriod.start && closeDate <= ytdPeriod.end;
+    });
+    const teamACVYTD = teamYtdDeals.reduce((sum, deal) => sum + deal.acv, 0);
+    const teamAttainment = teamQuota > 0 ? (teamACVYTD / teamQuota) * 100 : 0;
+    
     rateTable.forEach((rate, index) => {
         const row = document.createElement('tr');
         const isFirst = index === 0;
@@ -289,6 +312,36 @@ function renderRateTable() {
             rangeDisplay = `${rate.minPercent}-${rate.maxPercent}%`;
         }
         
+        // Calculate progress for this bracket
+        const bracketMin = rate.minPercent === -1 ? 0 : rate.minPercent;
+        const bracketMax = rate.maxPercent === 999 || rate.maxPercent === -1 ? Infinity : rate.maxPercent;
+        
+        // Calculate individual progress for this bracket
+        let individualProgress = 0;
+        if (individualAttainment >= bracketMin) {
+            if (individualAttainment >= bracketMax) {
+                individualProgress = 100; // Fully in this bracket
+            } else {
+                // Partially in this bracket
+                const bracketRange = bracketMax - bracketMin;
+                const progressInBracket = ((individualAttainment - bracketMin) / bracketRange) * 100;
+                individualProgress = Math.max(0, Math.min(100, progressInBracket));
+            }
+        }
+        
+        // Calculate team progress for this bracket
+        let teamProgress = 0;
+        if (teamAttainment >= bracketMin) {
+            if (teamAttainment >= bracketMax) {
+                teamProgress = 100; // Fully in this bracket
+            } else {
+                // Partially in this bracket
+                const bracketRange = bracketMax - bracketMin;
+                const progressInBracket = ((teamAttainment - bracketMin) / bracketRange) * 100;
+                teamProgress = Math.max(0, Math.min(100, progressInBracket));
+            }
+        }
+        
         row.innerHTML = `
             <td>Rate ${rate.level}</td>
             <td class="attainment-range-cell">
@@ -306,6 +359,18 @@ function renderRateTable() {
                        value="${rate.payoutRate}"
                        placeholder="1.0">
                 <span class="multiplier-suffix">x</span>
+            </td>
+            <td class="progress-cell">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-label">Ind: ${individualProgress.toFixed(1)}%</div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${individualProgress}%; background-color: #4a9eff;"></div>
+                    </div>
+                    <div class="progress-bar-label">Team: ${teamProgress.toFixed(1)}%</div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: ${teamProgress}%; background-color: #4caf50;"></div>
+                    </div>
+                </div>
             </td>
             <td class="actions-column">
                 <button class="delete-btn-icon delete-rate-row" data-index="${index}" title="Delete">🗑️</button>
@@ -1237,6 +1302,9 @@ function calculate() {
     // Update charts
     updateCharts(teamACVYTD, teamQuota, individualACVYTD, individualQuota);
     
+    // Update rate table progress bars
+    renderRateTable();
+    
     // Calculate and display deal commissions
     calculateDealCommissions();
     
@@ -1253,30 +1321,27 @@ function calculateProgressiveCommission(dealACV, attainmentBeforeDeal, attainmen
     if (quota <= 0 || onTargetEarnings <= 0 || dealACV <= 0) {
         return { baseCommission: 0, acceleratedCommission: 0 };
     }
-    
+
     // Calculate base commission rate per dollar of ACV
-    // On Target Earnings = total commission at 100% attainment
-    // At 100% attainment: ACV = quota, and commission = On Target Earnings
-    // So commission per dollar of ACV = On Target Earnings / quota
     const commissionPerDollarOfACV = onTargetEarnings / quota;
-    
+
     // Calculate base commission (without accelerators)
     const baseCommission = dealACV * commissionPerDollarOfACV;
-    
+
     // Sort rate table by minPercent
     const sortedRates = [...rateTable].sort((a, b) => {
         const aMin = a.minPercent === -1 ? 0 : a.minPercent;
         const bMin = b.minPercent === -1 ? 0 : b.minPercent;
         return aMin - bMin;
     });
-    
+
     let totalAcceleratedCommission = 0;
-    
+
     // Calculate how much of this deal's ACV falls into each bracket
     const dealAttainmentStart = Math.max(0, attainmentBeforeDeal);
     const dealAttainmentEnd = attainmentAfterDeal;
     const dealAttainmentRange = dealAttainmentEnd - dealAttainmentStart;
-    
+
     // If no attainment range, use the entire deal
     if (dealAttainmentRange <= 0) {
         // Find the applicable rate for the current attainment
@@ -1285,38 +1350,55 @@ function calculateProgressiveCommission(dealACV, attainmentBeforeDeal, attainmen
             const bracketMax = rate.maxPercent === 999 || rate.maxPercent === -1 ? Infinity : rate.maxPercent;
             return dealAttainmentEnd >= bracketMin && dealAttainmentEnd <= bracketMax;
         }) || sortedRates[0];
-        
+
         const multiplier = applicableRate ? applicableRate.payoutRate : 1;
         totalAcceleratedCommission = dealACV * commissionPerDollarOfACV * multiplier;
         return { baseCommission, acceleratedCommission: totalAcceleratedCommission };
     }
-    
+
     // For each rate bracket, calculate if any portion of this deal falls in it
     for (let i = 0; i < sortedRates.length; i++) {
         const rate = sortedRates[i];
-        const bracketMin = rate.minPercent === -1 ? 0 : rate.minPercent;
-        const bracketMax = rate.maxPercent === 999 || rate.maxPercent === -1 ? Infinity : rate.maxPercent;
         
+        // Resolve Input values to Math values
+        let bracketMin = rate.minPercent === -1 ? 0 : rate.minPercent;
+        const bracketMax = rate.maxPercent === 999 || rate.maxPercent === -1 ? Infinity : rate.maxPercent;
+
+        // --- FIX START: GAP FILLING LOGIC ---
+        // If this isn't the first tier, check if there is a gap between the previous Max and current Min
+        // Example: Prev Max = 100, Curr Min = 101. We must treat Curr Min as 100 to capture the 100.001-101 range.
+        if (i > 0) {
+            const prevRate = sortedRates[i-1];
+            const prevMax = prevRate.maxPercent === 999 || prevRate.maxPercent === -1 ? Infinity : prevRate.maxPercent;
+            
+            // If the current bracket starts after the previous one ends (creating a gap),
+            // snap the current start back to the previous end.
+            if (bracketMin > prevMax) {
+                bracketMin = prevMax;
+            }
+        }
+        // --- FIX END ---
+
         // Check if this bracket overlaps with the deal's attainment range
         if (dealAttainmentEnd <= bracketMin || dealAttainmentStart >= bracketMax) {
             continue;
         }
-        
+
         // Calculate the portion of this deal that falls in this bracket
         const bracketStart = Math.max(dealAttainmentStart, bracketMin);
         const bracketEnd = Math.min(dealAttainmentEnd, bracketMax);
         const bracketPercent = bracketEnd - bracketStart;
-        
+
         if (bracketPercent > 0 && dealAttainmentRange > 0) {
             // Calculate the ACV amount that falls in this bracket
             const bracketACV = dealACV * (bracketPercent / dealAttainmentRange);
-            
+
             // Calculate commission for this bracket portion
             const bracketCommission = bracketACV * commissionPerDollarOfACV * rate.payoutRate;
             totalAcceleratedCommission += bracketCommission;
         }
     }
-    
+
     return { baseCommission, acceleratedCommission: totalAcceleratedCommission };
 }
 
@@ -1350,6 +1432,7 @@ function calculateDealCommissions() {
         
         // Calculate individual commissions (if not team-only)
         let individualCommission = 0;
+        let individualAccelerator = 0;
         if (!deal.teamOnly) {
             const individualDealsUpToThis = deals.filter(d => {
                 if (!d.closeDate || d.teamOnly) return false;
@@ -1375,13 +1458,17 @@ function calculateDealCommissions() {
             
             individualCommission = individualResult.acceleratedCommission;
             const individualBase = individualResult.baseCommission;
-            const individualAccelerator = individualCommission - individualBase;
+            individualAccelerator = individualCommission - individualBase;
+            
+            // Calculate individual payout rate
+            const individualRate = deal.acv > 0 ? (individualCommission / deal.acv) * 100 : 0;
+            const individualRateText = individualRate > 0 ? `<span class="payout-rate">(${individualRate.toFixed(2)}%)</span>` : '';
             
             const indCell = row.querySelector('.individual-accelerated-commission-cell');
             if (individualAccelerator > 0) {
-                indCell.innerHTML = `${formatCurrency(individualBase)} <span class="accelerator-bonus">(+${formatCurrency(individualAccelerator)})</span>`;
+                indCell.innerHTML = `${formatCurrency(individualBase)} <span class="accelerator-bonus">(+${formatCurrency(individualAccelerator)})</span>${individualRateText}`;
             } else {
-                indCell.textContent = formatCurrency(individualCommission);
+                indCell.innerHTML = `${formatCurrency(individualCommission)}${individualRateText}`;
             }
         } else {
             row.querySelector('.individual-accelerated-commission-cell').textContent = '$0.00';
@@ -1414,11 +1501,15 @@ function calculateDealCommissions() {
         const teamBase = teamResult.baseCommission;
         const teamAccelerator = teamCommission - teamBase;
         
+        // Calculate team payout rate
+        const teamRate = deal.acv > 0 ? (teamCommission / deal.acv) * 100 : 0;
+        const teamRateText = teamRate > 0 ? `<span class="payout-rate">(${teamRate.toFixed(2)}%)</span>` : '';
+        
         const teamCell = row.querySelector('.team-accelerated-commission-cell');
         if (teamAccelerator > 0) {
-            teamCell.innerHTML = `${formatCurrency(teamBase)} <span class="accelerator-bonus">(+${formatCurrency(teamAccelerator)})</span>`;
+            teamCell.innerHTML = `${formatCurrency(teamBase)} <span class="accelerator-bonus">(+${formatCurrency(teamAccelerator)})</span>${teamRateText}`;
         } else {
-            teamCell.textContent = formatCurrency(teamCommission);
+            teamCell.innerHTML = `${formatCurrency(teamCommission)}${teamRateText}`;
         }
         
         // Calculate total commission

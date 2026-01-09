@@ -114,9 +114,6 @@ header h1 {
     gap: 20px;
     align-items: flex-end;
     flex-wrap: nowrap;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
     white-space: nowrap;
 }
 
@@ -255,6 +252,11 @@ section {
     padding: 25px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
+}
+
+.input-section {
+    overflow-x: auto;
+    min-width: 0;
 }
 
 .section-header {
@@ -401,7 +403,7 @@ section h3 {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-x: auto;
     margin-left: auto;
     margin-right: auto;
 }
@@ -444,7 +446,7 @@ section h3 {
 }
 
 .rate-table-section .table-wrapper {
-    overflow-x: auto;
+    overflow-x: visible;
     max-height: 400px;
     overflow-y: auto;
 }
@@ -546,6 +548,54 @@ tfoot td {
     margin-left: 4px;
 }
 
+.progress-cell {
+    min-width: 200px;
+    width: 200px;
+    padding: 4px 8px;
+}
+
+.progress-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.progress-bar-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 10px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 5px;
+}
+
+.individual-accelerated-commission-cell,
+.team-accelerated-commission-cell {
+    position: relative;
+    text-align: left;
+}
+
+.payout-rate {
+    position: absolute;
+    right: 0;
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-weight: normal;
+}
+
 .delete-btn-icon {
     background: none;
     border: none;
@@ -584,7 +634,9 @@ table select:focus {
 }
 
 .attainment-range-cell {
-    min-width: 200px;
+    width: 122px;
+    min-width: 122px;
+    max-width: 122px;
 }
 
 .attainment-range-input {
@@ -604,7 +656,7 @@ table select:focus {
 }
 
 table .rate-payout-input {
-    width: calc(100% - 25px);
+    width: 60px;
     display: inline-block;
 }
 
