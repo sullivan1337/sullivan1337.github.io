@@ -4,12 +4,20 @@ let rateTable = [];
 let individualChart = null;
 let teamChart = null;
 
+// Default quarter colors (faded red, yellow, blue, green)
+const defaultQuarterColors = {
+    1: 'rgba(255, 0, 0, 0.15)',
+    2: 'rgba(255, 255, 0, 0.15)',
+    3: 'rgba(0, 0, 255, 0.15)',
+    4: 'rgba(0, 255, 0, 0.15)'
+};
+
 // Quarter colors (default: faded red, yellow, blue, green)
 let quarterColors = {
-    1: localStorage.getItem('quarterColor1') || 'rgba(255, 0, 0, 0.15)',
-    2: localStorage.getItem('quarterColor2') || 'rgba(255, 255, 0, 0.15)',
-    3: localStorage.getItem('quarterColor3') || 'rgba(0, 0, 255, 0.15)',
-    4: localStorage.getItem('quarterColor4') || 'rgba(0, 255, 0, 0.15)'
+    1: localStorage.getItem('quarterColor1') || defaultQuarterColors[1],
+    2: localStorage.getItem('quarterColor2') || defaultQuarterColors[2],
+    3: localStorage.getItem('quarterColor3') || defaultQuarterColors[3],
+    4: localStorage.getItem('quarterColor4') || defaultQuarterColors[4]
 };
 
 // Default rate table structure (payoutRate is multiplier: 1 = 1x, 1.5 = 1.5x, etc.)
@@ -71,9 +79,114 @@ function getQuarterForDate(dateString, fyStartDate) {
     return quarter >= 1 && quarter <= 4 ? quarter : null;
 }
 
+// Convert rgba string to hex color and opacity
+function rgbaToHexAndOpacity(rgbaString) {
+    const match = rgbaString.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const opacity = match[4] ? parseFloat(match[4]) : 1;
+        const hex = '#' + [r, g, b].map(x => {
+            const hex = x.toString(16);
+            return hex.length === 1 ? '0' + hex : hex;
+        }).join('');
+        return { hex, opacity: Math.round(opacity * 100) };
+    }
+    // Fallback for hex colors
+    if (rgbaString.startsWith('#')) {
+        return { hex: rgbaString.substring(0, 7), opacity: 15 };
+    }
+    return { hex: '#ff0000', opacity: 15 };
+}
+
+// Convert hex and opacity to rgba string
+function hexAndOpacityToRgba(hex, opacity) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const alpha = opacity / 100;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 // Initialize quarter legend with click handlers
+let currentQuarterBeingEdited = null;
+
 function initializeQuarterLegend() {
     const legendItems = document.querySelectorAll('.legend-item');
+    const colorPickerModal = document.getElementById('colorPickerModal');
+    const colorPickerInput = document.getElementById('colorPickerInput');
+    const colorOpacity = document.getElementById('colorOpacity');
+    const opacityValue = document.getElementById('opacityValue');
+    const colorPreview = document.getElementById('colorPreview');
+    const colorPickerTitle = document.getElementById('colorPickerTitle');
+    const applyColorBtn = document.getElementById('applyColorBtn');
+    const closeColorPicker = document.getElementById('closeColorPicker');
+    const cancelColorBtn = document.getElementById('cancelColorBtn');
+    const resetColorBtn = document.getElementById('resetColorBtn');
+    
+    // Update color preview
+    function updateColorPreview() {
+        const hex = colorPickerInput.value;
+        const opacity = parseInt(colorOpacity.value);
+        const rgba = hexAndOpacityToRgba(hex, opacity);
+        colorPreview.style.backgroundColor = rgba;
+        opacityValue.textContent = opacity + '%';
+    }
+    
+    // Initialize color picker event listeners
+    colorPickerInput.addEventListener('input', updateColorPreview);
+    colorOpacity.addEventListener('input', updateColorPreview);
+    
+    // Reset to default color
+    resetColorBtn.addEventListener('click', () => {
+        if (currentQuarterBeingEdited) {
+            const quarter = currentQuarterBeingEdited;
+            const defaultColor = defaultQuarterColors[quarter];
+            const { hex, opacity } = rgbaToHexAndOpacity(defaultColor);
+            
+            // Update color picker inputs
+            colorPickerInput.value = hex;
+            colorOpacity.value = opacity;
+            updateColorPreview();
+        }
+    });
+    
+    // Apply color
+    applyColorBtn.addEventListener('click', () => {
+        if (currentQuarterBeingEdited) {
+            const quarter = currentQuarterBeingEdited;
+            const hex = colorPickerInput.value;
+            const opacity = parseInt(colorOpacity.value);
+            const rgba = hexAndOpacityToRgba(hex, opacity);
+            
+            quarterColors[quarter] = rgba;
+            const colorSpan = document.querySelector(`.legend-item[data-quarter="${quarter}"] .legend-color`);
+            if (colorSpan) {
+                colorSpan.style.backgroundColor = rgba;
+            }
+            localStorage.setItem(`quarterColor${quarter}`, rgba);
+            renderDealTable();
+            calculate();
+        }
+        colorPickerModal.style.display = 'none';
+    });
+    
+    // Close modal handlers
+    closeColorPicker.addEventListener('click', () => {
+        colorPickerModal.style.display = 'none';
+    });
+    cancelColorBtn.addEventListener('click', () => {
+        colorPickerModal.style.display = 'none';
+    });
+    
+    // Close on backdrop click
+    colorPickerModal.addEventListener('click', (e) => {
+        if (e.target === colorPickerModal) {
+            colorPickerModal.style.display = 'none';
+        }
+    });
+    
     legendItems.forEach(item => {
         const quarter = parseInt(item.dataset.quarter);
         const colorSpan = item.querySelector('.legend-color');
@@ -83,18 +196,22 @@ function initializeQuarterLegend() {
             colorSpan.style.backgroundColor = quarterColors[quarter];
         }
         
-        // Add click handler to change color
+        // Add click handler to open color picker modal
         item.addEventListener('click', () => {
+            currentQuarterBeingEdited = quarter;
+            colorPickerTitle.textContent = `Select Color for Q${quarter}`;
+            
+            // Parse current color
             const currentColor = quarterColors[quarter] || 'rgba(255, 0, 0, 0.15)';
-            const newColor = prompt(`Enter color for Q${quarter} (hex, rgb, or rgba):`, currentColor);
-            if (newColor && newColor.trim()) {
-                quarterColors[quarter] = newColor.trim();
-                colorSpan.style.backgroundColor = quarterColors[quarter];
-                localStorage.setItem(`quarterColor${quarter}`, quarterColors[quarter]);
-                // Re-render table to apply new colors
-                renderDealTable();
-                calculate();
-            }
+            const { hex, opacity } = rgbaToHexAndOpacity(currentColor);
+            
+            // Set color picker values
+            colorPickerInput.value = hex;
+            colorOpacity.value = opacity;
+            updateColorPreview();
+            
+            // Show modal
+            colorPickerModal.style.display = 'flex';
         });
     });
 }
@@ -810,6 +927,7 @@ function initializeEventListeners() {
     setupCurrencyInput('individualQuota');
     setupCurrencyInput('teamVariable');
     setupCurrencyInput('individualVariable');
+    setupCurrencyInput('baseSalary');
     
     // Auto-calculate OTE, Quota, and Payout Rate
     setupAutoCalculate('teamVariable', 'teamQuota', 'teamBaseRate');
@@ -1326,6 +1444,14 @@ function updateTotalTotal() {
     if (totalTotalCell) {
         totalTotalCell.textContent = formatCurrency(grandTotal);
     }
+    
+    // Calculate and display On Target Earnings (Base + Commissions)
+    const baseSalary = parseCurrency(document.getElementById('baseSalary')?.value || '0');
+    const totalOTE = baseSalary + grandTotal;
+    const totalOTECell = document.getElementById('totalOTE');
+    if (totalOTECell) {
+        totalOTECell.textContent = formatCurrency(totalOTE);
+    }
 }
 
 // Chart.js plugin to draw YTD ACV text - register globally
@@ -1553,6 +1679,7 @@ function showExportModal() {
         const data = {
             fyStartDate: document.getElementById('fyStartDate').value,
             payoutFrequency: document.getElementById('payoutFrequency').value,
+            baseSalary: parseCurrency(document.getElementById('baseSalary')?.value || '0'),
             teamVariable: parseCurrency(document.getElementById('teamVariable').value),
             teamQuota: parseCurrency(document.getElementById('teamQuota').value),
             teamBaseRate: parseFloat(document.getElementById('teamBaseRate').value) || 0,
@@ -1560,7 +1687,8 @@ function showExportModal() {
             individualQuota: parseCurrency(document.getElementById('individualQuota').value),
             individualBaseRate: parseFloat(document.getElementById('individualBaseRate').value) || 0,
             rateTable: rateTable,
-            deals: deals.filter(deal => deal.name || deal.closeDate || deal.acv > 0)
+            deals: deals.filter(deal => deal.name || deal.closeDate || deal.acv > 0),
+            quarterColors: quarterColors
         };
         
         textarea.value = JSON.stringify(data, null, 2);
@@ -1659,16 +1787,38 @@ function importFromJSON() {
         // Load all fields
         if (data.fyStartDate) document.getElementById('fyStartDate').value = data.fyStartDate;
         if (data.payoutFrequency) document.getElementById('payoutFrequency').value = data.payoutFrequency;
-            if (data.teamVariable !== undefined) document.getElementById('teamVariable').value = formatCurrencyInput(data.teamVariable);
+        if (data.baseSalary !== undefined) {
+            const baseSalaryInput = document.getElementById('baseSalary');
+            if (baseSalaryInput) baseSalaryInput.value = formatCurrencyInput(data.baseSalary);
+        }
+        if (data.teamVariable !== undefined) document.getElementById('teamVariable').value = formatCurrencyInput(data.teamVariable);
         if (data.teamQuota !== undefined) document.getElementById('teamQuota').value = formatCurrencyInput(data.teamQuota);
         if (data.teamBaseRate !== undefined) document.getElementById('teamBaseRate').value = data.teamBaseRate;
-            if (data.individualVariable !== undefined) document.getElementById('individualVariable').value = formatCurrencyInput(data.individualVariable);
+        if (data.individualVariable !== undefined) document.getElementById('individualVariable').value = formatCurrencyInput(data.individualVariable);
         if (data.individualQuota !== undefined) document.getElementById('individualQuota').value = formatCurrencyInput(data.individualQuota);
         if (data.individualBaseRate !== undefined) document.getElementById('individualBaseRate').value = data.individualBaseRate;
         
         if (data.rateTable && Array.isArray(data.rateTable)) {
             rateTable = data.rateTable;
             renderRateTable();
+        }
+        
+        // Restore quarter colors if present
+        if (data.quarterColors && typeof data.quarterColors === 'object') {
+            quarterColors = { ...quarterColors, ...data.quarterColors };
+            // Save to localStorage
+            Object.keys(quarterColors).forEach(quarter => {
+                localStorage.setItem(`quarterColor${quarter}`, quarterColors[quarter]);
+            });
+            // Update legend display
+            const legendItems = document.querySelectorAll('.legend-item');
+            legendItems.forEach(item => {
+                const quarter = parseInt(item.dataset.quarter);
+                const colorSpan = item.querySelector('.legend-color');
+                if (colorSpan && quarterColors[quarter]) {
+                    colorSpan.style.backgroundColor = quarterColors[quarter];
+                }
+            });
         }
         
         // Handle new unified format and legacy formats
