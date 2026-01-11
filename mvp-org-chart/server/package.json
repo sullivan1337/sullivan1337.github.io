@@ -1,0 +1,23 @@
+{
+  "name": "mvp-org-chart",
+  "version": "1.0.0",
+  "description": "Simple org chart MVP",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "puppeteer": "^21.11.0",
+    "sqlite": "^4.2.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.7.0",
+    "supertest": "^6.3.4"
+  }
+}
