@@ -19,7 +19,7 @@
                     <div class="fy-payout-group">
                         <div class="form-group">
                             <label for="fyStartDate">Fiscal Year Start Date</label>
-                            <input type="date" id="fyStartDate" value="2025-02-01">
+                            <input type="date" id="fyStartDate" value="2026-02-01">
                         </div>
 
                         <div class="form-group">
@@ -68,16 +68,16 @@
             <!-- Input Section -->
             <section class="input-section">
                 <div class="section-header">
+                    <div class="section-header-left">
+                        <label for="baseSalary">Base Salary ($)</label>
+                        <input type="text" id="baseSalary" class="currency-input" placeholder="$0.00">
+                    </div>
                     <h2>Input Configuration</h2>
                 </div>
 
                 <div class="settings-three-column">
                     <div class="individual-section">
                         <h3>Individual Settings</h3>
-                        <div class="form-group">
-                            <label for="baseSalary">Base Salary ($)</label>
-                            <input type="text" id="baseSalary" class="currency-input" placeholder="$0.00">
-                        </div>
                         <div class="form-group">
                             <label for="individualVariable">Individual Variable Earnings ($)</label>
                             <input type="text" id="individualVariable" class="currency-input" placeholder="$0.00">
@@ -166,9 +166,10 @@
                                 <th class="sortable" data-column="name">Opp Name</th>
                                 <th class="sortable" data-column="closeDate">Close Date</th>
                                 <th class="sortable" data-column="acv">ACV</th>
-                                <th class="sortable" data-column="individualCommission">Individual Commissions + Accelerators</th>
-                                <th class="sortable" data-column="teamCommission">Team Commissions + Accelerators</th>
-                                <th class="sortable" data-column="totalCommission">Total Commission</th>
+                                <th class="sortable" data-column="individualCommission">Individual Commissions + Accel</th>
+                                <th class="sortable" data-column="teamCommission">Team Commissions + Accel</th>
+                                <th class="sortable" data-column="totalCommission">Commission</th>
+                                <th class="sortable" data-column="periodPayout">Period Payout</th>
                                 <th class="actions-column"></th>
                             </tr>
                         </thead>
@@ -177,12 +178,12 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colspan="6" style="text-align: right; font-weight: bold;">Total Commissions:</td>
+                                <td colspan="7" style="text-align: right; font-weight: bold;">Total Commissions:</td>
                                 <td id="totalTotalCommission" style="font-weight: bold;">$0.00</td>
                                 <td></td>
                             </tr>
                             <tr>
-                                <td colspan="6" style="text-align: right; font-weight: bold;">On Target Earnings (Base + Commissions):</td>
+                                <td colspan="7" style="text-align: right; font-weight: bold;">On Target Earnings (Base + Commissions):</td>
                                 <td id="totalOTE" style="font-weight: bold;">$0.00</td>
                                 <td></td>
                             </tr>

@@ -630,6 +630,7 @@ function addDealRow() {
         <td class="individual-accelerated-commission-cell">$0.00</td>
         <td class="team-accelerated-commission-cell">$0.00</td>
         <td class="total-commission-cell">$0.00</td>
+        <td class="period-payout-cell">$0.00</td>
         <td class="actions-column">
             <button class="delete-btn-icon delete-deal-row" data-index="${rowIndex}" title="Delete">🗑️</button>
         </td>
@@ -733,6 +734,7 @@ function renderDealTable() {
             <td class="individual-accelerated-commission-cell">$0.00</td>
             <td class="team-accelerated-commission-cell">$0.00</td>
             <td class="total-commission-cell">$0.00</td>
+            <td class="period-payout-cell">$0.00</td>
             <td class="actions-column">
                 <button class="delete-btn-icon delete-deal-row" data-index="${originalIndex}" title="Delete">🗑️</button>
             </td>
@@ -741,10 +743,12 @@ function renderDealTable() {
         setupDealRowListeners(row, originalIndex);
     });
     
-    // Restore sorting if it was applied
+    // Always sort by close date by default, unless user has clicked a column
     if (sortColumn) {
         sortDealTable(sortColumn, sortDirection);
     } else {
+        // Default sort by close date
+        sortDealTable('closeDate', 'asc');
         // Update total total after rendering
         updateTotalTotal();
     }
@@ -1170,6 +1174,12 @@ function sortDealTable(column, direction) {
                 aValue = parseCurrency(aTotalCell ? aTotalCell.textContent : '0');
                 bValue = parseCurrency(bTotalCell ? bTotalCell.textContent : '0');
                 break;
+            case 'periodPayout':
+                const aPeriodCell = a.querySelector('.period-payout-cell');
+                const bPeriodCell = b.querySelector('.period-payout-cell');
+                aValue = parseCurrency(aPeriodCell ? aPeriodCell.textContent : '0');
+                bValue = parseCurrency(bPeriodCell ? bPeriodCell.textContent : '0');
+                break;
             default:
                 return 0;
         }
@@ -1237,6 +1247,52 @@ function getYTDPeriod() {
     const fyStartDate = new Date(document.getElementById('fyStartDate').value);
     const today = new Date();
     return { start: fyStartDate, end: today };
+}
+
+// Get period for a specific date based on FY start and payout frequency
+function getPeriodForDate(date) {
+    const fyStartDate = new Date(document.getElementById('fyStartDate').value);
+    const payoutFrequency = document.getElementById('payoutFrequency').value;
+    
+    if (!date || isNaN(date.getTime())) return null;
+    
+    let periodStart, periodEnd;
+    
+    if (payoutFrequency === 'monthly') {
+        // Find which month the date falls into relative to FY start
+        const monthsSinceFYStart = (date.getFullYear() - fyStartDate.getFullYear()) * 12 + 
+                                   (date.getMonth() - fyStartDate.getMonth());
+        periodStart = new Date(fyStartDate);
+        periodStart.setMonth(periodStart.getMonth() + monthsSinceFYStart);
+        periodEnd = new Date(periodStart);
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+        periodEnd.setDate(0); // Last day of month
+    } else if (payoutFrequency === 'quarterly') {
+        const monthsSinceFYStart = (date.getFullYear() - fyStartDate.getFullYear()) * 12 + 
+                                   (date.getMonth() - fyStartDate.getMonth());
+        const quarter = Math.floor(monthsSinceFYStart / 3);
+        periodStart = new Date(fyStartDate);
+        periodStart.setMonth(periodStart.getMonth() + quarter * 3);
+        periodEnd = new Date(periodStart);
+        periodEnd.setMonth(periodEnd.getMonth() + 3);
+        periodEnd.setDate(0);
+    } else if (payoutFrequency === 'bi-annually') {
+        const monthsSinceFYStart = (date.getFullYear() - fyStartDate.getFullYear()) * 12 + 
+                                   (date.getMonth() - fyStartDate.getMonth());
+        const half = Math.floor(monthsSinceFYStart / 6);
+        periodStart = new Date(fyStartDate);
+        periodStart.setMonth(periodStart.getMonth() + half * 6);
+        periodEnd = new Date(periodStart);
+        periodEnd.setMonth(periodEnd.getMonth() + 6);
+        periodEnd.setDate(0);
+    } else { // annually
+        periodStart = new Date(fyStartDate);
+        periodEnd = new Date(fyStartDate);
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        periodEnd.setDate(periodEnd.getDate() - 1);
+    }
+    
+    return { start: periodStart, end: periodEnd };
 }
 
 // Calculate commissions
@@ -1407,6 +1463,26 @@ function calculateProgressiveCommission(dealACV, attainmentBeforeDeal, attainmen
     return { baseCommission, acceleratedCommission: totalAcceleratedCommission };
 }
 
+// Returns { periodKey (start time): total commission for that period }
+// Period total = sum of Commission column (individual + team) for all deals that close in that period
+function computePeriodTotalsFromRows(rows) {
+    const periodTotals = {};
+    rows.forEach((row) => {
+        const indexAttr = row.querySelector('.deal-name-input')?.dataset.index;
+        if (indexAttr === undefined) return;
+        const index = parseInt(indexAttr);
+        if (index >= deals.length) return;
+        const deal = deals[index];
+        if (!deal.closeDate || deal.acv <= 0) return;
+        const period = getPeriodForDate(new Date(deal.closeDate));
+        if (!period) return;
+        const periodKey = period.start.getTime();
+        const commissionText = row.querySelector('.total-commission-cell')?.textContent || '0';
+        periodTotals[periodKey] = (periodTotals[periodKey] || 0) + parseCurrency(commissionText);
+    });
+    return periodTotals;
+}
+
 function calculateDealCommissions() {
     const teamBaseRate = parseFloat(document.getElementById('teamBaseRate').value) || 0;
     const teamOnTargetEarnings = parseCurrency(document.getElementById('teamVariable').value);
@@ -1430,6 +1506,7 @@ function calculateDealCommissions() {
             row.querySelector('.individual-accelerated-commission-cell').textContent = '$0.00';
             row.querySelector('.team-accelerated-commission-cell').textContent = '$0.00';
             row.querySelector('.total-commission-cell').textContent = '$0.00';
+            row.querySelector('.period-payout-cell').textContent = '';
             return;
         }
         
@@ -1543,6 +1620,57 @@ function calculateDealCommissions() {
         // Calculate total commission (use actual commissions which may include overrides)
         const totalCommission = individualCommission + actualTeamCommission;
         row.querySelector('.total-commission-cell').textContent = formatCurrency(totalCommission);
+    });
+    
+    // Period payout: total of all commission (Commission column) for deals in that period, shown only on last row of period
+    const periodTotals = computePeriodTotalsFromRows(rows);
+    const lastRowForPeriod = {};
+    rows.forEach((row) => {
+        const indexAttr = row.querySelector('.deal-name-input')?.dataset.index;
+        if (indexAttr === undefined) return;
+        const index = parseInt(indexAttr);
+        if (index >= deals.length) return;
+        const deal = deals[index];
+        if (!deal.closeDate || deal.acv <= 0) {
+            row.querySelector('.period-payout-cell').textContent = '';
+            return;
+        }
+        const period = getPeriodForDate(new Date(deal.closeDate));
+        if (period) {
+            const periodKey = period.start.getTime();
+            lastRowForPeriod[periodKey] = row;
+        }
+    });
+    rows.forEach((row) => {
+        const periodPayoutCell = row.querySelector('.period-payout-cell');
+        const indexAttr = row.querySelector('.deal-name-input')?.dataset.index;
+        if (indexAttr === undefined) {
+            periodPayoutCell.textContent = '';
+            return;
+        }
+        const index = parseInt(indexAttr);
+        if (index >= deals.length) {
+            periodPayoutCell.textContent = '';
+            return;
+        }
+        const deal = deals[index];
+        if (!deal.closeDate || deal.acv <= 0) {
+            periodPayoutCell.textContent = '';
+            return;
+        }
+        const period = getPeriodForDate(new Date(deal.closeDate));
+        if (!period) {
+            periodPayoutCell.textContent = '';
+            return;
+        }
+        const periodKey = period.start.getTime();
+        // Show period total only on the last row of this period
+        if (lastRowForPeriod[periodKey] === row) {
+            const total = periodTotals[periodKey] ?? 0;
+            periodPayoutCell.textContent = formatCurrency(total);
+        } else {
+            periodPayoutCell.textContent = '';
+        }
     });
     
     // Add click listeners to payout rates
