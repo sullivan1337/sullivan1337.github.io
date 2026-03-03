@@ -942,7 +942,7 @@ function setupAutoCalculate(oteId, quotaId, payoutRateId) {
         // Only calculate if both OTE and Quota are provided
         if (ote > 0 && quota > 0) {
             const calculatedRate = (ote / quota) * 100;
-            payoutRateInput.value = Math.round(calculatedRate * 100) / 100; // Round to 2 decimals
+            payoutRateInput.value = Math.round(calculatedRate * 1000) / 1000; // Round to 3 decimals
             calculate();
         }
     };
@@ -1555,7 +1555,7 @@ function calculateDealCommissions() {
             
             // Calculate individual payout rate
             const individualRate = deal.acv > 0 ? (individualCommission / deal.acv) * 100 : 0;
-            const individualRateText = !isNaN(individualRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="individual" style="cursor: pointer; text-decoration: underline;">(${individualRate.toFixed(2)}%)</span>` : '';
+            const individualRateText = !isNaN(individualRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="individual" style="cursor: pointer; text-decoration: underline;">(${individualRate.toFixed(3)}%)</span>` : '';
             
             const indCell = row.querySelector('.individual-accelerated-commission-cell');
             if (individualAccelerator > 0) {
@@ -1608,7 +1608,7 @@ function calculateDealCommissions() {
         
         // Calculate team payout rate
         const teamRate = deal.acv > 0 ? (actualTeamCommission / deal.acv) * 100 : 0;
-        const teamRateText = !isNaN(teamRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="team" style="cursor: pointer; text-decoration: underline;">(${teamRate.toFixed(2)}%)</span>` : '';
+        const teamRateText = !isNaN(teamRate) ? `<span class="payout-rate clickable-rate" data-deal-index="${index}" data-type="team" style="cursor: pointer; text-decoration: underline;">(${teamRate.toFixed(3)}%)</span>` : '';
         
         const teamCell = row.querySelector('.team-accelerated-commission-cell');
         if (teamAccelerator > 0) {
