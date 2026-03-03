@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browser IDE</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="brand-mark"><span>IDE</span></div>
+        <div class="brand-text">
+          <div class="brand-name">Browser IDE</div>
+          <div class="brand-subtitle">Ephemeral workspace · No backend</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="pill">
+          <span class="pill-dot"></span>
+          <span>Session only · Nothing saved</span>
+        </div>
+        <button class="icon-button" id="download-workspace-btn" title="Download workspace">
+          ⬇
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="ide-shell" id="ide-shell">
+        <!-- File explorer -->
+        <aside class="panel" id="explorer-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-indicator"></span>
+              <span>Workspace</span>
+            </div>
+            <div class="file-actions">
+              <button
+                class="icon-button danger"
+                id="reset-workspace-btn"
+                title="Reset workspace"
+              >
+                ⟳
+              </button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="file-header-row">
+              <span class="file-header-label">FILES</span>
+              <span class="muted" id="file-count-label"></span>
+            </div>
+            <ul class="file-list" id="file-list"></ul>
+          </div>
+        </aside>
+
+        <!-- Editor -->
+        <section class="panel editor-panel" id="editor-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-indicator"></span>
+              <span>Editor</span>
+            </div>
+            <span class="muted" id="editor-status">Idle</span>
+          </div>
+          <div class="panel-body">
+            <div class="editor-controls">
+              <div class="editor-controls-left">
+                <div class="pill-soft">
+                  <span class="pill-soft-dot"></span>
+                  <span id="cursor-position">Ln 1, Col 1</span>
+                </div>
+                <span class="muted" id="file-language-label"></span>
+              </div>
+              <div class="editor-controls-right">
+                <label class="toggle" id="auto-run-toggle" data-state="on">
+                  <span class="toggle-switch">
+                    <span class="toggle-knob"></span>
+                  </span>
+                  <span>Auto run</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="editor-wrapper">
+              <div class="editor-gutter" id="editor-gutter"></div>
+              <textarea
+                class="editor-textarea"
+                id="editor"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                autocorrect="off"
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Preview -->
+        <section class="panel" id="preview-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-title-indicator"></span>
+              <span>Preview</span>
+            </div>
+            <div class="preview-header-controls">
+              <button
+                class="icon-button"
+                id="toggle-preview-btn"
+                title="Collapse or expand preview"
+              >
+                ⇤
+              </button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="preview-wrapper">
+              <div class="preview-toolbar">
+                <div class="preview-pills">
+                  <div class="preview-pill">
+                    <span class="preview-pill-dot"></span>
+                    <span id="preview-size-label">Live frame</span>
+                  </div>
+                  <div class="preview-pill">
+                    <span class="preview-pill-dot"></span>
+                    <span class="muted">Console below</span>
+                  </div>
+                </div>
+                <span class="muted" id="preview-time-label"></span>
+              </div>
+              <iframe
+                id="preview-frame"
+                class="preview-viewport"
+                title="Preview"
+              ></iframe>
+              <div class="preview-console" id="preview-console"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <span>All code lives in this tab only. Closing or refreshing will reset.</span>
+    </footer>
+
+    <div class="toast-container" id="toast-container"></div>
+    <div class="context-menu" id="context-menu"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+
