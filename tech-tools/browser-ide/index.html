@@ -6,8 +6,9 @@
     <title>Browser IDE</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/min/vs/loader.js"></script>
   </head>
-  <body>
+  <body class="preview-collapsed">
     <header>
       <div class="brand">
         <div class="brand-mark"><span>IDE</span></div>
@@ -84,15 +85,8 @@
             </div>
 
             <div class="editor-wrapper">
-              <div class="editor-gutter" id="editor-gutter"></div>
-              <textarea
-                class="editor-textarea"
-                id="editor"
-                spellcheck="false"
-                autocapitalize="off"
-                autocomplete="off"
-                autocorrect="off"
-              ></textarea>
+              <div class="editor-gutter-spacer"></div>
+              <div class="editor-container" id="editor-container"></div>
             </div>
           </div>
         </section>

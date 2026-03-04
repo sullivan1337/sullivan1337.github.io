@@ -3,6 +3,9 @@
     html: { icon: "H", label: "HTML", lang: "HTML" },
     css: { icon: "C", label: "CSS", lang: "CSS" },
     js: { icon: "J", label: "JS", lang: "JavaScript" },
+    json: { icon: "J", label: "JSON", lang: "JSON" },
+    graphql: { icon: "G", label: "GraphQL", lang: "GraphQL" },
+    python: { icon: "P", label: "Python", lang: "Python" },
     txt: { icon: "T", label: "Text", lang: "Plain text" },
   };
 
@@ -81,6 +84,21 @@ if (button) {
   });
 }`,
     },
+    {
+      id: "example.json",
+      name: "example.json",
+      type: "json",
+      content: `{
+  "name": "Sample config",
+  "enabled": true,
+  "threshold": 0.85,
+  "items": [
+    { "id": 1, "label": "Alpha" },
+    { "id": 2, "label": "Beta" }
+  ]
+}
+`,
+    },
   ];
 
   let files = [];
@@ -96,8 +114,7 @@ if (button) {
 
   const fileListEl = $("file-list");
   const fileCountLabelEl = $("file-count-label");
-  const editorEl = $("editor");
-  const editorGutterEl = $("editor-gutter");
+  const editorContainerEl = $("editor-container");
   const cursorPositionEl = $("cursor-position");
   const fileLanguageLabelEl = $("file-language-label");
   const editorStatusEl = $("editor-status");
@@ -112,8 +129,20 @@ if (button) {
   const toastContainerEl = $("toast-container");
   const contextMenuEl = $("context-menu");
 
+  const fileIconColors = {
+    folder: "#facc15",
+    html: "#f97316",
+    css: "#38bdf8",
+    js: "#eab308",
+    json: "#22c55e",
+    graphql: "#e879f9",
+    python: "#60a5fa",
+    default: "#9ca3af",
+  };
+
   let contextMenuNode = null;
   let dragNode = null;
+  let monacoEditor = null;
 
   function init() {
     files = defaultFiles.map((f) => ({
@@ -132,11 +161,72 @@ if (button) {
     autoRunToggleEl.setAttribute("data-state", "on");
     renderAll();
     attachEvents();
+    initMonaco();
     runPreview();
-    togglePreviewBtnEl.textContent = "→";
+    togglePreviewBtnEl.textContent = document.body.classList.contains(
+      "preview-collapsed"
+    )
+      ? "←"
+      : "→";
 
     // expose file list for download helper
     window.__browserIdeGetFiles = () => files.slice();
+  }
+
+  function getMonacoLanguageForFile(file) {
+    if (!file) return "plaintext";
+    const name = (file.name || "").toLowerCase();
+    if (name.endsWith(".html") || name.endsWith(".htm")) return "html";
+    if (name.endsWith(".css")) return "css";
+    if (name.endsWith(".js")) return "javascript";
+    if (name.endsWith(".json")) return "json";
+    if (name.endsWith(".py")) return "python";
+    if (name.endsWith(".graphql") || name.endsWith(".gql")) return "javascript";
+    return "plaintext";
+  }
+
+  function initMonaco() {
+    if (!window.require || !editorContainerEl) return;
+
+    window.require.config({
+      paths: {
+        vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.48.0/min/vs",
+      },
+    });
+
+    window.require(["vs/editor/editor.main"], () => {
+      const file = getActiveFile();
+      monacoEditor = monaco.editor.create(editorContainerEl, {
+        value: file ? file.content : "",
+        language: getMonacoLanguageForFile(file),
+        automaticLayout: true,
+        theme: "vs-dark",
+        minimap: { enabled: false },
+        fontSize: 13,
+        tabSize: 2,
+      });
+
+      const model = monacoEditor.getModel();
+      if (model) {
+        model.onDidChangeContent(() => {
+          const current = getActiveFile();
+          if (!current) return;
+          current.content = monacoEditor.getValue();
+          current.dirty = true;
+          updateEditorStatus("Unsaved changes");
+          renderFileList();
+          if (autoRun) {
+            debounceRunPreview();
+          }
+        });
+      }
+
+      monacoEditor.onDidChangeCursorPosition((e) => {
+        const pos = e.position;
+        cursorPositionEl.textContent =
+          "Ln " + pos.lineNumber + ", Col " + pos.column;
+      });
+    });
   }
 
   function fileToNode(file) {
@@ -149,34 +239,41 @@ if (button) {
     };
   }
 
+  function createFileIcon(kind) {
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 16 16");
+    svg.classList.add("file-icon");
+
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("fill", "currentColor");
+
+    if (kind === "folder") {
+      svg.classList.add("file-icon-folder");
+      path.setAttribute(
+        "d",
+        "M2 4a1 1 0 0 1 1-1h3l1.2 1.6A1 1 0 0 0 8.2 5H13a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4z"
+      );
+    } else {
+      const key = fileIconColors[kind] ? kind : "default";
+      svg.classList.add(
+        key === "default" ? "file-icon-default" : "file-icon-" + key
+      );
+      path.setAttribute(
+        "d",
+        "M4 1.5h5l3 3V14a0.5 0.5 0 0 1-0.5 0.5h-7A0.5 0.5 0 0 1 4 14V1.5zm5 0V4h2.5"
+      );
+    }
+
+    const color = fileIconColors[kind] || fileIconColors.default;
+    svg.style.color = color;
+    svg.appendChild(path);
+    return svg;
+  }
+
   function attachEvents() {
-    editorEl.addEventListener("input", () => {
-      const file = getActiveFile();
-      if (!file) return;
-      file.content = editorEl.value;
-      file.dirty = true;
-      updateEditorStatus("Unsaved changes");
-      renderFileList();
-      updateLineNumbers();
-      if (autoRun) {
-        debounceRunPreview();
-      }
-    });
-
-    editorEl.addEventListener("keyup", updateCursorPositionFromSelection);
-    editorEl.addEventListener("click", updateCursorPositionFromSelection);
-    editorEl.addEventListener("keydown", (e) => {
-      if (e.key === "Tab") {
-        e.preventDefault();
-        const start = editorEl.selectionStart;
-        const end = editorEl.selectionEnd;
-        const value = editorEl.value;
-        editorEl.value =
-          value.substring(0, start) + "  " + value.substring(end);
-        editorEl.selectionStart = editorEl.selectionEnd = start + 2;
-        editorEl.dispatchEvent(new Event("input"));
-      }
-
+    // Ctrl/Cmd+Enter to run preview
+    document.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
         runPreview();
@@ -237,8 +334,6 @@ if (button) {
   function renderAll() {
     renderFileList();
     renderEditor();
-    updateLineNumbers();
-    updateCursorPositionFromSelection();
     updateFileMeta();
     updatePreviewSizeLabel();
   }
@@ -265,7 +360,7 @@ if (button) {
 
         const badge = document.createElement("div");
         badge.className = "file-badge";
-        badge.textContent = "F";
+        badge.appendChild(createFileIcon("folder"));
 
         const name = document.createElement("span");
         name.className = "file-name";
@@ -306,8 +401,8 @@ if (button) {
 
         const badge = document.createElement("div");
         badge.className = "file-badge";
-        const ft = fileTypes[file.type] || fileTypes.txt;
-        badge.textContent = ft.icon;
+        const iconKind = file.type && fileIconColors[file.type] ? file.type : "default";
+        badge.appendChild(createFileIcon(iconKind));
 
         const name = document.createElement("span");
         name.className = "file-name";
@@ -578,28 +673,14 @@ if (button) {
 
   function renderEditor() {
     const file = getActiveFile();
-    editorEl.value = file ? file.content : "";
-  }
-
-  function updateLineNumbers() {
-    const lines = editorEl.value.split("\n").length || 1;
-    const fragment = document.createDocumentFragment();
-    for (let i = 1; i <= lines; i++) {
-      const div = document.createElement("div");
-      div.className = "editor-gutter-line";
-      div.textContent = i;
-      fragment.appendChild(div);
+    if (!monacoEditor) return;
+    const model = monacoEditor.getModel();
+    if (!model) return;
+    const value = file ? file.content : "";
+    if (model.getValue() !== value) {
+      model.setValue(value);
     }
-    editorGutterEl.innerHTML = "";
-    editorGutterEl.appendChild(fragment);
-  }
-
-  function updateCursorPositionFromSelection() {
-    const text = editorEl.value.substring(0, editorEl.selectionStart);
-    const lines = text.split("\n");
-    const line = lines.length;
-    const col = lines[lines.length - 1].length + 1;
-    cursorPositionEl.textContent = "Ln " + line + ", Col " + col;
+    monaco.editor.setModelLanguage(model, getMonacoLanguageForFile(file));
   }
 
   function updateFileMeta() {
