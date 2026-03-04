@@ -7,6 +7,7 @@
   let sortCol = -1;
   let sortDir = 1;
   let jsonFormatCols = [];
+  let selectedRows = [];
 
   const $ = (id) => document.getElementById(id);
   const fileInput = $("file-input");
@@ -17,6 +18,7 @@
   const statusLabel = $("status-label");
   const addRowBtn = $("add-row-btn");
   const addColBtn = $("add-col-btn");
+  const compareRowsBtn = $("compare-rows-btn");
   const headerCheckbox = $("header-row-checkbox");
   const wordWrapCheckbox = $("word-wrap-checkbox");
   const jsonDropdownBtn = $("json-dropdown-btn");
@@ -38,6 +40,10 @@
   const contextMenu = $("context-menu");
   const searchInput = $("search-input");
   const searchClear = $("search-clear");
+  const compareModal = $("compare-modal");
+  const compareTable = $("compare-table");
+  const compareModalBackdrop = $("compare-modal-backdrop");
+  const compareModalClose = $("compare-modal-close");
 
   function parseCSV(text) {
     const result = [];
@@ -113,6 +119,7 @@
     hasHeader = headerCheckbox.checked;
     selectedRow = -1;
     selectedCol = -1;
+    selectedRows = [];
     const numCols = rows[0]?.length || 0;
     if (colWidths.length !== numCols) {
       colWidths = Array(numCols).fill(null);
@@ -235,7 +242,7 @@
     const bodyColgroup = $("csv-body-colgroup");
     const buildColgroup = (cg) => {
       if (!cg) return;
-      cg.innerHTML = "<col class=\"col-index\" style=\"width:3rem\">";
+      cg.innerHTML = "<col class=\"col-index\" style=\"width:3.5rem\">";
       for (let c = 0; c < numCols; c++) {
         const col = document.createElement("col");
         const w = colWidths[c];
@@ -476,6 +483,23 @@
     } else {
       const inner = document.createElement("div");
       inner.className = "row-index-inner";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.className = "row-select-checkbox";
+      cb.dataset.dataIdx = String(dataIdx);
+      cb.checked = selectedRows.includes(dataIdx);
+      cb.title = "Select row to compare (max 4)";
+      cb.addEventListener("click", (e) => e.stopPropagation());
+      cb.addEventListener("change", () => {
+        if (cb.checked) {
+          if (selectedRows.length >= 4) selectedRows = selectedRows.slice(1);
+          selectedRows.push(dataIdx);
+        } else {
+          selectedRows = selectedRows.filter((d) => d !== dataIdx);
+        }
+        updateCompareButton();
+        syncRowCheckboxes();
+      });
       const num = document.createElement("span");
       num.className = "row-index-num";
       num.textContent = hasHeader ? index + 2 : index + 1;
@@ -487,6 +511,7 @@
         e.stopPropagation();
         deleteRowByDataIdx(dataIdx);
       });
+      inner.appendChild(cb);
       inner.appendChild(num);
       inner.appendChild(delBtn);
       cell.appendChild(inner);
@@ -508,6 +533,9 @@
   function deleteRowByDataIdx(dataIdx) {
     if (dataIdx < 0 || dataIdx >= rows.length) return;
     rows.splice(dataIdx, 1);
+    selectedRows = selectedRows
+      .filter((d) => d !== dataIdx)
+      .map((d) => (d > dataIdx ? d - 1 : d));
     render();
   }
 
@@ -667,6 +695,149 @@
     downloadBtn.disabled = !hasData;
     addRowBtn.disabled = !hasData;
     addColBtn.disabled = !hasData;
+    updateCompareButton();
+  }
+
+  function updateCompareButton() {
+    if (compareRowsBtn) {
+      compareRowsBtn.disabled = selectedRows.length < 2 || selectedRows.length > 4;
+    }
+  }
+
+  function syncRowCheckboxes() {
+    csvTbody.querySelectorAll(".row-select-checkbox").forEach((cb) => {
+      const di = parseInt(cb.dataset.dataIdx, 10);
+      cb.checked = selectedRows.includes(di);
+    });
+  }
+
+  function showCompareModal() {
+    const n = selectedRows.length;
+    if (n < 2 || n > 4 || !rows.length) return;
+    const indices = selectedRows.slice(0, n);
+    const rowData = indices.map((idx) => rows[idx]).filter(Boolean);
+    if (rowData.length !== n) return;
+    const headerRow = hasHeader ? rows[0] : null;
+    const numCols = Math.max(...rowData.map((r) => r.length));
+    compareTable.innerHTML = "";
+    const numHeaderCols = 1 + n;
+    const colgroup = document.createElement("colgroup");
+    const pct = 100 / numHeaderCols;
+    for (let i = 0; i < numHeaderCols; i++) {
+      const col = document.createElement("col");
+      col.style.width = pct + "%";
+      col.dataset.col = String(i);
+      colgroup.appendChild(col);
+    }
+    compareTable.appendChild(colgroup);
+    const thead = document.createElement("thead");
+    const headerTr = document.createElement("tr");
+    const th0 = document.createElement("th");
+    th0.className = "compare-col-name";
+    th0.textContent = "Column";
+    th0.dataset.col = "0";
+    const resize0 = document.createElement("div");
+    resize0.className = "compare-resize-handle";
+    resize0.addEventListener("mousedown", (e) => startCompareResize(e, 0));
+    th0.appendChild(resize0);
+    headerTr.appendChild(th0);
+    indices.forEach((idx, i) => {
+      const th = document.createElement("th");
+      th.className = "compare-val";
+      th.textContent = "Row " + (idx + 1);
+      th.dataset.col = String(i + 1);
+      const resize = document.createElement("div");
+      resize.className = "compare-resize-handle";
+      resize.addEventListener("mousedown", (e) => startCompareResize(e, i + 1));
+      th.appendChild(resize);
+      headerTr.appendChild(th);
+    });
+    thead.appendChild(headerTr);
+    compareTable.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    for (let c = 0; c < numCols; c++) {
+      const tr = document.createElement("tr");
+      const colName = headerRow ? (headerRow[c] || `Col ${c + 1}`) : `Col ${c + 1}`;
+      const vals = rowData.map((row) => String(row[c] ?? ""));
+      const allSame = vals.every((v) => v === vals[0]);
+      const isJsonCol = jsonFormatCols.includes(c);
+      const td0 = document.createElement("td");
+      td0.className = "compare-col-name";
+      td0.textContent = colName || "—";
+      tr.appendChild(td0);
+      vals.forEach((val) => {
+        const td = document.createElement("td");
+        td.className = "compare-val" + (!allSame ? " compare-diff" : "") + (isJsonCol ? " compare-json" : "");
+        if (isJsonCol) {
+          const displayVal = prettyJson(val);
+          const pre = document.createElement("pre");
+          pre.className = "compare-json-highlight";
+          pre.innerHTML = displayVal ? highlightJson(displayVal) : "";
+          if (!pre.textContent) pre.textContent = "—";
+          td.appendChild(pre);
+        } else {
+          td.textContent = val || "—";
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+    compareTable.appendChild(tbody);
+    if (compareModal) compareModal.classList.add("open");
+  }
+
+  function startCompareResize(e, colIndex) {
+    e.preventDefault();
+    const th = e.target.closest("th");
+    if (!th || !compareTable) return;
+    const initX = e.clientX;
+    const cols = compareTable.querySelectorAll("colgroup col");
+    const thead = compareTable.querySelector("thead tr");
+    const numCols = cols.length;
+    const headerCells = thead ? Array.from(thead.children) : [];
+    const startWidths = headerCells.map((c) => c.offsetWidth);
+    let rafId = 0;
+    let lastX = initX;
+
+    function applyResize(x) {
+      const dw = x - initX;
+      if (colIndex >= startWidths.length) return;
+      const nextIdx = colIndex + 1;
+      const prevIdx = colIndex - 1;
+      const newCurr = Math.max(50, (startWidths[colIndex] || 100) + dw);
+      if (nextIdx < numCols) {
+        const newNext = Math.max(50, (startWidths[nextIdx] || 100) - dw);
+        cols[colIndex].style.width = newCurr + "px";
+        cols[nextIdx].style.width = newNext + "px";
+      } else if (prevIdx >= 0) {
+        const newPrev = Math.max(50, (startWidths[prevIdx] || 100) - dw);
+        cols[colIndex].style.width = newCurr + "px";
+        cols[prevIdx].style.width = newPrev + "px";
+      } else {
+        cols[colIndex].style.width = newCurr + "px";
+      }
+      rafId = 0;
+    }
+
+    function onMove(ev) {
+      lastX = ev.clientX;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => applyResize(lastX));
+    }
+
+    function onUp() {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
+      if (rafId) cancelAnimationFrame(rafId);
+      applyResize(lastX);
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }
+
+  function hideCompareModal() {
+    if (compareModal) compareModal.classList.remove("open");
   }
 
   function showContextMenu(x, y, type, ...args) {
@@ -762,6 +933,7 @@
     rows = [];
     selectedRow = -1;
     selectedCol = -1;
+    selectedRows = [];
     colWidths = [];
     if (wordWrapCheckbox) wordWrapCheckbox.checked = true;
     sortCol = -1;
@@ -832,6 +1004,16 @@
   addRowBtn.addEventListener("click", addRow);
   addColBtn.addEventListener("click", addColumn);
 
+  if (compareRowsBtn) {
+    compareRowsBtn.addEventListener("click", showCompareModal);
+  }
+  if (compareModalBackdrop) {
+    compareModalBackdrop.addEventListener("click", hideCompareModal);
+  }
+  if (compareModalClose) {
+    compareModalClose.addEventListener("click", hideCompareModal);
+  }
+
   headerCheckbox.addEventListener("change", () => {
     hasHeader = headerCheckbox.checked;
     if (rows.length) render();
@@ -866,6 +1048,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       hideContextMenu();
+      hideCompareModal();
     }
   });
 

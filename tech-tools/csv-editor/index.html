@@ -29,6 +29,7 @@
       <div class="toolbar-left">
         <button class="btn btn-sm" id="add-row-btn" disabled>+ Row</button>
         <button class="btn btn-sm" id="add-col-btn" disabled>+ Column</button>
+        <button class="btn btn-sm" id="compare-rows-btn" disabled title="Select 2–4 rows to compare">Compare</button>
       </div>
       <div class="toolbar-center">
         <span class="toolbar-label">Search:</span>
@@ -92,6 +93,19 @@
     </main>
 
     <div class="context-menu" id="context-menu"></div>
+
+    <div class="modal" id="compare-modal">
+      <div class="modal-backdrop" id="compare-modal-backdrop"></div>
+      <div class="modal-content compare-modal-content">
+        <h3>Compare Rows</h3>
+        <div class="compare-table-wrap">
+          <table class="compare-table" id="compare-table"></table>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-outline" id="compare-modal-close">Close</button>
+        </div>
+      </div>
+    </div>
 
     <script src="app.js"></script>
   </body>
