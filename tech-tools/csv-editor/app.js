@@ -4,31 +4,38 @@
   let selectedCol = -1;
   let hasHeader = true;
   let colWidths = [];
-  let colWrap = [];
   let sortCol = -1;
   let sortDir = 1;
-  let jsonFormatCol = -1;
+  let jsonFormatCols = [];
 
   const $ = (id) => document.getElementById(id);
   const fileInput = $("file-input");
   const uploadBtn = $("upload-btn");
   const resetBtn = $("reset-btn");
   const downloadBtn = $("download-btn");
-  const brandLogo = $("brand-logo");
+  const brandMark = $("brand-mark");
   const statusLabel = $("status-label");
   const addRowBtn = $("add-row-btn");
   const addColBtn = $("add-col-btn");
   const headerCheckbox = $("header-row-checkbox");
-  const jsonFormatSelect = $("json-format-select");
+  const wordWrapCheckbox = $("word-wrap-checkbox");
+  const jsonDropdownBtn = $("json-dropdown-btn");
+  const jsonDropdownPanel = $("json-dropdown-panel");
   const gridWrapper = $("grid-wrapper");
   const emptyState = $("empty-state");
   const gridContainer = $("grid-container");
+  const gridBody = $("grid-body");
+  const gridTableWrap = $("grid-table-wrap");
+  const gridHScroll = $("grid-h-scroll");
+  const gridHSpacer = $("grid-h-spacer");
   const csvThead = $("csv-thead");
   const csvTbody = $("csv-tbody");
   const pasteInlineTextarea = $("paste-inline-textarea");
   const pasteApplyInlineBtn = $("paste-apply-inline-btn");
   const uploadEmptyBtn = $("upload-empty-btn");
   const contextMenu = $("context-menu");
+  const searchInput = $("search-input");
+  const searchClear = $("search-clear");
 
   function parseCSV(text) {
     const result = [];
@@ -107,24 +114,52 @@
     const numCols = rows[0]?.length || 0;
     if (colWidths.length !== numCols) {
       colWidths = Array(numCols).fill(null);
-      colWrap = Array(numCols).fill(false);
     }
+    jsonFormatCols = jsonFormatCols.filter((c) => c < numCols);
     updateJsonFormatSelect();
     render();
     updateUI();
   }
 
   function updateJsonFormatSelect() {
-    jsonFormatSelect.innerHTML = '<option value="-1">None</option>';
+    jsonDropdownPanel.innerHTML = "";
     const numCols = rows[0]?.length || 0;
+    if (numCols === 0) {
+      jsonDropdownPanel.textContent = "No columns";
+      return;
+    }
     const headerRow = hasHeader ? rows[0] : null;
     for (let c = 0; c < numCols; c++) {
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = headerRow ? (headerRow[c] || `Col ${c + 1}`) : `Col ${c + 1}`;
-      jsonFormatSelect.appendChild(opt);
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = c;
+      cb.checked = jsonFormatCols.includes(c);
+      cb.addEventListener("change", () => {
+        if (cb.checked) jsonFormatCols.push(c);
+        else jsonFormatCols = jsonFormatCols.filter((i) => i !== c);
+        jsonFormatCols.sort((a, b) => a - b);
+        updateJsonDropdownButton();
+        if (rows.length) render();
+      });
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(headerRow ? (headerRow[c] || `Col ${c + 1}`) : `Col ${c + 1}`));
+      jsonDropdownPanel.appendChild(label);
     }
-    jsonFormatSelect.value = jsonFormatCol >= 0 ? String(jsonFormatCol) : "-1";
+    updateJsonDropdownButton();
+  }
+
+  function updateJsonDropdownButton() {
+    const n = jsonFormatCols.length;
+    if (n === 0) {
+      jsonDropdownBtn.textContent = "None ▼";
+    } else if (n === 1 && rows[0]) {
+      const headerRow = hasHeader ? rows[0] : null;
+      const name = headerRow ? (headerRow[jsonFormatCols[0]] || `Col ${jsonFormatCols[0] + 1}`) : `Col ${jsonFormatCols[0] + 1}`;
+      jsonDropdownBtn.textContent = name + " ▼";
+    } else {
+      jsonDropdownBtn.textContent = n + " columns ▼";
+    }
   }
 
   function prettyJson(val) {
@@ -179,11 +214,10 @@
     const table = document.getElementById("csv-table");
     if (!table.querySelector("colgroup")) {
       const cg = document.createElement("colgroup");
-      cg.innerHTML = "<col class=\"col-index\"><col>";
       table.insertBefore(cg, csvThead);
     }
     const colgroup = table.querySelector("colgroup");
-    colgroup.innerHTML = "<col class=\"col-index\" style=\"width:3rem\">";
+    colgroup.innerHTML = "<col class=\"col-index\" style=\"width:2.25rem\">";
     for (let c = 0; c < numCols; c++) {
       const col = document.createElement("col");
       const w = colWidths[c];
@@ -229,17 +263,6 @@
         colHeader.appendChild(span);
       }
 
-      const wrapBtn = document.createElement("button");
-      wrapBtn.className = "col-header-wrap-toggle" + (colWrap[c] ? " active" : "");
-      wrapBtn.title = "Toggle word wrap";
-      wrapBtn.textContent = "↲";
-      wrapBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        colWrap[c] = !colWrap[c];
-        render();
-      });
-      colHeader.appendChild(wrapBtn);
-
       const delBtn = document.createElement("button");
       delBtn.className = "col-delete";
       delBtn.dataset.col = c;
@@ -284,14 +307,17 @@
         const td = document.createElement("td");
         td.dataset.row = rIdx;
         td.dataset.col = cIdx;
-        const isWrap = colWrap[cIdx] || jsonFormatCol === cIdx;
+        const isWrap = wordWrapCheckbox.checked || jsonFormatCols.includes(cIdx);
         if (isWrap) td.classList.add("cell-wrap");
 
-        const displayVal = jsonFormatCol === cIdx ? prettyJson(cell) : cell;
+        const displayVal = jsonFormatCols.includes(cIdx) ? prettyJson(cell) : cell;
         const input = document.createElement("textarea");
         input.className = "cell-input";
-        const lineCount = Math.max(1, (String(displayVal).match(/\n/g) || []).length + 1);
-        input.rows = isWrap ? Math.min(20, lineCount) : 1;
+        const str = String(displayVal || "");
+        const newlineLines = (str.match(/\n/g) || []).length + 1;
+        const estimatedWrapLines = Math.ceil(str.length / 35);
+        const lineCount = isWrap ? Math.max(newlineLines, estimatedWrapLines, 1) : 1;
+        input.rows = isWrap ? Math.min(30, lineCount) : 1;
         input.value = displayVal;
         input.dataset.dataIdx = dataIdx;
         input.dataset.col = cIdx;
@@ -299,8 +325,12 @@
 
         function syncRows() {
           if (td.classList.contains("cell-wrap")) {
-            const lines = (input.value.match(/\n/g) || []).length + 1;
-            input.rows = Math.min(20, Math.max(1, lines));
+            const str = input.value;
+            const newlineLines = (str.match(/\n/g) || []).length + 1;
+            const estimatedWrapLines = Math.ceil(str.length / 35);
+            const lines = Math.max(newlineLines, estimatedWrapLines, 1);
+            input.rows = Math.min(30, lines);
+            normalizeRowHeights(tr);
           }
         }
         input.addEventListener("input", syncRows);
@@ -308,7 +338,7 @@
           const dd = parseInt(input.dataset.dataIdx, 10);
           const cc = parseInt(input.dataset.col, 10);
           let val = input.value;
-          if (jsonFormatCol === cc) val = minifyJson(val);
+          if (jsonFormatCols.includes(cc)) val = minifyJson(val);
           rows[dd][cc] = val;
           updateUI();
         });
@@ -348,10 +378,62 @@
       csvTbody.appendChild(tr);
     });
 
+    requestAnimationFrame(() => {
+      csvTbody.querySelectorAll("tr").forEach((tr) => normalizeRowHeights(tr));
+    });
+    syncScrollAndSpacer();
+    applySearchHighlights();
+    debugStickyHeader();
+
     const totalRows = rows.length;
     const totalCols = numCols;
     statusLabel.textContent = `${totalRows} rows × ${totalCols} columns`;
     updateUI();
+  }
+
+  function debugStickyHeader() {
+    const th = document.querySelector(".csv-table th");
+    const thead = document.querySelector(".csv-table thead");
+    if (!th || !thead) return;
+    const gt = window.getComputedStyle;
+    const chain = [];
+    let el = th;
+    while (el && el !== document.body) {
+      const s = gt(el);
+      chain.push({
+        tag: el.tagName,
+        id: el.id || null,
+        class: el.className || null,
+        overflow: s.overflow,
+        overflowX: s.overflowX,
+        overflowY: s.overflowY,
+        position: s.position,
+        top: s.top,
+      });
+      el = el.parentElement;
+    }
+    console.log("[CSV Sticky Debug] Ancestor chain from th:", chain);
+    console.log("[CSV Sticky Debug] th computed:", gt(th).position, gt(th).top, "thead:", gt(thead).position);
+    console.log("[CSV Sticky Debug] grid-table-wrap overflow:", gt(gridTableWrap).overflow, "scrollHeight:", gridTableWrap.scrollHeight, "clientHeight:", gridTableWrap.clientHeight);
+  }
+
+  function applySearchHighlights() {
+    const query = (searchInput?.value || "").trim().toLowerCase();
+    csvTbody.querySelectorAll("td:not(.row-index-cell)").forEach((td) => {
+      td.classList.remove("search-hit");
+      if (!query) return;
+      const input = td.querySelector("textarea, input");
+      const cellVal = input ? String(input.value || "").toLowerCase() : "";
+      if (cellVal.includes(query)) td.classList.add("search-hit");
+    });
+    csvThead.querySelectorAll("th").forEach((th) => {
+      th.classList.remove("search-hit");
+      if (!query) return;
+      const input = th.querySelector("input");
+      const span = th.querySelector("span");
+      const cellVal = (input ? input.value : span?.textContent || "").toLowerCase();
+      if (cellVal.includes(query)) th.classList.add("search-hit");
+    });
   }
 
   function createRowIndexCell(index, isHeader = false, dataIdx = -1) {
@@ -417,6 +499,37 @@
     }
     if (row >= dataRows.length) return null;
     return csvTbody.querySelector(`textarea[data-row="${row}"][data-col="${col}"]`);
+  }
+
+  function syncScrollAndSpacer() {
+    if (!gridTableWrap || !gridHScroll || !gridHSpacer) return;
+    const table = document.getElementById("csv-table");
+    const tableWidth = table ? table.scrollWidth : 0;
+    gridHSpacer.style.width = tableWidth + "px";
+    gridTableWrap.onscroll = () => {
+      gridHScroll.scrollLeft = gridTableWrap.scrollLeft;
+    };
+    gridHScroll.onscroll = () => {
+      gridTableWrap.scrollLeft = gridHScroll.scrollLeft;
+    };
+  }
+
+  function normalizeRowHeights(tr) {
+    const wrapCells = tr.querySelectorAll("td.cell-wrap");
+    if (!wrapCells.length) return;
+    let maxRows = 1;
+    wrapCells.forEach((td) => {
+      const ta = td.querySelector("textarea");
+      if (ta) {
+        const lines = (ta.value.match(/\n/g) || []).length + 1;
+        const estWrap = Math.ceil((ta.value || "").length / 35);
+        maxRows = Math.max(maxRows, lines, estWrap);
+      }
+    });
+    const targetRows = Math.min(30, Math.max(1, maxRows));
+    tr.querySelectorAll("td.cell-wrap textarea").forEach((ta) => {
+      ta.rows = targetRows;
+    });
   }
 
   function getPrevCell(row, col) {
@@ -583,10 +696,10 @@
     selectedRow = -1;
     selectedCol = -1;
     colWidths = [];
-    colWrap = [];
+    if (wordWrapCheckbox) wordWrapCheckbox.checked = true;
     sortCol = -1;
     sortDir = 1;
-    jsonFormatCol = -1;
+    jsonFormatCols = [];
     pasteInlineTextarea.value = "";
     updateJsonFormatSelect();
     render();
@@ -617,7 +730,7 @@
   });
 
   resetBtn.addEventListener("click", reset);
-  brandLogo.addEventListener("click", reset);
+  brandMark.addEventListener("click", reset);
 
   pasteApplyInlineBtn.addEventListener("click", () => {
     handlePaste(pasteInlineTextarea.value);
@@ -657,10 +770,30 @@
     if (rows.length) render();
   });
 
-  jsonFormatSelect.addEventListener("change", () => {
-    jsonFormatCol = parseInt(jsonFormatSelect.value, 10);
-    if (jsonFormatCol < 0) jsonFormatCol = -1;
+  wordWrapCheckbox.addEventListener("change", () => {
     if (rows.length) render();
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("input", () => applySearchHighlights());
+    searchInput.addEventListener("change", () => applySearchHighlights());
+  }
+  if (searchClear) {
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      searchInput.focus();
+      applySearchHighlights();
+    });
+  }
+
+  jsonDropdownBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    jsonDropdownPanel.classList.toggle("open");
+  });
+  document.addEventListener("click", (e) => {
+    if (!jsonDropdownBtn.contains(e.target) && !jsonDropdownPanel.contains(e.target)) {
+      jsonDropdownPanel.classList.remove("open");
+    }
   });
 
   document.addEventListener("keydown", (e) => {

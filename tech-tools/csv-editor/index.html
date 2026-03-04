@@ -8,8 +8,8 @@
   </head>
   <body>
     <header>
-      <div class="brand" id="brand-logo" title="Reset to home">
-        <div class="brand-mark"><span>CSV</span></div>
+      <div class="brand">
+        <div class="brand-mark" id="brand-mark" title="Reset to home"><span>CSV</span></div>
         <div class="brand-text">
           <div class="brand-name">CSV Editor</div>
           <div class="brand-subtitle">Upload · Paste · Edit · Download</div>
@@ -18,26 +18,38 @@
       <div class="header-actions">
         <input type="file" id="file-input" accept=".csv,text/csv,text/plain" hidden />
         <button class="btn btn-outline" id="upload-btn">↗ Upload</button>
-        <button class="btn btn-outline" id="reset-btn">Reset</button>
+        <button class="btn btn-outline btn-reset" id="reset-btn">Reset</button>
         <button class="btn btn-primary" id="download-btn" disabled>⬇ Download</button>
         <span class="muted" id="status-label">No data loaded</span>
       </div>
     </header>
 
-    <div class="toolbar">
+    <div class="toolbar" id="toolbar">
       <div class="toolbar-left">
         <button class="btn btn-sm" id="add-row-btn" disabled>+ Row</button>
         <button class="btn btn-sm" id="add-col-btn" disabled>+ Column</button>
       </div>
+      <div class="toolbar-center">
+        <span class="toolbar-label">Search:</span>
+        <div class="search-input-wrap">
+          <input type="text" id="search-input" class="search-input" placeholder="Search..." />
+          <button type="button" class="search-clear" id="search-clear" title="Clear search">×</button>
+        </div>
+      </div>
       <div class="toolbar-right">
+        <label class="checkbox-label">
+          <input type="checkbox" id="word-wrap-checkbox" checked />
+          Word wrap
+        </label>
+        <span class="toolbar-label">Pretty JSON:</span>
+        <div class="json-dropdown">
+          <button class="btn btn-sm json-dropdown-btn" id="json-dropdown-btn">None ▼</button>
+          <div class="json-dropdown-panel" id="json-dropdown-panel"></div>
+        </div>
         <label class="checkbox-label">
           <input type="checkbox" id="header-row-checkbox" checked />
           First row is header
         </label>
-        <span class="toolbar-label">Pretty JSON:</span>
-        <select id="json-format-select">
-          <option value="-1">None</option>
-        </select>
       </div>
     </div>
 
@@ -54,11 +66,16 @@
           </div>
         </div>
         <div class="grid-container" id="grid-container" style="display: none;">
-          <div class="grid-scroll">
-            <table class="csv-table" id="csv-table">
-              <thead id="csv-thead"></thead>
-              <tbody id="csv-tbody"></tbody>
-            </table>
+          <div class="grid-body" id="grid-body">
+            <div class="grid-table-wrap" id="grid-table-wrap">
+              <table class="csv-table" id="csv-table">
+                <thead id="csv-thead"></thead>
+                <tbody id="csv-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="grid-h-scroll" id="grid-h-scroll">
+            <div class="grid-h-spacer" id="grid-h-spacer"></div>
           </div>
         </div>
       </div>

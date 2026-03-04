@@ -8,6 +8,7 @@
   --text-soft: #9ca3af;
   --danger: #f97373;
   --muted: #4b5563;
+  --muted-orange: #c2410c;
   --radius-lg: 12px;
   --radius-md: 8px;
 }
@@ -24,6 +25,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
 
 header {
@@ -40,14 +42,10 @@ header {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  cursor: pointer;
-}
-
-.brand:hover {
-  opacity: 0.9;
 }
 
 .brand-mark {
+  cursor: pointer;
   width: 28px;
   height: 28px;
   border-radius: 8px;
@@ -56,6 +54,10 @@ header {
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.8), 0 0 20px rgba(34, 197, 94, 0.4);
+}
+
+.brand-mark:hover {
+  opacity: 0.9;
 }
 
 .brand-mark span {
@@ -128,6 +130,16 @@ header {
   color: var(--danger);
 }
 
+.btn-reset {
+  border-color: rgba(194, 65, 12, 0.5);
+  color: rgba(194, 65, 12, 0.9);
+}
+
+.btn-reset:hover:not(:disabled) {
+  border-color: var(--muted-orange);
+  color: var(--muted-orange);
+}
+
 .muted {
   font-size: 0.75rem;
   color: var(--muted);
@@ -141,13 +153,72 @@ header {
   gap: 0.5rem;
   border-bottom: 1px solid var(--border-subtle);
   background: rgba(15, 23, 42, 0.5);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
 .toolbar-left,
+.toolbar-center,
 .toolbar-right {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  min-width: 160px;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid rgba(55, 65, 81, 0.9);
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.35rem;
+  padding: 0.1rem 0.35rem;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  display: none;
+}
+
+.search-clear:hover {
+  color: var(--text-soft);
+  opacity: 1;
+}
+
+.search-input-wrap:has(.search-input:not(:placeholder-shown)) .search-clear {
+  display: inline-block;
 }
 
 .checkbox-label {
@@ -243,6 +314,60 @@ main {
   font-size: 0.75rem;
 }
 
+.toolbar select[multiple] {
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.json-dropdown {
+  position: relative;
+}
+
+.json-dropdown-btn {
+  min-width: 140px;
+  text-align: left;
+}
+
+.json-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.25rem;
+  padding: 0.6rem;
+  min-width: 250px;
+  min-height: 120px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.json-dropdown-panel.open {
+  display: block;
+}
+
+.json-dropdown-panel label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+
+.json-dropdown-panel label:hover {
+  color: var(--text);
+}
+
+.json-dropdown-panel input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
 .grid-container {
   height: 100%;
   display: flex;
@@ -250,9 +375,41 @@ main {
   overflow: hidden;
 }
 
-.grid-scroll {
+.grid-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.grid-table-wrap {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+  width: 100%;
+}
+
+.grid-table-wrap::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+.grid-table-wrap {
+  scrollbar-width: none;
+}
+
+.grid-h-scroll {
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 17px;
+  border-top: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+.grid-h-spacer {
+  height: 1px;
+  min-width: 100%;
 }
 
 .csv-table {
@@ -261,6 +418,7 @@ main {
   min-width: 100%;
   table-layout: fixed;
 }
+
 
 .csv-table th,
 .csv-table td {
@@ -290,20 +448,41 @@ main {
 }
 
 .csv-table th {
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(15, 23, 42, 0.98);
   color: var(--text-soft);
   font-weight: 500;
-  position: sticky;
-  top: 0;
-  z-index: 2;
 }
 
 .csv-table td {
   background: rgba(15, 23, 42, 0.6);
+  vertical-align: top;
+  position: relative;
+}
+
+.csv-table td .cell-input {
+  min-height: 1.4em;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.csv-table td:not(.row-index-cell) .cell-input {
+  height: 100%;
+}
+
+.csv-table td.cell-wrap textarea.cell-input {
+  min-height: 2em;
+  box-sizing: border-box;
 }
 
 .csv-table tr:hover td {
   background: rgba(30, 41, 59, 0.7);
+}
+
+.csv-table td.search-hit,
+.csv-table th.search-hit {
+  background: rgba(234, 88, 12, 0.25) !important;
+  box-shadow: inset 0 0 0 1px rgba(234, 88, 12, 0.5);
 }
 
 .csv-table .cell-input {
@@ -328,6 +507,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 0.25rem;
+  margin-right: 14px;
 }
 
 .csv-table .col-header span,
@@ -359,8 +539,8 @@ main {
 }
 
 .csv-table .row-index-cell {
-  width: 3rem;
-  min-width: 3rem;
+  width: 2.25rem;
+  min-width: 2.25rem;
   color: var(--muted);
   font-size: 0.7rem;
   user-select: none;
@@ -369,6 +549,10 @@ main {
   left: 0;
   z-index: 1;
   padding: 0.2rem 0.25rem;
+}
+
+.csv-table thead .row-index-cell {
+  background: rgba(15, 23, 42, 0.98);
 }
 
 .csv-table .row-index-inner {
@@ -402,7 +586,7 @@ main {
   position: absolute;
   top: 0;
   right: 0;
-  width: 10px;
+  width: 18px;
   height: 100%;
   cursor: col-resize;
   display: flex;
@@ -411,10 +595,10 @@ main {
 }
 
 .csv-table .col-resize-handle::before {
-  content: "⋮\A⋮\A⋮";
-  white-space: pre;
-  font-size: 0.5rem;
-  line-height: 1.2;
+  content: "│││";
+  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  font-weight: 500;
   color: var(--muted);
   opacity: 0.7;
 }
