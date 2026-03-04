@@ -26,6 +26,8 @@
   const gridContainer = $("grid-container");
   const gridBody = $("grid-body");
   const gridTableWrap = $("grid-table-wrap");
+  const tableHeaderBar = $("table-header-bar");
+  const tableHeaderWrap = $("table-header-wrap");
   const gridHScroll = $("grid-h-scroll");
   const gridHSpacer = $("grid-h-spacer");
   const csvThead = $("csv-thead");
@@ -182,16 +184,34 @@
     }
   }
 
+  function highlightJson(text) {
+    if (!text || typeof text !== "string") return "";
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const re = /("(?:[^"\\]|\\.)*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)|([{}\[\],:])/g;
+    return escaped.replace(re, (m, str, colon, bool, num, punct) => {
+      if (str) return `<span class="json-${colon ? "key" : "string"}">${str}</span>`;
+      if (bool) return `<span class="json-bool">${bool}</span>`;
+      if (num) return `<span class="json-num">${num}</span>`;
+      if (punct) return `<span class="json-punct">${punct}</span>`;
+      return m;
+    });
+  }
+
   function render() {
     if (!rows.length) {
       emptyState.style.display = "flex";
       gridContainer.style.display = "none";
+      if (tableHeaderBar) tableHeaderBar.style.display = "none";
       statusLabel.textContent = "No data loaded";
       return;
     }
 
     emptyState.style.display = "none";
     gridContainer.style.display = "flex";
+    if (tableHeaderBar) tableHeaderBar.style.display = "block";
 
     const numCols = rows[0].length;
     updateJsonFormatSelect();
@@ -211,19 +231,20 @@
       });
     }
 
-    const table = document.getElementById("csv-table");
-    if (!table.querySelector("colgroup")) {
-      const cg = document.createElement("colgroup");
-      table.insertBefore(cg, csvThead);
-    }
-    const colgroup = table.querySelector("colgroup");
-    colgroup.innerHTML = "<col class=\"col-index\" style=\"width:2.25rem\">";
-    for (let c = 0; c < numCols; c++) {
-      const col = document.createElement("col");
-      const w = colWidths[c];
-      if (w) col.style.width = w + "px";
-      colgroup.appendChild(col);
-    }
+    const headerColgroup = $("csv-header-colgroup");
+    const bodyColgroup = $("csv-body-colgroup");
+    const buildColgroup = (cg) => {
+      if (!cg) return;
+      cg.innerHTML = "<col class=\"col-index\" style=\"width:3rem\">";
+      for (let c = 0; c < numCols; c++) {
+        const col = document.createElement("col");
+        const w = colWidths[c];
+        if (w) col.style.width = w + "px";
+        cg.appendChild(col);
+      }
+    };
+    buildColgroup(headerColgroup);
+    buildColgroup(bodyColgroup);
 
     csvThead.innerHTML = "";
     const headerTr = document.createElement("tr");
@@ -232,6 +253,7 @@
     for (let c = 0; c < numCols; c++) {
       const th = document.createElement("th");
       th.dataset.col = c;
+      if (jsonFormatCols.includes(c)) th.classList.add("col-json");
       th.style.minWidth = "80px";
       if (colWidths[c]) th.style.width = colWidths[c] + "px";
       th.addEventListener("contextmenu", (e) => {
@@ -309,10 +331,11 @@
         td.dataset.col = cIdx;
         const isWrap = wordWrapCheckbox.checked || jsonFormatCols.includes(cIdx);
         if (isWrap) td.classList.add("cell-wrap");
+        if (jsonFormatCols.includes(cIdx)) td.classList.add("col-json");
 
         const displayVal = jsonFormatCols.includes(cIdx) ? prettyJson(cell) : cell;
         const input = document.createElement("textarea");
-        input.className = "cell-input";
+        input.className = "cell-input" + (jsonFormatCols.includes(cIdx) ? " cell-input-json" : "");
         const str = String(displayVal || "");
         const newlineLines = (str.match(/\n/g) || []).length + 1;
         const estimatedWrapLines = Math.ceil(str.length / 35);
@@ -322,6 +345,33 @@
         input.dataset.dataIdx = dataIdx;
         input.dataset.col = cIdx;
         input.dataset.row = rIdx;
+
+        if (jsonFormatCols.includes(cIdx)) {
+          const wrap = document.createElement("div");
+          wrap.className = "json-cell-wrap";
+          const pre = document.createElement("pre");
+          pre.className = "json-highlight";
+          pre.innerHTML = highlightJson(displayVal);
+          wrap.appendChild(pre);
+          wrap.appendChild(input);
+          td.appendChild(wrap);
+          const updateHighlight = () => {
+            pre.innerHTML = highlightJson(input.value);
+            pre.scrollTop = input.scrollTop;
+            pre.scrollLeft = input.scrollLeft;
+          };
+          const syncScroll = () => {
+            pre.scrollTop = input.scrollTop;
+            pre.scrollLeft = input.scrollLeft;
+          };
+        input.addEventListener("input", () => {
+          updateHighlight();
+          syncRows();
+        });
+        input.addEventListener("scroll", syncScroll);
+        } else {
+          td.appendChild(input);
+        }
 
         function syncRows() {
           if (td.classList.contains("cell-wrap")) {
@@ -333,7 +383,9 @@
             normalizeRowHeights(tr);
           }
         }
-        input.addEventListener("input", syncRows);
+        if (!jsonFormatCols.includes(cIdx)) {
+          input.addEventListener("input", syncRows);
+        }
         input.addEventListener("change", () => {
           const dd = parseInt(input.dataset.dataIdx, 10);
           const cc = parseInt(input.dataset.col, 10);
@@ -364,7 +416,7 @@
           showContextMenu(e.clientX, e.clientY, "cell", rIdx, cIdx, dataIdx);
         });
 
-        td.appendChild(input);
+        if (!jsonFormatCols.includes(cIdx)) td.appendChild(input);
         tr.appendChild(td);
       });
 
@@ -383,7 +435,6 @@
     });
     syncScrollAndSpacer();
     applySearchHighlights();
-    debugStickyHeader();
 
     const totalRows = rows.length;
     const totalCols = numCols;
@@ -391,44 +442,21 @@
     updateUI();
   }
 
-  function debugStickyHeader() {
-    const th = document.querySelector(".csv-table th");
-    const thead = document.querySelector(".csv-table thead");
-    if (!th || !thead) return;
-    const gt = window.getComputedStyle;
-    const chain = [];
-    let el = th;
-    while (el && el !== document.body) {
-      const s = gt(el);
-      chain.push({
-        tag: el.tagName,
-        id: el.id || null,
-        class: el.className || null,
-        overflow: s.overflow,
-        overflowX: s.overflowX,
-        overflowY: s.overflowY,
-        position: s.position,
-        top: s.top,
-      });
-      el = el.parentElement;
-    }
-    console.log("[CSV Sticky Debug] Ancestor chain from th:", chain);
-    console.log("[CSV Sticky Debug] th computed:", gt(th).position, gt(th).top, "thead:", gt(thead).position);
-    console.log("[CSV Sticky Debug] grid-table-wrap overflow:", gt(gridTableWrap).overflow, "scrollHeight:", gridTableWrap.scrollHeight, "clientHeight:", gridTableWrap.clientHeight);
-  }
-
   function applySearchHighlights() {
     const query = (searchInput?.value || "").trim().toLowerCase();
+    if (!query) {
+      csvTbody.querySelectorAll(".search-hit").forEach((el) => el.classList.remove("search-hit"));
+      csvThead.querySelectorAll(".search-hit").forEach((el) => el.classList.remove("search-hit"));
+      return;
+    }
     csvTbody.querySelectorAll("td:not(.row-index-cell)").forEach((td) => {
       td.classList.remove("search-hit");
-      if (!query) return;
       const input = td.querySelector("textarea, input");
       const cellVal = input ? String(input.value || "").toLowerCase() : "";
       if (cellVal.includes(query)) td.classList.add("search-hit");
     });
     csvThead.querySelectorAll("th").forEach((th) => {
       th.classList.remove("search-hit");
-      if (!query) return;
       const input = th.querySelector("input");
       const span = th.querySelector("span");
       const cellVal = (input ? input.value : span?.textContent || "").toLowerCase();
@@ -502,16 +530,36 @@
   }
 
   function syncScrollAndSpacer() {
-    if (!gridTableWrap || !gridHScroll || !gridHSpacer) return;
+    if (!gridTableWrap || !gridHScroll || !gridHSpacer || !tableHeaderWrap) return;
     const table = document.getElementById("csv-table");
     const tableWidth = table ? table.scrollWidth : 0;
     gridHSpacer.style.width = tableWidth + "px";
-    gridTableWrap.onscroll = () => {
-      gridHScroll.scrollLeft = gridTableWrap.scrollLeft;
+    let scrollRaf = 0;
+    const throttleSync = (fn) => () => {
+      if (scrollRaf) return;
+      scrollRaf = requestAnimationFrame(() => {
+        scrollRaf = 0;
+        fn();
+      });
     };
-    gridHScroll.onscroll = () => {
-      gridTableWrap.scrollLeft = gridHScroll.scrollLeft;
-    };
+    const syncFromBody = throttleSync(() => {
+      const v = gridTableWrap.scrollLeft;
+      if (gridHScroll.scrollLeft !== v) gridHScroll.scrollLeft = v;
+      if (tableHeaderWrap.scrollLeft !== v) tableHeaderWrap.scrollLeft = v;
+    });
+    const syncFromHScroll = throttleSync(() => {
+      const v = gridHScroll.scrollLeft;
+      if (gridTableWrap.scrollLeft !== v) gridTableWrap.scrollLeft = v;
+      if (tableHeaderWrap.scrollLeft !== v) tableHeaderWrap.scrollLeft = v;
+    });
+    const syncFromHeader = throttleSync(() => {
+      const v = tableHeaderWrap.scrollLeft;
+      if (gridTableWrap.scrollLeft !== v) gridTableWrap.scrollLeft = v;
+      if (gridHScroll.scrollLeft !== v) gridHScroll.scrollLeft = v;
+    });
+    gridTableWrap.onscroll = syncFromBody;
+    gridHScroll.onscroll = syncFromHScroll;
+    tableHeaderWrap.onscroll = syncFromHeader;
   }
 
   function normalizeRowHeights(tr) {
@@ -548,20 +596,34 @@
     const th = e.target.closest("th");
     const startX = e.clientX;
     const startW = th.offsetWidth;
+    const headerColgroup = document.querySelector("#csv-header-table colgroup");
+    const bodyColgroup = document.querySelector("#csv-body-colgroup");
+    const headerCol = headerColgroup?.children[colIndex + 1];
+    const bodyCol = bodyColgroup?.children[colIndex + 1];
+    let rafId = 0;
+    let lastX = startX;
 
-    function onMove(e) {
-      const dw = e.clientX - startX;
+    function applyResize(x) {
+      const dw = x - startX;
       const newW = Math.max(60, startW + dw);
       colWidths[colIndex] = newW;
       th.style.width = newW + "px";
-      const colgroup = document.querySelector("#csv-table colgroup");
-      const col = colgroup?.children[colIndex + 1];
-      if (col) col.style.width = newW + "px";
+      if (headerCol) headerCol.style.width = newW + "px";
+      if (bodyCol) bodyCol.style.width = newW + "px";
+      rafId = 0;
+    }
+
+    function onMove(e) {
+      lastX = e.clientX;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => applyResize(lastX));
     }
 
     function onUp() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      if (rafId) cancelAnimationFrame(rafId);
+      applyResize(lastX);
     }
 
     document.addEventListener("mousemove", onMove);
@@ -592,6 +654,11 @@
     const numCols = rows[0].length;
     if (index >= numCols) return;
     rows.forEach((r) => r.splice(index, 1));
+    jsonFormatCols = jsonFormatCols
+      .filter((c) => c !== index)
+      .map((c) => (c > index ? c - 1 : c));
+    sortCol = sortCol === index ? -1 : sortCol > index ? sortCol - 1 : sortCol;
+    colWidths.splice(index, 1);
     render();
   }
 

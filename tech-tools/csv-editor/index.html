@@ -24,6 +24,7 @@
       </div>
     </header>
 
+    <div class="sticky-top" id="sticky-top">
     <div class="toolbar" id="toolbar">
       <div class="toolbar-left">
         <button class="btn btn-sm" id="add-row-btn" disabled>+ Row</button>
@@ -52,6 +53,15 @@
         </label>
       </div>
     </div>
+    <div class="table-header-bar" id="table-header-bar" style="display: none;">
+      <div class="table-header-wrap" id="table-header-wrap">
+        <table class="csv-table csv-header-table" id="csv-header-table">
+          <colgroup id="csv-header-colgroup"></colgroup>
+          <thead id="csv-thead"></thead>
+        </table>
+      </div>
+    </div>
+    </div>
 
     <main>
       <div class="grid-wrapper" id="grid-wrapper">
@@ -68,8 +78,8 @@
         <div class="grid-container" id="grid-container" style="display: none;">
           <div class="grid-body" id="grid-body">
             <div class="grid-table-wrap" id="grid-table-wrap">
-              <table class="csv-table" id="csv-table">
-                <thead id="csv-thead"></thead>
+              <table class="csv-table csv-body-table" id="csv-table">
+                <colgroup id="csv-body-colgroup"></colgroup>
                 <tbody id="csv-tbody"></tbody>
               </table>
             </div>
