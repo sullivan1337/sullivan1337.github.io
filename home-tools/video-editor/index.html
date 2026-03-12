@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Home Video Builder</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/ffmpeg.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎬 Home Video Builder</h1>
+      <p class="subtitle">Upload multiple clips, reorder, trim, and export a single combined video – all in your browser.</p>
+    </header>
+
+    <main>
+      <div class="top-section">
+        <div class="upload-section">
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-content">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <h2>Drop video files here</h2>
+              <p>or click to browse</p>
+              <p class="file-types">Supports: MP4, WebM, MOV (processed locally with ffmpeg.wasm)</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept="video/*" style="display: none;"/>
+          </div>
+        </div>
+
+        <div class="controls-section" id="controlsSection">
+          <div class="controls">
+            <div class="options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="autoDuration" checked />
+                <span>Auto-fill trim to full duration</span>
+              </label>
+            </div>
+            <div class="button-row">
+              <button id="buildVideoBtn" class="btn btn-primary" disabled>Create Combined Video</button>
+              <button id="clearAllBtn" class="btn btn-secondary">Clear All</button>
+            </div>
+            <div class="progress-info">
+              <span id="progressText">No clips loaded</span>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+              </div>
+            </div>
+            <p class="hint-text">
+              Tip: Drag clips to reorder. Adjust start/end times (in seconds) to trim each clip before combining.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <section class="timeline-section" id="timelineSection" style="display: none;">
+        <h2>Timeline</h2>
+        <div id="timelineList" class="timeline-strip"></div>
+      </section>
+
+      <section class="ffmpeg-section">
+        <div class="ffmpeg-header">
+          <h2>ffmpeg Command (run locally)</h2>
+          <button id="copyFfmpegBtn" class="btn btn-secondary small" disabled>Copy Command</button>
+        </div>
+        <textarea id="ffmpegCommand" class="ffmpeg-command" rows="4" readonly></textarea>
+        <p class="ffmpeg-help">
+          This command is based on your current clip order and trims. Run it in a terminal with the original video files in the working directory. Adjust input paths or output filename as needed.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <p>All processing happens in your browser – no files are uploaded to any server.</p>
+    </footer>
+  </div>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal">
+    <div class="modal-overlay" id="previewModalOverlay"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span id="modalTitle" class="modal-title">Clip Preview</span>
+        <button id="closePreviewModal" class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="preview-wrapper">
+          <video id="previewVideo" controls></video>
+          <div class="preview-info">
+            <div class="preview-meta">
+              <span id="previewName"></span>
+              <span id="previewDuration" class="preview-duration"></span>
+            </div>
+            <div class="preview-range">
+              <label>
+                Start (s)
+                <input type="number" id="previewStart" min="0" step="0.1">
+              </label>
+              <label>
+                End (s)
+                <input type="number" id="previewEnd" min="0" step="0.1">
+              </label>
+              <button id="applyTrimBtn" class="btn btn-secondary small">Apply to Clip</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
