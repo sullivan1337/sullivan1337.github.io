@@ -34,6 +34,7 @@ bulkDownloadBtn.addEventListener('click', downloadAllFiles);
 // Initialize UI state
 processAllBtn.disabled = true;
 sanitizeNamesCheckbox.checked = true; // Enable by default
+autoProcessCheckbox.checked = true; // Enable by default
 
 function handleDragOver(e) {
   e.preventDefault();
@@ -346,32 +347,56 @@ async function processImage(file, shouldSanitize = false, fileType = 'image', fi
         // Draw image to canvas (this strips metadata)
         ctx.drawImage(img, 0, 0);
         
-        // Convert to blob
-        const outputType = file.type || 'image/png';
-        canvas.toBlob((blob) => {
-          if (!blob) {
+        // Convert to blob with adaptive quality for lossy formats.
+        // Re-encoding at a fixed high quality can increase file size.
+        const originalType = (file.type || '').toLowerCase();
+        const outputType = originalType || 'image/png';
+        const supportsQuality = outputType === 'image/jpeg' || outputType === 'image/webp';
+
+        const encodeCanvas = (mimeType, quality) => new Promise((resolveBlob) => {
+          canvas.toBlob((blob) => resolveBlob(blob), mimeType, quality);
+        });
+
+        (async () => {
+          let bestBlob = await encodeCanvas(outputType, supportsQuality ? 0.88 : undefined);
+          if (!bestBlob) {
             reject(new Error('Failed to create blob'));
             return;
           }
-          
+
+          if (supportsQuality && bestBlob.size > file.size) {
+            // Step down quality until we stop inflating size or hit floor.
+            const fallbackQualities = [0.82, 0.76, 0.70, 0.64, 0.58];
+            for (const quality of fallbackQualities) {
+              const candidate = await encodeCanvas(outputType, quality);
+              if (!candidate) continue;
+              if (candidate.size < bestBlob.size) {
+                bestBlob = candidate;
+              }
+              if (bestBlob.size <= file.size) {
+                break;
+              }
+            }
+          }
+
           let fileName = file.name;
           if (shouldSanitize) {
             fileName = sanitizeFileName(file.name, fileType, fileIndex);
           }
-          
-          const processedFile = new File([blob], fileName, {
+
+          const processedFile = new File([bestBlob], fileName, {
             type: outputType,
             lastModified: Date.now()
           });
-          
+
           resolve({
             original: file,
             processed: processedFile,
             type: 'image',
             size: file.size,
-            newSize: blob.size
+            newSize: bestBlob.size
           });
-        }, outputType, 0.95);
+        })().catch(reject);
       } catch (error) {
         reject(error);
       }
@@ -418,8 +443,13 @@ function addResultItem(result, index) {
   item.className = 'result-item';
   
   const icon = result.type === 'image' ? '🖼️' : '🎥';
-  const sizeReduction = result.size > 0 
-    ? `${((1 - result.newSize / result.size) * 100).toFixed(1)}% smaller`
+  const sizeReduction = result.size > 0
+    ? (() => {
+        const ratio = result.newSize / result.size;
+        if (ratio < 1) return `${((1 - ratio) * 100).toFixed(1)}% smaller`;
+        if (ratio > 1) return `${((ratio - 1) * 100).toFixed(1)}% larger`;
+        return 'Size unchanged';
+      })()
     : 'Size unchanged';
   const sizeInfo = result.note 
     ? `<div class="result-note">${result.note}</div>`
