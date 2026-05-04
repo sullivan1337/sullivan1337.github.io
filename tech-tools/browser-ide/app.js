@@ -99,6 +99,30 @@ if (button) {
 }
 `,
     },
+    {
+      id: "README.md",
+      name: "README.md",
+      type: "txt",
+      content: `# Browser IDE Markdown Demo
+
+This file demonstrates markdown preview support.
+
+## Features
+
+- Headings
+- Lists
+- Inline \`code\`
+- Tables
+
+## Example table
+
+| File | Purpose | Status |
+| --- | --- | --- |
+| index.html | Main page markup | Ready |
+| styles.css | Styling | Ready |
+| script.js | Behavior | Ready |
+`,
+    },
   ];
 
   let files = [];
@@ -115,11 +139,15 @@ if (button) {
   const fileListEl = $("file-list");
   const fileCountLabelEl = $("file-count-label");
   const editorContainerEl = $("editor-container");
+  const ideShellEl = $("ide-shell");
+  const explorerResizeHandleEl = $("explorer-resize-handle");
+  const previewResizeHandleEl = $("preview-resize-handle");
   const cursorPositionEl = $("cursor-position");
   const fileLanguageLabelEl = $("file-language-label");
   const editorStatusEl = $("editor-status");
   const previewFrameEl = $("preview-frame");
   const previewConsoleEl = $("preview-console");
+  const previewSizeLabelEl = $("preview-size-label");
   const previewTimeLabelEl = $("preview-time-label");
   const autoRunToggleEl = $("auto-run-toggle");
   const resetWorkspaceBtnEl = $("reset-workspace-btn");
@@ -141,6 +169,7 @@ if (button) {
   };
 
   let contextMenuNode = null;
+  let lastContextMenuPosition = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
   let dragNode = null;
   let monacoEditor = null;
 
@@ -161,6 +190,7 @@ if (button) {
     autoRunToggleEl.setAttribute("data-state", "on");
     renderAll();
     attachEvents();
+    initPanelResizing();
     initMonaco();
     runPreview();
     togglePreviewBtnEl.textContent = document.body.classList.contains(
@@ -180,6 +210,7 @@ if (button) {
     if (name.endsWith(".css")) return "css";
     if (name.endsWith(".js")) return "javascript";
     if (name.endsWith(".json")) return "json";
+    if (name.endsWith(".md") || name.endsWith(".markdown")) return "markdown";
     if (name.endsWith(".py")) return "python";
     if (name.endsWith(".graphql") || name.endsWith(".gql")) return "javascript";
     return "plaintext";
@@ -324,6 +355,60 @@ if (button) {
         const y = e.clientY || rect.top + 12;
         showContextMenu(x, y, rootNode);
       }
+    });
+  }
+
+  function initPanelResizing() {
+    if (!ideShellEl) return;
+    makeHorizontalPanelResizable(explorerResizeHandleEl, {
+      getStart: () => ideShellEl.getBoundingClientRect().left,
+      getCurrent: () => parseFloat(getComputedStyle(ideShellEl).getPropertyValue("--explorer-width")) || 220,
+      setCurrent: (value) => ideShellEl.style.setProperty("--explorer-width", `${Math.round(value)}px`),
+      min: 160,
+      maxFromRect: (rect) => Math.max(260, rect.width - 420),
+      direction: "forward",
+    });
+
+    makeHorizontalPanelResizable(previewResizeHandleEl, {
+      getStart: () => ideShellEl.getBoundingClientRect().left,
+      getCurrent: () => parseFloat(getComputedStyle(ideShellEl).getPropertyValue("--preview-width")) || 420,
+      setCurrent: (value) => ideShellEl.style.setProperty("--preview-width", `${Math.round(value)}px`),
+      min: 220,
+      maxFromRect: (rect) => Math.max(280, rect.width - 360),
+      direction: "reverse",
+      disabled: () => document.body.classList.contains("preview-collapsed"),
+    });
+  }
+
+  function makeHorizontalPanelResizable(handle, config) {
+    if (!handle || !config) return;
+    handle.addEventListener("pointerdown", (event) => {
+      if (config.disabled && config.disabled()) return;
+      event.preventDefault();
+      const shellRect = ideShellEl.getBoundingClientRect();
+      const startX = event.clientX;
+      const startSize = config.getCurrent();
+      handle.classList.add("is-active");
+      handle.setPointerCapture(event.pointerId);
+
+      const onMove = (moveEvent) => {
+        const delta = moveEvent.clientX - startX;
+        const rawNext =
+          config.direction === "reverse" ? startSize - delta : startSize + delta;
+        const max = config.maxFromRect ? config.maxFromRect(shellRect) : shellRect.width;
+        const next = Math.max(config.min || 120, Math.min(max, rawNext));
+        config.setCurrent(next);
+        updatePreviewSizeLabel();
+      };
+
+      const onUp = () => {
+        handle.classList.remove("is-active");
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
+      };
+
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
     });
   }
 
@@ -507,6 +592,7 @@ if (button) {
 
   function showContextMenu(x, y, node) {
     contextMenuNode = node;
+    lastContextMenuPosition = { x, y };
     contextMenuEl.innerHTML = "";
 
     const isFolder = node.type === "folder";
@@ -564,6 +650,7 @@ if (button) {
       if (actionId === "new-file") {
         showInputToast("New file name", "", {
           placeholder: "e.g. utils.js",
+          anchorPoint: lastContextMenuPosition,
           onSubmit: (name) => {
             const trimmed = name.trim();
             if (!trimmed) return;
@@ -593,6 +680,7 @@ if (button) {
       } else if (actionId === "new-folder") {
         showInputToast("New folder name", "", {
           placeholder: "e.g. components",
+          anchorPoint: lastContextMenuPosition,
           onSubmit: (name) => {
             const trimmed = name.trim();
             if (!trimmed) return;
@@ -737,15 +825,32 @@ if (button) {
   }
 
   function buildPreviewHtml() {
-    const find = (name) =>
-      files.find((f) => f.name.toLowerCase() === name.toLowerCase());
-    const htmlFile = find("index.html");
-    const cssFile = find("styles.css");
-    const jsFile = find("script.js");
+    const activeFile = getActiveFile();
+    const activeName = (activeFile && activeFile.name ? activeFile.name : "").toLowerCase();
+    const activeType = (activeFile && activeFile.type ? activeFile.type : "").toLowerCase();
 
-    const htmlContent = htmlFile ? htmlFile.content : "<!-- No index.html -->";
-    const cssContent = cssFile ? cssFile.content : "";
-    const jsContent = jsFile ? jsFile.content : "";
+    const find = (name) => files.find((f) => f.name.toLowerCase() === name.toLowerCase());
+    const defaultHtmlFile = find("index.html");
+    const defaultCssFile = find("styles.css");
+    const defaultJsFile = find("script.js");
+
+    let htmlContent = defaultHtmlFile ? defaultHtmlFile.content : "<!-- No index.html -->";
+    let cssContent = defaultCssFile ? defaultCssFile.content : "";
+    let jsContent = defaultJsFile ? defaultJsFile.content : "";
+
+    if (activeFile) {
+      if (activeName.endsWith(".html") || activeName.endsWith(".htm")) {
+        htmlContent = activeFile.content || "";
+      } else if (activeName.endsWith(".md") || activeName.endsWith(".markdown")) {
+        htmlContent = renderMarkdownDocument(activeFile.content || "", activeFile.name);
+        cssContent = "";
+        jsContent = "";
+      } else if (activeType === "css") {
+        cssContent = activeFile.content || "";
+      } else if (activeType === "js") {
+        jsContent = activeFile.content || "";
+      }
+    }
 
     const stylesBlock = cssContent
       ? `\n<style>\n${cssContent}\n</style>`
@@ -804,9 +909,224 @@ ${jsContent}
     );
   }
 
+  function escapeHtml(text) {
+    return String(text)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;");
+  }
+
+  function renderInlineMarkdown(text) {
+    const escaped = escapeHtml(text);
+    return escaped
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>")
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  }
+
+  function renderMarkdownDocument(markdown, filename) {
+    const lines = String(markdown || "").replace(/\r/g, "").split("\n");
+    const html = [];
+    let inCodeBlock = false;
+    let codeBuffer = [];
+    let inList = false;
+    let tableBuffer = [];
+
+    const parseTableCells = (line) => {
+      const trimmed = line.trim();
+      if (!trimmed.includes("|")) return null;
+      const normalized = trimmed.replace(/^\|/, "").replace(/\|$/, "");
+      return normalized.split("|").map((cell) => cell.trim());
+    };
+
+    const isTableDividerLine = (line) => {
+      const cells = parseTableCells(line);
+      if (!cells || !cells.length) return false;
+      return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+    };
+
+    const closeList = () => {
+      if (inList) {
+        html.push("</ul>");
+        inList = false;
+      }
+    };
+
+    const flushTable = () => {
+      if (!tableBuffer.length) return;
+      if (tableBuffer.length < 2 || !isTableDividerLine(tableBuffer[1])) {
+        html.push(...tableBuffer.map((line) => `<p>${renderInlineMarkdown(line)}</p>`));
+        tableBuffer = [];
+        return;
+      }
+
+      const headers = parseTableCells(tableBuffer[0]) || [];
+      const alignments = (parseTableCells(tableBuffer[1]) || []).map((cell) => {
+        const startsWithColon = cell.startsWith(":");
+        const endsWithColon = cell.endsWith(":");
+        if (startsWithColon && endsWithColon) return "center";
+        if (endsWithColon) return "right";
+        return "left";
+      });
+      const bodyRows = tableBuffer.slice(2).map((line) => parseTableCells(line) || []);
+
+      html.push("<table>");
+      html.push("  <thead>");
+      html.push("    <tr>");
+      headers.forEach((header, idx) => {
+        const align = alignments[idx] || "left";
+        html.push(
+          `      <th style="text-align:${align}">${renderInlineMarkdown(header)}</th>`
+        );
+      });
+      html.push("    </tr>");
+      html.push("  </thead>");
+      html.push("  <tbody>");
+      bodyRows.forEach((row) => {
+        html.push("    <tr>");
+        for (let i = 0; i < headers.length; i += 1) {
+          const align = alignments[i] || "left";
+          const cell = row[i] || "";
+          html.push(
+            `      <td style="text-align:${align}">${renderInlineMarkdown(cell)}</td>`
+          );
+        }
+        html.push("    </tr>");
+      });
+      html.push("  </tbody>");
+      html.push("</table>");
+      tableBuffer = [];
+    };
+
+    for (const line of lines) {
+      if (line.startsWith("```")) {
+        flushTable();
+        if (inCodeBlock) {
+          html.push(`<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`);
+          codeBuffer = [];
+          inCodeBlock = false;
+        } else {
+          closeList();
+          inCodeBlock = true;
+        }
+        continue;
+      }
+
+      if (inCodeBlock) {
+        codeBuffer.push(line);
+        continue;
+      }
+
+      const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+      if (headingMatch) {
+        flushTable();
+        closeList();
+        const level = headingMatch[1].length;
+        html.push(`<h${level}>${renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+        continue;
+      }
+
+      if (/^-\s+/.test(line)) {
+        flushTable();
+        if (!inList) {
+          html.push("<ul>");
+          inList = true;
+        }
+        html.push(`<li>${renderInlineMarkdown(line.replace(/^-\s+/, ""))}</li>`);
+        continue;
+      }
+
+      if (!line.trim()) {
+        flushTable();
+        closeList();
+        continue;
+      }
+
+      if (line.includes("|")) {
+        closeList();
+        tableBuffer.push(line);
+        continue;
+      }
+
+      flushTable();
+      closeList();
+      html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+    }
+
+    flushTable();
+    closeList();
+    if (inCodeBlock) {
+      html.push(`<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`);
+    }
+
+    return `
+<article class="markdown-preview">
+  ${html.join("\n  ")}
+</article>
+<style>
+  :root { color-scheme: dark light; }
+  body {
+    margin: 0;
+    padding: 1.5rem;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    background: #0b1220;
+    color: #e5e7eb;
+  }
+  .markdown-preview { max-width: 860px; margin: 0 auto; }
+  h1,h2,h3,h4,h5,h6 { margin: 1rem 0 0.4rem; }
+  p { margin: 0.45rem 0; }
+  ul { padding-left: 1.2rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.65rem 0;
+    border: 1px solid rgba(51, 65, 85, 0.9);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  th, td {
+    border-bottom: 1px solid rgba(51, 65, 85, 0.65);
+    border-right: 1px solid rgba(51, 65, 85, 0.45);
+    padding: 0.38rem 0.5rem;
+  }
+  th:last-child, td:last-child { border-right: none; }
+  thead th {
+    background: rgba(30, 41, 59, 0.8);
+  }
+  tbody tr:nth-child(even) {
+    background: rgba(15, 23, 42, 0.45);
+  }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background: rgba(30, 41, 59, 0.7);
+    padding: 0.08rem 0.35rem;
+    border-radius: 6px;
+  }
+  pre {
+    background: rgba(2, 6, 23, 0.95);
+    border: 1px solid rgba(51, 65, 85, 0.9);
+    border-radius: 10px;
+    padding: 0.7rem;
+    overflow: auto;
+  }
+  pre code { background: transparent; padding: 0; border-radius: 0; }
+  a { color: #38bdf8; }
+</style>
+<!-- ${escapeHtml(filename || "markdown")} -->
+`;
+  }
+
   function runPreview() {
+    const activeFile = getActiveFile();
     clearConsole();
     updateEditorStatus("Running preview…");
+    if (previewSizeLabelEl) {
+      previewSizeLabelEl.textContent = activeFile
+        ? `Live: ${activeFile.name}`
+        : "Live frame";
+    }
     const html = buildPreviewHtml();
     previewFrameEl.srcdoc = html;
     const startedAt = performance.now();
@@ -836,9 +1156,26 @@ ${jsContent}
   init();
 })();
 
+let activeToastState = null;
+
+function clearActiveToast() {
+  if (!activeToastState) return;
+  const { cleanup } = activeToastState;
+  activeToastState = null;
+  if (typeof cleanup === "function") {
+    cleanup();
+  }
+}
+
+function registerActiveToast(toast, cleanup) {
+  clearActiveToast();
+  activeToastState = { toast, cleanup };
+}
+
 function showToast(message, options = {}) {
   const container = document.getElementById("toast-container");
   if (!container) return;
+  container.innerHTML = "";
   const toast = document.createElement("div");
   toast.className = "toast" + (options.variant === "primary" ? " toast-primary" : "");
 
@@ -857,28 +1194,62 @@ function showToast(message, options = {}) {
   const closeBtn = document.createElement("button");
   closeBtn.className = "toast-close";
   closeBtn.textContent = "✕";
+  let timeoutId = null;
+  let outsideHandler = null;
+
+  function cleanup() {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    if (outsideHandler) {
+      document.removeEventListener("pointerdown", outsideHandler, true);
+      outsideHandler = null;
+    }
+    if (container.contains(toast)) {
+      container.removeChild(toast);
+    }
+  }
+
   closeBtn.addEventListener("click", () => {
-    container.removeChild(toast);
+    clearActiveToast();
   });
 
   toast.appendChild(msg);
   toast.appendChild(closeBtn);
   container.appendChild(toast);
+  registerActiveToast(toast, cleanup);
 
-  setTimeout(() => {
-    if (container.contains(toast)) {
-      container.removeChild(toast);
+  timeoutId = setTimeout(() => {
+    if (activeToastState && activeToastState.toast === toast) {
+      clearActiveToast();
     }
   }, options.duration || 3500);
+
+  setTimeout(() => {
+    outsideHandler = (event) => {
+      if (!toast.contains(event.target)) {
+        clearActiveToast();
+      }
+    };
+    document.addEventListener("pointerdown", outsideHandler, true);
+  }, 0);
 }
 
 function showInputToast(label, initialValue, options = {}) {
+  clearActiveToast();
   const toast = document.createElement("div");
   toast.className = "toast";
   toast.style.position = "fixed";
-  toast.style.top = "50%";
-  toast.style.left = "1.5rem";
-  toast.style.transform = "translateY(-50%)";
+  const anchorX = options.anchorPoint && Number.isFinite(options.anchorPoint.x)
+    ? options.anchorPoint.x
+    : Math.round(window.innerWidth / 2);
+  const anchorY = options.anchorPoint && Number.isFinite(options.anchorPoint.y)
+    ? options.anchorPoint.y
+    : Math.round(window.innerHeight / 2);
+  toast.style.top = `${Math.max(8, Math.min(window.innerHeight - 8, anchorY))}px`;
+  toast.style.left = `${Math.max(8, Math.min(window.innerWidth - 8, anchorX))}px`;
+  toast.style.transform = "translate(0, 0)";
   toast.style.zIndex = "50";
 
   const content = document.createElement("div");
@@ -923,7 +1294,12 @@ function showInputToast(label, initialValue, options = {}) {
   toast.innerHTML = "";
   toast.appendChild(content);
 
+  let outsideHandler = null;
   function cleanup() {
+    if (outsideHandler) {
+      document.removeEventListener("pointerdown", outsideHandler, true);
+      outsideHandler = null;
+    }
     if (toast.parentNode) {
       toast.parentNode.removeChild(toast);
     }
@@ -931,10 +1307,11 @@ function showInputToast(label, initialValue, options = {}) {
 
   function submit() {
     const value = input.value;
-    if (options.onSubmit) {
-      options.onSubmit(value);
+    const onSubmit = options.onSubmit;
+    clearActiveToast();
+    if (onSubmit) {
+      onSubmit(value);
     }
-    cleanup();
   }
 
   okBtn.addEventListener("click", (e) => {
@@ -944,7 +1321,7 @@ function showInputToast(label, initialValue, options = {}) {
 
   cancelBtn.addEventListener("click", (e) => {
     e.stopPropagation();
-    cleanup();
+    clearActiveToast();
   });
 
   input.addEventListener("keydown", (e) => {
@@ -953,11 +1330,25 @@ function showInputToast(label, initialValue, options = {}) {
       submit();
     } else if (e.key === "Escape") {
       e.preventDefault();
-      cleanup();
+      clearActiveToast();
     }
   });
 
   document.body.appendChild(toast);
+  registerActiveToast(toast, cleanup);
+  const rect = toast.getBoundingClientRect();
+  const maxLeft = Math.max(8, window.innerWidth - rect.width - 8);
+  const maxTop = Math.max(8, window.innerHeight - rect.height - 8);
+  toast.style.left = `${Math.max(8, Math.min(anchorX, maxLeft))}px`;
+  toast.style.top = `${Math.max(8, Math.min(anchorY, maxTop))}px`;
+  setTimeout(() => {
+    outsideHandler = (event) => {
+      if (!toast.contains(event.target)) {
+        clearActiveToast();
+      }
+    };
+    document.addEventListener("pointerdown", outsideHandler, true);
+  }, 0);
   input.focus();
   input.select();
 }
