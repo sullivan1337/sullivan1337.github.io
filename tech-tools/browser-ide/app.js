@@ -114,6 +114,8 @@ This file demonstrates markdown preview support.
 - Inline \`code\`
 - Tables
 
+---
+
 ## Example table
 
 | File | Purpose | Status |
@@ -946,6 +948,12 @@ ${jsContent}
       return cells.every((cell) => /^:?-{3,}:?$/.test(cell));
     };
 
+    // CommonMark-style thematic break: 3+ matching -, *, or _ with optional spaces between
+    const isThematicBreakLine = (line) =>
+      /^(?:[ ]{0,3})(?:(?:\*[ \t]*){3,}|(?:-[ \t]*){3,}|(?:_[ \t]*){3,})[ \t]*$/.test(
+        line
+      );
+
     const closeList = () => {
       if (inList) {
         html.push("</ul>");
@@ -1043,6 +1051,13 @@ ${jsContent}
         continue;
       }
 
+      if (isThematicBreakLine(line)) {
+        flushTable();
+        closeList();
+        html.push('<hr class="markdown-hr" />');
+        continue;
+      }
+
       if (line.includes("|")) {
         closeList();
         tableBuffer.push(line);
@@ -1078,6 +1093,14 @@ ${jsContent}
   h1,h2,h3,h4,h5,h6 { margin: 1rem 0 0.4rem; }
   p { margin: 0.45rem 0; }
   ul { padding-left: 1.2rem; }
+  hr.markdown-hr {
+    border: none;
+    height: 0;
+    margin: 1.15rem 0;
+    border-top: 1px solid rgba(148, 163, 184, 0.45);
+    width: 100%;
+    box-sizing: border-box;
+  }
   table {
     width: 100%;
     border-collapse: collapse;
