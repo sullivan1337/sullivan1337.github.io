@@ -1,0 +1,258 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --bg: #ffffff;
+    --text: #000000;
+    --panel-bg: #f3f3f3;
+    --border: #ccc;
+    --node-bg: #f9f9f9;
+    --button-bg: #3b82f6;
+    --line: #555;
+}
+
+[data-theme='dark'] {
+    --bg: #1e1e1e;
+    --text: #ffffff;
+    --panel-bg: #2d2d2d;
+    --border: #444;
+    --node-bg: #2d2d2d;
+    --line: #555;
+}
+
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+}
+
+#chart-container {
+    width: 100%;
+    height: 90vh;
+    overflow: hidden;
+}
+
+#jsonBox {
+    width: 700px;
+    height: 90px;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    background-color: var(--panel-bg);
+    color: var(--text);
+    resize: none;
+}
+
+.node {
+    cursor: pointer;
+}
+
+.node rect {
+    stroke: var(--line);
+    stroke-width: 1px;
+}
+
+.node text {
+    fill: var(--text);
+    font-family: 'Inter', sans-serif;
+}
+
+.link {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1px;
+}
+
+.editForm div{
+    padding:4px;
+}
+.editForm .actions button{
+    cursor:pointer;
+}
+.editForm .actions button:hover{
+    background-color: var(--border);
+}
+
+.bu-flag {
+    stroke: var(--text);
+    stroke-width: 1px;
+}
+
+.bu-text {
+    font-size: 10px;
+    fill: var(--text);
+    font-weight: bold;
+    text-anchor: middle;
+    dominant-baseline: middle;
+}
+
+.expand-collapse {
+    cursor: pointer;
+    pointer-events: all;
+    font-size: 14px;
+    font-weight: bold;
+    dominant-baseline: middle;
+    text-anchor: middle;
+}
+
+.expand-collapse line {
+    pointer-events: none;
+}
+
+.edit-btn {
+    cursor: pointer;
+}
+.edit-btn path {
+    pointer-events: none;
+    fill: var(--text);
+}
+
+.close-button {
+    float: right;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.linkedin-link {
+    fill: #0077b5;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#companyName {
+    width: 200px;
+    background-color: var(--panel-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 4px 6px;
+    border-radius: 0.375rem;
+}
+
+.company-title {
+    font-size: 18px;
+    font-weight: bold;
+    fill: var(--text);
+}
+
+.color-picker {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 5px;
+}
+
+.color-picker div {
+    width: 20px;
+    height: 20px;
+    margin: 2px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.color-picker div:hover {
+    border: 2px solid white;
+}
+
+.member-photo {
+    border-radius: 9999px;
+}
+
+.node.highlight rect {
+    stroke: orange;
+    stroke-width: 2px;
+}
+
+#jsonOverlay textarea {
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border);
+}
+.form-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.editForm {
+    position: relative;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    padding: 20px;
+    border-radius: 8px;
+    color: var(--text);
+    width: 300px;
+}
+
+.editForm input, .editForm select {
+    width: 100%;
+    margin: 5px 0;
+    background-color: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+.editForm button {
+    margin-top: 10px;
+}
+
+.btn {
+    background-color: var(--button-bg);
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-right: 4px;
+}
+.contextMenu {
+    position: absolute;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px;
+    z-index: 1000;
+}
+.contextMenu div {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.contextMenu div:hover {
+    background-color: var(--border);
+}
+
+.actions {
+    display:flex;
+    justify-content: space-between;
+    margin-top:10px;
+}
+
+.crop-overlay {
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.7);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:10000;
+}
+
+.crop-box {
+    background: var(--panel-bg);
+    padding:20px;
+    border-radius:8px;
+}
