@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iRacing Endurance Stint Scheduler</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="header-content">
+            <h1><i class="fa-solid fa-stopwatch"></i> Endurance Stint Scheduler</h1>
+        </div>
+        <div class="header-stats" id="header-stats" style="display: none;">
+            <!-- Injected dynamically -->
+        </div>
+        <div class="header-actions">
+            <button id="io-btn" class="btn-secondary"><i class="fa-solid fa-file-import"></i> Import/Export JSON</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <!-- LEFT COLUMN: Configuration -->
+        <aside class="config-panel">
+            
+            <!-- Race Settings -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-flag-checkered"></i> Race Settings</h2>
+                </div>
+                <div class="card-body">
+                    <div class="input-group-row">
+                        <div class="input-group half">
+                            <label for="race-duration">Race Duration (Minutes)</label>
+                            <input type="number" id="race-duration" value="1440" min="1" max="10000" step="1">
+                        </div>
+                        <div class="input-group half">
+                            <label for="race-start">Race Start Time</label>
+                            <input type="datetime-local" id="race-start">
+                        </div>
+                    </div>
+                    <div class="input-group-row">
+                        <div class="input-group half">
+                            <label for="max-consecutive">Max Consecutive Stints</label>
+                            <input type="number" id="max-consecutive" value="2" min="1" max="10" step="1">
+                        </div>
+                        <div class="input-group half">
+                            <!-- spacer -->
+                        </div>
+                    </div>
+                    
+                    <div class="input-group-row" style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <div class="input-group half">
+                            <label for="preset-car">Pre-fill Car Class</label>
+                            <select id="preset-car">
+                                <option value="">Custom / Manual</option>
+                                <option value="gt3">GT3 Class</option>
+                                <option value="gtp">GTP Class</option>
+                                <option value="lmp2">LMP2</option>
+                            </select>
+                        </div>
+                        <div class="input-group half">
+                            <label for="preset-track">Pre-fill Track</label>
+                            <select id="preset-track">
+                                <option value="">Select Track...</option>
+                                <option value="daytona">Daytona</option>
+                                <option value="lemans">Le Mans</option>
+                                <option value="spa">Spa-Francorchamps</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group-row">
+                        <div class="input-group half">
+                            <label for="avg-lap-time">Avg Lap Time (sec)</label>
+                            <input type="number" id="avg-lap-time" value="120" step="0.1">
+                        </div>
+                        <div class="input-group half">
+                            <label for="pit-stop-time">Pit Stop Time (sec)</label>
+                            <input type="number" id="pit-stop-time" value="45" step="1">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group-row" style="margin-bottom: 0.5rem;">
+                        <div class="input-group" style="width: 100%;">
+                            <label for="fuel-unit">Fuel Volume Unit</label>
+                            <select id="fuel-unit">
+                                <option value="L">Liters (L)</option>
+                                <option value="G">Gallons (G)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-group-row">
+                        <div class="input-group half">
+                            <label id="label-fuel-per-lap" for="fuel-per-lap">Fuel Per Lap (L)</label>
+                            <input type="number" id="fuel-per-lap" value="3.5" step="0.01">
+                        </div>
+                        <div class="input-group half">
+                            <label id="label-tank-capacity" for="tank-capacity">Tank Capacity (L)</label>
+                            <input type="number" id="tank-capacity" value="105" step="1">
+                        </div>
+                    </div>
+                    
+                    <div class="calc-summary" id="stint-calc-summary">
+                        <!-- Auto calculated summary like "Max Laps per Stint: X" goes here -->
+                        <div class="summary-item">Max Laps: <span id="summary-max-laps">--</span></div>
+                        <div class="summary-item">Stint Time: <span id="summary-stint-time">--</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Drivers Management -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-users"></i> Drivers</h2>
+                </div>
+                <div class="card-body">
+                    <form id="add-driver-form" class="add-driver-form">
+                        <input type="text" id="driver-name" placeholder="Driver Name" required>
+                        <input type="hidden" id="driver-color" value="#3b82f6">
+                        <button type="submit" class="btn-primary" title="Add Driver"><i class="fa-solid fa-plus"></i></button>
+                    </form>
+                    
+                    <div class="drivers-list" id="drivers-list">
+                        <!-- Driver items injected here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Unavailability Settings -->
+            <section class="card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-calendar-xmark"></i> Unavailable Times</h2>
+                </div>
+                <div class="card-body">
+                    <form id="add-unavailability-form" class="add-unavailability-form">
+                        <select id="unavail-driver-select" required>
+                            <option value="" disabled selected>Select Driver...</option>
+                            <!-- Options injected -->
+                        </select>
+                        <div class="input-group-row">
+                            <div class="input-group half">
+                                <label>From</label>
+                                <input type="datetime-local" id="unavail-start" required>
+                            </div>
+                            <div class="input-group half">
+                                <label>To</label>
+                                <input type="datetime-local" id="unavail-end" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-secondary w-full">Add Block</button>
+                    </form>
+
+                    <div class="unavail-list" id="unavail-list">
+                        <!-- Unavailability blocks injected here -->
+                    </div>
+                </div>
+            </section>
+
+        </aside>
+
+        <!-- RIGHT COLUMN: Schedule -->
+        <main class="schedule-panel">
+            <div class="schedule-header">
+                <button id="generate-btn" class="btn-primary btn-large"><i class="fa-solid fa-bolt"></i> Generate Schedule</button>
+            </div>
+            <!-- Stats moved to header -->
+            <div class="schedule-stats" id="driver-stats-container" style="display: none;">
+                <!-- Driver stats only -->
+            </div>
+
+            <div class="schedule-container card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-list-check"></i> Race Schedule</h2>
+                </div>
+                <!-- Qualifying Banner -->
+                <div id="qualifying-banner" class="qualifying-banner" style="display: none;">
+                    <!-- Dynamically filled -->
+                </div>
+                <div class="table-responsive">
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>Stint #</th>
+                                <th>Driver</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Laps</th>
+                                <th>Cumulative Laps</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schedule-body">
+                            <tr class="empty-state">
+                                <td colspan="6">Click "Generate Schedule" to create your race plan.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </main>
+
+    <!-- Import/Export Modal -->
+    <div id="io-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-code"></i> Import / Export Configuration</h2>
+            </div>
+            <div class="card-body">
+                <p style="margin-bottom: 1rem; color: var(--text-muted); font-size: 0.875rem;">Copy this JSON to share your race setup, or paste a previously exported JSON config and click "Import" to apply.</p>
+                <textarea id="io-textarea" style="width: 100%; height: 250px; background-color: var(--bg-base); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; font-family: monospace; font-size: 0.825rem; resize: vertical; margin-bottom: 1rem;"></textarea>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button id="copy-json-btn" class="btn-secondary"><i class="fa-solid fa-copy"></i> Copy JSON</button>
+                    <button id="import-json-btn" class="btn-primary"><i class="fa-solid fa-file-arrow-up"></i> Import</button>
+                    <button id="close-modal-btn" class="btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="modal-overlay" style="display: none; z-index: 1010;">
+        <div class="modal-content card" style="max-width: 400px;">
+            <div class="card-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2); background: rgba(239, 68, 68, 0.05);">
+                <h2 style="color: var(--danger-color);"><i class="fa-solid fa-triangle-exclamation"></i> Driver Conflict</h2>
+            </div>
+            <div class="card-body">
+                <p id="alert-message" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);"></p>
+                <div style="display: flex; justify-content: flex-end;">
+                    <button id="close-alert-btn" class="btn-secondary">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="script.js"></script>
+</body>
+</html>
