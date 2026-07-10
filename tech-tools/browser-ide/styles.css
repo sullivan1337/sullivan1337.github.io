@@ -139,9 +139,17 @@ main {
 }
 
 .ide-shell {
+  --explorer-width: clamp(180px, 20vw, 320px);
+  --editor-width: minmax(0, 1fr);
+  --preview-width: clamp(260px, 34vw, 520px);
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1.7fr) minmax(0, 1.2fr);
+  grid-template-columns:
+    var(--explorer-width)
+    8px
+    var(--editor-width)
+    8px
+    var(--preview-width);
   gap: 0.6rem;
   background: radial-gradient(circle at top left, #020617, #020617 45%, #020617);
 }
@@ -150,6 +158,10 @@ main {
   .ide-shell {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
+  }
+
+  .panel-resize-handle {
+    display: none;
   }
 }
 
@@ -163,6 +175,30 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+.panel-resize-handle {
+  width: 8px;
+  border-radius: 999px;
+  cursor: col-resize;
+  background: rgba(31, 41, 55, 0.65);
+  border: 1px solid rgba(55, 65, 81, 0.85);
+  align-self: stretch;
+  position: relative;
+}
+
+.panel-resize-handle::after {
+  content: "";
+  position: absolute;
+  inset: 25% 2px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.18);
+}
+
+.panel-resize-handle:hover,
+.panel-resize-handle.is-active {
+  border-color: rgba(56, 189, 248, 0.9);
+  background: rgba(14, 165, 233, 0.16);
 }
 
 .panel-header {
@@ -657,11 +693,21 @@ footer a:hover {
 }
 
 .preview-collapsed .ide-shell {
-  grid-template-columns: minmax(180px, 220px) minmax(0, 1.7fr) 52px;
+  grid-template-columns:
+    var(--explorer-width)
+    8px
+    minmax(0, 1fr)
+    8px
+    52px;
 }
 
 .preview-collapsed #preview-panel .panel-body {
   display: none;
+}
+
+.preview-collapsed #preview-resize-handle {
+  pointer-events: none;
+  opacity: 0.25;
 }
 
 .preview-collapsed #preview-panel .panel-title,
