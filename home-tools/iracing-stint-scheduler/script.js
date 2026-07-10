@@ -32,7 +32,8 @@ const state = {
     drivers: [],
     unavailabilities: [], // { driverId, start, end }
     schedule: [],
-    qualifyingDriverId: null
+    qualifyingDriverId: null,
+    isScheduleManuallyEdited: false
 };
 
 let driverIdCounter = 1;
@@ -196,7 +197,13 @@ function updateDriverColor(id, color) {
     if (d) {
         d.color = color;
         renderDrivers();
-        if (state.schedule.length > 0) generateSchedule();
+        if (state.schedule.length > 0) {
+            if (state.isScheduleManuallyEdited) {
+                recalculateStatsAndRender();
+            } else {
+                generateSchedule();
+            }
+        }
     }
 }
 
@@ -356,6 +363,7 @@ function isDriverAvailable(driverId, stintStart, stintEnd) {
 }
 
 function generateSchedule() {
+    state.isScheduleManuallyEdited = false;
     if (state.drivers.length === 0) {
         alert("Please add at least one driver.");
         return;
@@ -611,6 +619,7 @@ window.handleStintDrop = function(e, targetIndex) {
         }
         
         targetStint.driver = driver;
+        state.isScheduleManuallyEdited = true;
         recalculateStatsAndRender();
     } else if (draggedStintIndex !== null) {
         const sourceStint = state.schedule[draggedStintIndex];
@@ -633,6 +642,7 @@ window.handleStintDrop = function(e, targetIndex) {
         sourceStint.driver = targetDriver;
         targetStint.driver = sourceDriver;
         
+        state.isScheduleManuallyEdited = true;
         recalculateStatsAndRender();
     }
 };
@@ -748,6 +758,7 @@ function importJSONConfig(jsonStr) {
         renderUnavailabilities();
         
         if (data.schedule && data.schedule.length > 0) {
+            state.isScheduleManuallyEdited = true;
             state.schedule = data.schedule.map(stint => ({
                 stintNumber: stint.stintNumber,
                 driver: state.drivers.find(d => d.id === stint.driverId) || null,
@@ -828,7 +839,11 @@ window.handleRosterDrop = function(e, targetIndex) {
         renderDrivers();
         renderDriverSelect();
         if (state.drivers.length > 0) {
-            generateSchedule();
+            if (state.isScheduleManuallyEdited) {
+                recalculateStatsAndRender();
+            } else {
+                generateSchedule();
+            }
         }
     }
 };
