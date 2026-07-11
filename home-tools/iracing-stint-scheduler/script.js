@@ -507,13 +507,18 @@ function renderSchedule(driverStats) {
         tr.setAttribute('ondragleave', 'handleStintDragLeave(event)');
         tr.setAttribute('ondrop', `handleStintDrop(event, ${idx})`);
         
-        let driverContent = '<span style="color: var(--danger-color)">NO DRIVER AVAILABLE</span>';
+        let driverContent = `
+            <div class="driver-cell empty-driver" onclick="handleDriverCellClick(event, ${idx})" style="cursor: pointer;">
+                <span style="color: var(--danger-color)">NO DRIVER AVAILABLE</span>
+                <i class="fa-solid fa-pencil edit-icon" style="margin-left: auto; font-size: 0.8rem; opacity: 0.3;"></i>
+            </div>
+        `;
         if (stint.driver) {
             driverContent = `
-                <div class="driver-cell" draggable="true" ondragstart="handleStintDragStart(event, ${idx})">
+                <div class="driver-cell" draggable="true" ondragstart="handleStintDragStart(event, ${idx})" onclick="handleDriverCellClick(event, ${idx})" style="cursor: pointer;">
                     <div class="driver-color-dot" style="background-color: ${stint.driver.color}"></div>
                     <span>${stint.driver.name}</span>
-                    <i class="fa-solid fa-bars drag-handle" style="margin-left: auto; font-size: 0.8rem;" title="Drag to swap"></i>
+                    <i class="fa-solid fa-bars drag-handle" style="margin-left: auto; font-size: 0.8rem;" title="Drag to swap" onclick="event.stopPropagation()"></i>
                 </div>
             `;
         }
@@ -846,6 +851,82 @@ window.handleRosterDrop = function(e, targetIndex) {
             }
         }
     }
+};
+
+window.handleDriverCellClick = function(event, stintIndex) {
+    const cell = event.currentTarget;
+    if (cell.querySelector('select')) return;
+    
+    event.stopPropagation();
+    
+    const stint = state.schedule[stintIndex];
+    if (!stint) return;
+    
+    // Create inline dropdown select
+    const select = document.createElement('select');
+    select.className = 'inline-driver-select';
+    select.style.width = '100%';
+    select.style.background = 'var(--bg-card)';
+    select.style.color = 'var(--text-primary)';
+    select.style.border = '1px solid var(--border-color)';
+    select.style.borderRadius = 'var(--radius-sm)';
+    select.style.padding = '0.2rem';
+    
+    // Default option
+    const optNone = document.createElement('option');
+    optNone.value = '';
+    optNone.textContent = '-- Unassigned --';
+    if (!stint.driver) optNone.selected = true;
+    select.appendChild(optNone);
+    
+    state.drivers.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = d.name;
+        if (stint.driver && stint.driver.id === d.id) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+    
+    cell.innerHTML = '';
+    cell.appendChild(select);
+    select.focus();
+    
+    // Listeners
+    select.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (!val) {
+            stint.driver = null;
+            state.isScheduleManuallyEdited = true;
+            recalculateStatsAndRender();
+        } else {
+            const driverId = parseInt(val);
+            const driver = state.drivers.find(d => d.id === driverId);
+            if (driver) {
+                if (!isDriverAvailable(driver.id, stint.startTime, stint.endTime)) {
+                    showAlert(`${driver.name} is unavailable during Stint ${stint.stintNumber}!`);
+                    recalculateStatsAndRender();
+                    return;
+                }
+                stint.driver = driver;
+                state.isScheduleManuallyEdited = true;
+                recalculateStatsAndRender();
+            }
+        }
+    });
+    
+    select.addEventListener('blur', () => {
+        setTimeout(() => {
+            if (document.body.contains(select)) {
+                recalculateStatsAndRender();
+            }
+        }, 150);
+    });
+    
+    select.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
 };
 
 // Initialize App
