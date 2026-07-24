@@ -65,6 +65,7 @@ const unavailEndEl = document.getElementById('unavail-end');
 const unavailListEl = document.getElementById('unavail-list');
 
 const generateBtn = document.getElementById('generate-btn');
+const deleteLastBtn = document.getElementById('delete-last-btn');
 const scheduleBody = document.getElementById('schedule-body');
 const headerStatsEl = document.getElementById('header-stats');
 const driverStatsContainerEl = document.getElementById('driver-stats-container');
@@ -126,6 +127,8 @@ function init() {
     document.getElementById('close-alert-btn').addEventListener('click', () => {
         document.getElementById('alert-modal').style.display = 'none';
     });
+    
+    deleteLastBtn.addEventListener('click', handleDeleteLastStint);
 
     updateCalcSummary();
 }
@@ -496,8 +499,11 @@ function renderSchedule(driverStats) {
         scheduleBody.innerHTML = '<tr class="empty-state"><td colspan="6">No schedule generated.</td></tr>';
         headerStatsEl.style.display = 'none';
         driverStatsContainerEl.style.display = 'none';
+        deleteLastBtn.style.display = 'none';
         return;
     }
+    
+    deleteLastBtn.style.display = 'inline-flex';
 
     state.schedule.forEach((stint, idx) => {
         const tr = document.createElement('tr');
@@ -526,7 +532,10 @@ function renderSchedule(driverStats) {
         tr.innerHTML = `
             <td>${stint.stintNumber}</td>
             <td>${driverContent}</td>
-            <td>${formatDateTime(stint.startTime)}</td>
+            <td class="start-time-cell" onclick="handleStartTimeClick(event, ${idx})" style="cursor: pointer;">
+                ${formatDateTime(stint.startTime)} 
+                <i class="fa-solid fa-pencil edit-icon" style="font-size: 0.65rem; opacity: 0.3; margin-left: 0.25rem;"></i>
+            </td>
             <td>${formatDateTime(stint.endTime)}</td>
             <td>${stint.laps}</td>
             <td>${stint.cumulativeLaps}</td>
@@ -815,7 +824,7 @@ function renderQualifyingBanner() {
 }
 
 function showAlert(message) {
-    document.getElementById('alert-message').textContent = message;
+    document.getElementById('alert-message').innerHTML = message;
     document.getElementById('alert-modal').style.display = 'flex';
 }
 
@@ -928,6 +937,120 @@ window.handleDriverCellClick = function(event, stintIndex) {
         e.stopPropagation();
     });
 };
+
+window.handleStartTimeClick = function(event, stintIndex) {
+    const cell = event.currentTarget;
+    if (cell.querySelector('input')) return;
+    
+    event.stopPropagation();
+    
+    const stint = state.schedule[stintIndex];
+    if (!stint) return;
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'datetime-local';
+    input.className = 'inline-time-input';
+    input.style.background = 'var(--bg-card)';
+    input.style.color = 'var(--text-primary)';
+    input.style.border = '1px solid var(--border-color)';
+    input.style.borderRadius = 'var(--radius-sm)';
+    input.style.padding = '0.2rem';
+    input.style.fontSize = '0.8rem';
+    
+    // Set current value in local datetime format
+    const tzOffset = stint.startTime.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(stint.startTime - tzOffset)).toISOString().slice(0, 16);
+    input.value = localISOTime;
+    
+    cell.innerHTML = '';
+    cell.appendChild(input);
+    input.focus();
+    
+    // Change listener
+    input.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (!val) {
+            recalculateStatsAndRender();
+            return;
+        }
+        
+        const newStart = new Date(val);
+        if (isNaN(newStart.getTime())) {
+            recalculateStatsAndRender();
+            return;
+        }
+        
+        shiftScheduleTimes(stintIndex, newStart);
+    });
+    
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            if (document.body.contains(input)) {
+                recalculateStatsAndRender();
+            }
+        }, 150);
+    });
+    
+    input.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+};
+
+function shiftScheduleTimes(startIndex, newStartTime) {
+    const stint = state.schedule[startIndex];
+    if (!stint) return;
+    
+    const timeDelta = newStartTime.getTime() - stint.startTime.getTime();
+    if (timeDelta === 0) {
+        recalculateStatsAndRender();
+        return;
+    }
+    
+    // Shift this stint
+    const duration = stint.endTime.getTime() - stint.startTime.getTime();
+    stint.startTime = newStartTime;
+    stint.endTime = new Date(newStartTime.getTime() + duration);
+    
+    // Check conflict for this stint
+    let conflicts = [];
+    if (stint.driver && !isDriverAvailable(stint.driver.id, stint.startTime, stint.endTime)) {
+        conflicts.push(`Stint ${stint.stintNumber} (${stint.driver.name})`);
+        stint.driver = null;
+    }
+    
+    // Shift all subsequent stints
+    const pitStopTimeMs = parseFloat(pitStopTimeEl.value) * 1000;
+    
+    for (let i = startIndex + 1; i < state.schedule.length; i++) {
+        const currentStint = state.schedule[i];
+        const prevStint = state.schedule[i - 1];
+        
+        const stintDuration = currentStint.endTime.getTime() - currentStint.startTime.getTime();
+        
+        currentStint.startTime = new Date(prevStint.endTime.getTime() + pitStopTimeMs);
+        currentStint.endTime = new Date(currentStint.startTime.getTime() + stintDuration);
+        
+        if (currentStint.driver && !isDriverAvailable(currentStint.driver.id, currentStint.startTime, currentStint.endTime)) {
+            conflicts.push(`Stint ${currentStint.stintNumber} (${currentStint.driver.name})`);
+            currentStint.driver = null;
+        }
+    }
+    
+    state.isScheduleManuallyEdited = true;
+    recalculateStatsAndRender();
+    
+    if (conflicts.length > 0) {
+        showAlert(`The following stints had driver availability conflicts due to the time shift and were set to UNASSIGNED:<br><br>${conflicts.join('<br>')}`);
+    }
+}
+
+function handleDeleteLastStint() {
+    if (state.schedule.length === 0) return;
+    state.schedule.pop();
+    state.isScheduleManuallyEdited = true;
+    recalculateStatsAndRender();
+}
 
 // Initialize App
 init();
