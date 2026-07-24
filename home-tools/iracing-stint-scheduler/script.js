@@ -20,6 +20,11 @@ const presetData = {
             "gt3": { lapTime: 138, fuelPerLapL: 4.2 },
             "gtp": { lapTime: 122, fuelPerLapL: 3.0 },
             "lmp2": { lapTime: 125, fuelPerLapL: 3.2 }
+        },
+        "roadamerica": {
+            "gt3": { lapTime: 124, fuelPerLapL: 4.0 },
+            "gtp": { lapTime: 107, fuelPerLapL: 2.7 },
+            "lmp2": { lapTime: 111, fuelPerLapL: 3.0 }
         }
     }
 };
@@ -105,17 +110,43 @@ function init() {
     // Listeners
     addDriverForm.addEventListener('submit', handleAddDriver);
     addUnavailabilityForm.addEventListener('submit', handleAddUnavailability);
-    generateBtn.addEventListener('click', generateSchedule);
+    generateBtn.addEventListener('click', () => {
+        generateSchedule();
+        encodeStateToURL();
+    });
     
-    presetCarEl.addEventListener('change', updatePresets);
-    presetTrackEl.addEventListener('change', updatePresets);
-    fuelUnitEl.addEventListener('change', updateUnits);
+    presetCarEl.addEventListener('change', () => {
+        updatePresets();
+        encodeStateToURL();
+    });
+    presetTrackEl.addEventListener('change', () => {
+        updatePresets();
+        encodeStateToURL();
+    });
+    fuelUnitEl.addEventListener('change', () => {
+        updateUnits();
+        encodeStateToURL();
+    });
     
     driverColorEl.value = defaultColors[colorIndex];
 
     // Calc listeners
-    [avgLapTimeEl, fuelPerLapEl, tankCapacityEl].forEach(el => {
-        el.addEventListener('input', updateCalcSummary);
+    [avgLapTimeEl, fuelPerLapEl, tankCapacityEl, raceDurationEl, raceStartEl, pitStopTimeEl].forEach(el => {
+        el.addEventListener('input', () => {
+            updateCalcSummary();
+            encodeStateToURL();
+        });
+    });
+    
+    maxConsecutiveEl.addEventListener('change', () => {
+        if (state.drivers.length > 0) {
+            if (state.isScheduleManuallyEdited) {
+                recalculateStatsAndRender();
+            } else {
+                generateSchedule();
+            }
+        }
+        encodeStateToURL();
     });
     
     // Modal Listeners
@@ -124,6 +155,11 @@ function init() {
     copyJsonBtnEl.addEventListener('click', copyJSONConfig);
     importJsonBtnEl.addEventListener('click', importJSONConfigAction);
     
+    const shareLinkBtnEl = document.getElementById('share-link-btn');
+    if (shareLinkBtnEl) {
+        shareLinkBtnEl.addEventListener('click', copyShareLink);
+    }
+    
     document.getElementById('close-alert-btn').addEventListener('click', () => {
         document.getElementById('alert-modal').style.display = 'none';
     });
@@ -131,6 +167,12 @@ function init() {
     deleteLastBtn.addEventListener('click', handleDeleteLastStint);
 
     updateCalcSummary();
+
+    // Check URL Hash for deep link data
+    const loadedFromURL = decodeStateFromURL();
+    if (!loadedFromURL) {
+        encodeStateToURL();
+    }
 }
 
 // Calculations
@@ -227,6 +269,7 @@ function handleAddDriver(e) {
     
     renderDrivers();
     renderDriverSelect();
+    encodeStateToURL();
 }
 
 function removeDriver(id) {
@@ -238,6 +281,7 @@ function removeDriver(id) {
     renderDrivers();
     renderDriverSelect();
     renderUnavailabilities();
+    encodeStateToURL();
 }
 
 function renderDrivers() {
@@ -247,6 +291,8 @@ function renderDrivers() {
         renderQualifyingBanner();
         return;
     }
+
+    const qualyId = getActiveQualifyingDriverId();
 
     state.drivers.forEach((driver, idx) => {
         const div = document.createElement('div');
@@ -258,7 +304,7 @@ function renderDrivers() {
         div.setAttribute('ondragleave', 'handleRosterDragLeave(event)');
         div.setAttribute('ondrop', `handleRosterDrop(event, ${idx})`);
         
-        const isQualy = state.qualifyingDriverId === driver.id;
+        const isQualy = qualyId === driver.id;
         const starClass = isQualy ? 'fa-solid fa-star text-yellow' : 'fa-regular fa-star';
         
         div.innerHTML = `
@@ -267,7 +313,7 @@ function renderDrivers() {
                 <span>${driver.name}</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <button class="btn-star" onclick="toggleQualifying(${driver.id})" title="Set as Qualifying Driver">
+                <button class="btn-star" onclick="toggleQualifying(${driver.id})" title="Set as Qualifying & 1st Stint Driver">
                     <i class="${starClass}"></i>
                 </button>
                 <i class="fa-solid fa-bars drag-handle" title="Drag to Schedule"></i>
@@ -320,11 +366,13 @@ function handleAddUnavailability(e) {
     unavailStartEl.value = '';
     unavailEndEl.value = '';
     renderUnavailabilities();
+    encodeStateToURL();
 }
 
 function removeUnavailability(id) {
     state.unavailabilities = state.unavailabilities.filter(u => u.id !== id);
     renderUnavailabilities();
+    encodeStateToURL();
 }
 
 function renderUnavailabilities() {
@@ -404,7 +452,8 @@ function generateSchedule() {
 
     let consecutiveDriverId = null;
     let consecutiveCount = 0;
-    const maxConsecutive = parseInt(maxConsecutiveEl.value) || 2;
+    const maxConsecutiveRaw = parseInt(maxConsecutiveEl.value);
+    const maxConsecutive = isNaN(maxConsecutiveRaw) ? 2 : maxConsecutiveRaw;
 
     let previousDriverId = null; // Try to avoid immediate double stints if possible
 
@@ -430,13 +479,23 @@ function generateSchedule() {
         // Find available driver
         let availableDrivers = state.drivers.filter(d => isDriverAvailable(d.id, stintStart, stintEndDrive));
         
-        // Filter out drivers who have hit consecutive limit
-        if (consecutiveDriverId !== null && consecutiveCount >= maxConsecutive && availableDrivers.length > 1) {
+        // Filter out drivers who have hit consecutive limit if maxConsecutive > 0
+        if (maxConsecutive > 0 && consecutiveDriverId !== null && consecutiveCount >= maxConsecutive && availableDrivers.length > 1) {
             availableDrivers = availableDrivers.filter(d => d.id !== consecutiveDriverId);
         }
         
         let selectedDriver = null;
-        if (availableDrivers.length > 0) {
+
+        // Stint 1 priority: qualifying driver (starred driver or first driver in roster)
+        const qualyId = getActiveQualifyingDriverId();
+        if (stintNumber === 1 && qualyId) {
+            const qualyDriver = state.drivers.find(d => d.id === qualyId);
+            if (qualyDriver && availableDrivers.some(d => d.id === qualyId)) {
+                selectedDriver = qualyDriver;
+            }
+        }
+
+        if (!selectedDriver && availableDrivers.length > 0) {
             // Sort by minimum drive time first.
             // If equal, prefer someone other than the previous driver.
             // If still equal, break ties by roster order (top driver gets priority).
@@ -676,6 +735,7 @@ function recalculateStatsAndRender() {
     });
     
     renderSchedule(driverStats);
+    encodeStateToURL();
 }
 
 // Modal and JSON Configuration Handlers
@@ -792,22 +852,39 @@ function importJSONConfig(jsonStr) {
     }
 }
 
+function getActiveQualifyingDriverId() {
+    if (state.qualifyingDriverId && state.drivers.some(d => d.id === state.qualifyingDriverId)) {
+        return state.qualifyingDriverId;
+    }
+    return state.drivers.length > 0 ? state.drivers[0].id : null;
+}
+
 window.toggleQualifying = function(driverId) {
-    if (state.qualifyingDriverId === driverId) {
-        state.qualifyingDriverId = null;
+    const activeQualyId = getActiveQualifyingDriverId();
+    if (activeQualyId === driverId) {
+        state.qualifyingDriverId = (state.drivers[0] && state.drivers[0].id === driverId) ? null : driverId;
     } else {
         state.qualifyingDriverId = driverId;
     }
     renderDrivers();
+    if (state.drivers.length > 0) {
+        if (state.isScheduleManuallyEdited) {
+            recalculateStatsAndRender();
+        } else {
+            generateSchedule();
+        }
+    }
+    encodeStateToURL();
 };
 
 function renderQualifyingBanner() {
     const banner = document.getElementById('qualifying-banner');
-    if (!state.qualifyingDriverId) {
+    const qualyId = getActiveQualifyingDriverId();
+    if (!qualyId) {
         banner.style.display = 'none';
         return;
     }
-    const driver = state.drivers.find(d => d.id === state.qualifyingDriverId);
+    const driver = state.drivers.find(d => d.id === qualyId);
     if (!driver) {
         banner.style.display = 'none';
         return;
@@ -815,7 +892,7 @@ function renderQualifyingBanner() {
     banner.style.display = 'flex';
     banner.innerHTML = `
         <i class="fa-solid fa-star star-icon"></i>
-        <span>Qualifying Driver:</span>
+        <span>Qualifying Driver & 1st Stint:</span>
         <span class="driver-badge">
             <div class="driver-color-dot" style="background-color: ${driver.color}; width: 10px; height: 10px; border-radius: 50%;"></div>
             ${driver.name}
@@ -1050,6 +1127,48 @@ function handleDeleteLastStint() {
     state.schedule.pop();
     state.isScheduleManuallyEdited = true;
     recalculateStatsAndRender();
+}
+
+// URL Hash Deep Linking & Sharing
+function encodeStateToURL() {
+    try {
+        const jsonStr = getJSONConfig();
+        const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+        history.replaceState(null, '', '#' + base64);
+    } catch (e) {
+        console.error('Failed to sync URL state', e);
+    }
+}
+
+function decodeStateFromURL() {
+    try {
+        const hash = location.hash.replace(/^#/, '').trim();
+        if (!hash) return false;
+        const rawBase64 = hash.startsWith('config=') ? hash.slice(7) : hash;
+        if (!rawBase64) return false;
+        
+        const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(rawBase64), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        return importJSONConfig(jsonStr, false);
+    } catch (e) {
+        console.error('Failed to decode URL config', e);
+        return false;
+    }
+}
+
+function copyShareLink() {
+    encodeStateToURL();
+    const shareLinkBtnEl = document.getElementById('share-link-btn');
+    navigator.clipboard.writeText(window.location.href)
+        .then(() => {
+            if (shareLinkBtnEl) {
+                const originalText = shareLinkBtnEl.innerHTML;
+                shareLinkBtnEl.innerHTML = '<i class="fa-solid fa-check"></i> Copied Link!';
+                setTimeout(() => {
+                    shareLinkBtnEl.innerHTML = originalText;
+                }, 2000);
+            }
+        })
+        .catch(err => alert('Failed to copy link: ' + err));
 }
 
 // Initialize App
