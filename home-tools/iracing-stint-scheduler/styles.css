@@ -769,3 +769,11 @@ button {
     color: #10b981 !important; /* GREEN if actual start time is after scheduled time */
     font-weight: 600;
 }
+
+.initial-time-subtext {
+    font-size: 0.725rem;
+    color: rgba(255, 255, 255, 0.75) !important;
+    font-weight: 400;
+    margin-top: 0.15rem;
+    line-height: 1.1;
+}

@@ -633,22 +633,28 @@ function renderSchedule(driverStats) {
         }
 
         let startTimeClass = '';
+        let startTimeSubtext = '';
         if (stint.scheduledStartTime) {
             const diffStart = stint.startTime.getTime() - stint.scheduledStartTime.getTime();
             if (diffStart < -1000) {
                 startTimeClass = 'start-time-earlier';
+                startTimeSubtext = `<div class="initial-time-subtext">Original: ${formatTime(stint.scheduledStartTime)}</div>`;
             } else if (diffStart > 1000) {
                 startTimeClass = 'start-time-later';
+                startTimeSubtext = `<div class="initial-time-subtext">Original: ${formatTime(stint.scheduledStartTime)}</div>`;
             }
         }
 
         let endTimeClass = '';
+        let endTimeSubtext = '';
         if (stint.scheduledEndTime) {
             const diffEnd = stint.endTime.getTime() - stint.scheduledEndTime.getTime();
             if (diffEnd < -1000) {
                 endTimeClass = 'start-time-earlier';
+                endTimeSubtext = `<div class="initial-time-subtext">Original: ${formatTime(stint.scheduledEndTime)}</div>`;
             } else if (diffEnd > 1000) {
                 endTimeClass = 'start-time-later';
+                endTimeSubtext = `<div class="initial-time-subtext">Original: ${formatTime(stint.scheduledEndTime)}</div>`;
             }
         }
 
@@ -656,10 +662,16 @@ function renderSchedule(driverStats) {
             <td>${stint.stintNumber}</td>
             <td>${driverContent}</td>
             <td class="start-time-cell ${startTimeClass}" onclick="handleStartTimeClick(event, ${idx})" style="cursor: pointer;">
-                ${formatDateTime(stint.startTime)} 
-                <i class="fa-solid fa-pencil edit-icon" style="font-size: 0.65rem; opacity: 0.3; margin-left: 0.25rem;"></i>
+                <div>
+                    ${formatDateTime(stint.startTime)} 
+                    <i class="fa-solid fa-pencil edit-icon" style="font-size: 0.65rem; opacity: 0.3; margin-left: 0.25rem;"></i>
+                </div>
+                ${startTimeSubtext}
             </td>
-            <td class="${endTimeClass}">${formatDateTime(stint.endTime)}</td>
+            <td class="${endTimeClass}">
+                <div>${formatDateTime(stint.endTime)}</div>
+                ${endTimeSubtext}
+            </td>
             <td>${stint.laps}</td>
             <td>${stint.cumulativeLaps}</td>
         `;
