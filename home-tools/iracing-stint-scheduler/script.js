@@ -575,7 +575,9 @@ function generateSchedule() {
             stintNumber,
             driver: selectedDriver,
             startTime: stintStart,
+            scheduledStartTime: new Date(stintStart.getTime()),
             endTime: stintEndDrive,
+            scheduledEndTime: new Date(stintEndDrive.getTime()),
             laps: currentStintLaps,
             cumulativeLaps
         });
@@ -625,14 +627,34 @@ function renderSchedule(driverStats) {
             `;
         }
 
+        let startTimeClass = '';
+        if (stint.scheduledStartTime) {
+            const diffStart = stint.startTime.getTime() - stint.scheduledStartTime.getTime();
+            if (diffStart < -1000) {
+                startTimeClass = 'start-time-earlier';
+            } else if (diffStart > 1000) {
+                startTimeClass = 'start-time-later';
+            }
+        }
+
+        let endTimeClass = '';
+        if (stint.scheduledEndTime) {
+            const diffEnd = stint.endTime.getTime() - stint.scheduledEndTime.getTime();
+            if (diffEnd < -1000) {
+                endTimeClass = 'start-time-earlier';
+            } else if (diffEnd > 1000) {
+                endTimeClass = 'start-time-later';
+            }
+        }
+
         tr.innerHTML = `
             <td>${stint.stintNumber}</td>
             <td>${driverContent}</td>
-            <td class="start-time-cell" onclick="handleStartTimeClick(event, ${idx})" style="cursor: pointer;">
+            <td class="start-time-cell ${startTimeClass}" onclick="handleStartTimeClick(event, ${idx})" style="cursor: pointer;">
                 ${formatDateTime(stint.startTime)} 
                 <i class="fa-solid fa-pencil edit-icon" style="font-size: 0.65rem; opacity: 0.3; margin-left: 0.25rem;"></i>
             </td>
-            <td>${formatDateTime(stint.endTime)}</td>
+            <td class="${endTimeClass}">${formatDateTime(stint.endTime)}</td>
             <td>${stint.laps}</td>
             <td>${stint.cumulativeLaps}</td>
         `;
@@ -821,7 +843,9 @@ function getJSONConfig() {
             stintNumber: stint.stintNumber,
             driverId: stint.driver ? stint.driver.id : null,
             startTime: stint.startTime.toISOString(),
+            scheduledStartTime: stint.scheduledStartTime ? stint.scheduledStartTime.toISOString() : stint.startTime.toISOString(),
             endTime: stint.endTime.toISOString(),
+            scheduledEndTime: stint.scheduledEndTime ? stint.scheduledEndTime.toISOString() : stint.endTime.toISOString(),
             laps: stint.laps,
             cumulativeLaps: stint.cumulativeLaps
         }))
@@ -874,7 +898,9 @@ function importJSONConfig(jsonStr) {
                 stintNumber: stint.stintNumber,
                 driver: state.drivers.find(d => d.id === stint.driverId) || null,
                 startTime: new Date(stint.startTime),
+                scheduledStartTime: stint.scheduledStartTime ? new Date(stint.scheduledStartTime) : new Date(stint.startTime),
                 endTime: new Date(stint.endTime),
+                scheduledEndTime: stint.scheduledEndTime ? new Date(stint.scheduledEndTime) : new Date(stint.endTime),
                 laps: stint.laps,
                 cumulativeLaps: stint.cumulativeLaps
             }));
@@ -1121,13 +1147,26 @@ function shiftScheduleTimes(startIndex, newStartTime) {
         return;
     }
     
+    let conflicts = [];
+
+    // Adjust previous stint's end time to match overridden stint start time
+    if (startIndex > 0) {
+        const prevStint = state.schedule[startIndex - 1];
+        if (prevStint) {
+            prevStint.endTime = new Date(newStartTime.getTime());
+            if (prevStint.driver && !isDriverAvailable(prevStint.driver.id, prevStint.startTime, prevStint.endTime)) {
+                conflicts.push(`Stint ${prevStint.stintNumber} (${prevStint.driver.name})`);
+                prevStint.driver = null;
+            }
+        }
+    }
+    
     // Shift this stint
     const duration = stint.endTime.getTime() - stint.startTime.getTime();
     stint.startTime = newStartTime;
     stint.endTime = new Date(newStartTime.getTime() + duration);
     
     // Check conflict for this stint
-    let conflicts = [];
     if (stint.driver && !isDriverAvailable(stint.driver.id, stint.startTime, stint.endTime)) {
         conflicts.push(`Stint ${stint.stintNumber} (${stint.driver.name})`);
         stint.driver = null;

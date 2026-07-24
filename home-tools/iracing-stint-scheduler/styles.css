@@ -617,3 +617,14 @@ button {
     color: var(--primary-color);
     font-weight: 600;
 }
+
+/* Overridden Start Time Highlight Colors */
+.start-time-earlier {
+    color: #ef4444 !important; /* RED if actual start time is before scheduled time */
+    font-weight: 600;
+}
+
+.start-time-later {
+    color: #10b981 !important; /* GREEN if actual start time is after scheduled time */
+    font-weight: 600;
+}
