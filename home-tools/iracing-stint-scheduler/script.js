@@ -632,14 +632,12 @@ function renderSchedule(driverStats) {
             `;
         }
 
-        const FIVE_MIN_MS = 5 * 60 * 1000;
-
         let startTimeClass = '';
         if (stint.scheduledStartTime) {
             const diffStart = stint.startTime.getTime() - stint.scheduledStartTime.getTime();
-            if (diffStart < -FIVE_MIN_MS) {
+            if (diffStart < -1000) {
                 startTimeClass = 'start-time-earlier';
-            } else if (diffStart > FIVE_MIN_MS) {
+            } else if (diffStart > 1000) {
                 startTimeClass = 'start-time-later';
             }
         }
@@ -647,9 +645,9 @@ function renderSchedule(driverStats) {
         let endTimeClass = '';
         if (stint.scheduledEndTime) {
             const diffEnd = stint.endTime.getTime() - stint.scheduledEndTime.getTime();
-            if (diffEnd < -FIVE_MIN_MS) {
+            if (diffEnd < -1000) {
                 endTimeClass = 'start-time-earlier';
-            } else if (diffEnd > FIVE_MIN_MS) {
+            } else if (diffEnd > 1000) {
                 endTimeClass = 'start-time-later';
             }
         }
