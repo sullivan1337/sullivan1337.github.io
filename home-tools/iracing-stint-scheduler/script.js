@@ -186,7 +186,9 @@ function getStintSpecs() {
         return { maxLaps: 0, stintTimeSec: 0, totalStintTimeSec: 0 };
     }
 
-    const maxLaps = Math.floor(tankCapacity / fuelPerLap);
+    // Apply 2% buffer below maximum fuel capacity for safety margin
+    const usableCapacity = tankCapacity * 0.98;
+    const maxLaps = Math.floor(usableCapacity / fuelPerLap);
     const stintTimeSec = maxLaps * avgLapTimeSec;
     const totalStintTimeSec = stintTimeSec + pitStopTimeSec;
 
@@ -202,6 +204,41 @@ function updateCalcSummary() {
         summaryMaxLapsEl.textContent = '--';
         summaryStintTimeEl.textContent = '--';
     }
+    updateSessionTimesHeader();
+}
+
+function updateSessionTimesHeader() {
+    const badgeEl = document.getElementById('session-times-badge');
+    if (!badgeEl) return;
+    const raceStartVal = raceStartEl.value;
+    if (!raceStartVal) {
+        badgeEl.style.display = 'none';
+        return;
+    }
+    const raceStartTime = new Date(raceStartVal);
+    if (isNaN(raceStartTime.getTime())) {
+        badgeEl.style.display = 'none';
+        return;
+    }
+
+    const qualyStartTime = new Date(raceStartTime.getTime() - 15 * 60 * 1000);
+    const practiceStartTime = new Date(raceStartTime.getTime() - 45 * 60 * 1000);
+
+    badgeEl.style.display = 'flex';
+    badgeEl.innerHTML = `
+        <div class="session-time-item">
+            <span class="session-label"><i class="fa-solid fa-stopwatch"></i> Practice (30m)</span>
+            <span class="session-val">${formatTime(practiceStartTime)}</span>
+        </div>
+        <div class="session-time-item">
+            <span class="session-label"><i class="fa-solid fa-flag-checkered"></i> Qualy (15m)</span>
+            <span class="session-val">${formatTime(qualyStartTime)}</span>
+        </div>
+        <div class="session-time-item">
+            <span class="session-label"><i class="fa-solid fa-play"></i> Race Start</span>
+            <span class="session-val">${formatTime(raceStartTime)}</span>
+        </div>
+    `;
 }
 
 // Driver Management
