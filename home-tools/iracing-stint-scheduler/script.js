@@ -46,6 +46,7 @@ let driverIdCounter = 1;
 // DOM Elements
 const raceDurationEl = document.getElementById('race-duration');
 const raceStartEl = document.getElementById('race-start');
+const sessionNameEl = document.getElementById('session-name');
 const maxConsecutiveEl = document.getElementById('max-consecutive');
 const presetCarEl = document.getElementById('preset-car');
 const presetTrackEl = document.getElementById('preset-track');
@@ -137,6 +138,10 @@ function init() {
             encodeStateToURL();
         });
     });
+    
+    if (sessionNameEl) {
+        sessionNameEl.addEventListener('input', encodeStateToURL);
+    }
     
     maxConsecutiveEl.addEventListener('change', () => {
         if (state.drivers.length > 0) {
@@ -822,6 +827,7 @@ function copyJSONConfig() {
 
 function getJSONConfig() {
     return JSON.stringify({
+        sessionName: sessionNameEl ? sessionNameEl.value : '',
         duration: raceDurationEl.value,
         startTime: raceStartEl.value,
         maxConsecutive: maxConsecutiveEl.value,
@@ -864,6 +870,9 @@ function importJSONConfigAction() {
 function importJSONConfig(jsonStr) {
     try {
         const data = JSON.parse(jsonStr);
+        if (sessionNameEl && data.sessionName !== undefined) {
+            sessionNameEl.value = data.sessionName;
+        }
         raceDurationEl.value = data.duration || 1440;
         raceStartEl.value = data.startTime || '';
         maxConsecutiveEl.value = data.maxConsecutive || 2;
@@ -1208,9 +1217,17 @@ function handleDeleteLastStint() {
 // URL Hash Deep Linking & Sharing
 function encodeStateToURL() {
     try {
+        const sessionName = sessionNameEl ? sessionNameEl.value.trim() : '';
         const jsonStr = getJSONConfig();
         const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
-        history.replaceState(null, '', '#' + base64);
+        
+        let hashStr = '';
+        if (sessionName) {
+            hashStr = `#session=${encodeURIComponent(sessionName)}&config=${base64}`;
+        } else {
+            hashStr = `#config=${base64}`;
+        }
+        history.replaceState(null, '', location.pathname + location.search + hashStr);
     } catch (e) {
         console.error('Failed to sync URL state', e);
     }
@@ -1220,11 +1237,38 @@ function decodeStateFromURL() {
     try {
         const hash = location.hash.replace(/^#/, '').trim();
         if (!hash) return false;
-        const rawBase64 = hash.startsWith('config=') ? hash.slice(7) : hash;
-        if (!rawBase64) return false;
+        
+        let rawBase64 = '';
+        let cleartextSession = '';
+        
+        if (hash.includes('&config=')) {
+            const parts = hash.split('&config=');
+            rawBase64 = parts[1];
+            if (parts[0].startsWith('session=')) {
+                cleartextSession = decodeURIComponent(parts[0].slice(8));
+            } else if (parts[0].startsWith('name=')) {
+                cleartextSession = decodeURIComponent(parts[0].slice(5));
+            }
+        } else if (hash.startsWith('config=')) {
+            rawBase64 = hash.slice(7);
+        } else if (hash.startsWith('session=')) {
+            cleartextSession = decodeURIComponent(hash.slice(8));
+        } else {
+            rawBase64 = hash;
+        }
+        
+        if (cleartextSession && sessionNameEl) {
+            sessionNameEl.value = cleartextSession;
+        }
+        
+        if (!rawBase64) return true;
         
         const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(rawBase64), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        return importJSONConfig(jsonStr, false);
+        const result = importJSONConfig(jsonStr, false);
+        if (cleartextSession && sessionNameEl) {
+            sessionNameEl.value = cleartextSession;
+        }
+        return result;
     } catch (e) {
         console.error('Failed to decode URL config', e);
         return false;
