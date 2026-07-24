@@ -460,15 +460,130 @@ button {
     margin-right: auto;
 }
 
+/* Mobile & Tablet Responsive Enhancements */
+@media (max-width: 1024px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
     .app-header {
+        position: relative; /* Prevents header overhang/floating clipping on mobile */
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .header-content h1 {
+        font-size: 1.1rem;
+        justify-content: center;
+    }
+
+    .session-name-input {
+        width: 100%;
+        text-align: center;
+    }
+
+    .header-stats {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .header-actions {
+        width: 100%;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .header-actions button {
+        flex: 1;
+        font-size: 0.8rem;
+        padding: 0.6rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    .app-container {
+        padding: 0.75rem;
+        gap: 1rem;
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
+    }
+
+    .config-panel, .schedule-panel {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .card-header {
+        padding: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .input-group-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .input-group.half {
+        width: 100%;
+    }
+
+    .calc-summary {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .schedule-title-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: 0.5rem;
     }
-    .header-stats {
-        margin-left: 0;
-        flex-wrap: wrap;
+
+    .session-times-badge {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .schedule-header {
+        flex-direction: column;
+        gap: 0.5rem !important;
+    }
+
+    .schedule-header button {
+        width: 100%;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .schedule-table {
+        min-width: 580px; /* Enables smooth horizontal scrolling for stint schedule on phone */
+    }
+
+    .schedule-table th, 
+    .schedule-table td {
+        padding: 0.6rem 0.75rem;
+        white-space: nowrap;
     }
 }
 
