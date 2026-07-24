@@ -1214,18 +1214,431 @@ function handleDeleteLastStint() {
     recalculateStatsAndRender();
 }
 
+// Compact Config Schema & LZ Compression for Short Deep Links
+function getCompactConfig() {
+    const drivers = state.drivers.map(d => [d.id, d.name, d.color]);
+    const unavailabilities = state.unavailabilities.map(u => [
+        u.driverId,
+        u.start instanceof Date ? u.start.toISOString() : u.start,
+        u.end instanceof Date ? u.end.toISOString() : u.end
+    ]);
+    const compact = {
+        dur: parseFloat(raceDurationEl.value) || 1440,
+        st: raceStartEl.value || '',
+        mc: parseInt(maxConsecutiveEl.value) || 2,
+        lt: parseFloat(avgLapTimeEl.value) || 120,
+        pt: parseFloat(pitStopTimeEl.value) || 45,
+        fu: fuelUnitEl.value || 'L',
+        fl: parseFloat(fuelPerLapEl.value) || 3.5,
+        tc: parseFloat(tankCapacityEl.value) || 105,
+        pc: presetCarEl.value || '',
+        ptk: presetTrackEl.value || '',
+        qid: state.qualifyingDriverId,
+        drv: drivers,
+        un: unavailabilities
+    };
+
+    if (state.isScheduleManuallyEdited && state.schedule.length > 0) {
+        compact.sch = state.schedule.map(s => [
+            s.stintNumber,
+            s.driver ? s.driver.id : null,
+            s.startTime.toISOString(),
+            s.scheduledStartTime ? s.scheduledStartTime.toISOString() : s.startTime.toISOString(),
+            s.endTime.toISOString(),
+            s.scheduledEndTime ? s.scheduledEndTime.toISOString() : s.endTime.toISOString()
+        ]);
+    }
+    return compact;
+}
+
+function importCompactConfig(data) {
+    if (!data) return false;
+    raceDurationEl.value = data.dur || 1440;
+    raceStartEl.value = data.st || '';
+    maxConsecutiveEl.value = data.mc !== undefined ? data.mc : 2;
+    avgLapTimeEl.value = data.lt || 120;
+    pitStopTimeEl.value = data.pt || 45;
+    fuelUnitEl.value = data.fu || 'L';
+    fuelPerLapEl.value = data.fl || 3.5;
+    tankCapacityEl.value = data.tc || 105;
+    presetCarEl.value = data.pc || '';
+    presetTrackEl.value = data.ptk || '';
+    state.qualifyingDriverId = data.qid || null;
+
+    state.drivers = (data.drv || []).map(d => ({
+        id: d[0],
+        name: d[1],
+        color: d[2]
+    }));
+    driverIdCounter = state.drivers.reduce((max, d) => Math.max(max, d.id), 0) + 1;
+
+    state.unavailabilities = (data.un || []).map(u => ({
+        id: Math.random(),
+        driverId: u[0],
+        start: new Date(u[1]),
+        end: new Date(u[2])
+    }));
+
+    updateUnitsLabelsOnly();
+    updateCalcSummary();
+    renderDrivers();
+    renderDriverSelect();
+    renderUnavailabilities();
+
+    if (data.sch && data.sch.length > 0) {
+        state.isScheduleManuallyEdited = true;
+        state.schedule = data.sch.map(s => ({
+            stintNumber: s[0],
+            driver: state.drivers.find(d => d.id === s[1]) || null,
+            startTime: new Date(s[2]),
+            scheduledStartTime: s[3] ? new Date(s[3]) : new Date(s[2]),
+            endTime: new Date(s[4]),
+            scheduledEndTime: s[5] ? new Date(s[5]) : new Date(s[4]),
+            laps: Math.ceil((new Date(s[4]) - new Date(s[2])) / 1000 / (parseFloat(avgLapTimeEl.value) || 120)),
+            cumulativeLaps: 0
+        }));
+        recalculateStatsAndRender();
+    } else if (state.drivers.length > 0) {
+        generateSchedule();
+    }
+    return true;
+}
+
+// Lightweight LZ String Compressor
+const LZ = {
+    compress: function(uncompressed) {
+        if (uncompressed == null) return "";
+        let i, value,
+            context_dictionary = {},
+            context_dictionaryToCreate = {},
+            context_c = "",
+            context_wc = "",
+            context_w = "",
+            context_enlargeIn = 2,
+            context_dictSize = 3,
+            context_numBits = 2,
+            context_data = [],
+            context_data_val = 0,
+            context_data_position = 0;
+
+        const keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+
+        for (let ii = 0; ii < uncompressed.length; ii += 1) {
+            context_c = uncompressed.charAt(ii);
+            if (!Object.prototype.hasOwnProperty.call(context_dictionary, context_c)) {
+                context_dictionary[context_c] = context_dictSize++;
+                context_dictionaryToCreate[context_c] = true;
+            }
+            context_wc = context_w + context_c;
+            if (Object.prototype.hasOwnProperty.call(context_dictionary, context_wc)) {
+                context_w = context_wc;
+            } else {
+                if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+                    if (context_w.charCodeAt(0) < 256) {
+                        for (i = 0; i < context_numBits; i++) {
+                            context_data_val = (context_data_val << 1);
+                            if (context_data_position == 5) {
+                                context_data_position = 0;
+                                context_data.push(keyStr.charAt(context_data_val));
+                                context_data_val = 0;
+                            } else {
+                                context_data_position++;
+                            }
+                        }
+                        value = context_w.charCodeAt(0);
+                        for (i = 0; i < 8; i++) {
+                            context_data_val = (context_data_val << 1) | (value & 1);
+                            if (context_data_position == 5) {
+                                context_data_position = 0;
+                                context_data.push(keyStr.charAt(context_data_val));
+                                context_data_val = 0;
+                            } else {
+                                context_data_position++;
+                            }
+                            value = value >> 1;
+                        }
+                    } else {
+                        value = 1;
+                        for (i = 0; i < context_numBits; i++) {
+                            context_data_val = (context_data_val << 1) | value;
+                            if (context_data_position == 5) {
+                                context_data_position = 0;
+                                context_data.push(keyStr.charAt(context_data_val));
+                                context_data_val = 0;
+                            } else {
+                                context_data_position++;
+                            }
+                            value = 0;
+                        }
+                        value = context_w.charCodeAt(0);
+                        for (i = 0; i < 16; i++) {
+                            context_data_val = (context_data_val << 1) | (value & 1);
+                            if (context_data_position == 5) {
+                                context_data_position = 0;
+                                context_data.push(keyStr.charAt(context_data_val));
+                                context_data_val = 0;
+                            } else {
+                                context_data_position++;
+                            }
+                            value = value >> 1;
+                        }
+                    }
+                    context_enlargeIn--;
+                    if (context_enlargeIn == 0) {
+                        context_enlargeIn = Math.pow(2, context_numBits);
+                        context_numBits++;
+                    }
+                    delete context_dictionaryToCreate[context_w];
+                } else {
+                    value = context_dictionary[context_w];
+                    for (i = 0; i < context_numBits; i++) {
+                        context_data_val = (context_data_val << 1) | (value & 1);
+                        if (context_data_position == 5) {
+                            context_data_position = 0;
+                            context_data.push(keyStr.charAt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position++;
+                        }
+                        value = value >> 1;
+                    }
+                }
+                context_enlargeIn--;
+                if (context_enlargeIn == 0) {
+                    context_enlargeIn = Math.pow(2, context_numBits);
+                    context_numBits++;
+                }
+                context_dictionary[context_wc] = context_dictSize++;
+                context_w = String(context_c);
+            }
+        }
+
+        if (context_w !== "") {
+            if (Object.prototype.hasOwnProperty.call(context_dictionaryToCreate, context_w)) {
+                if (context_w.charCodeAt(0) < 256) {
+                    for (i = 0; i < context_numBits; i++) {
+                        context_data_val = (context_data_val << 1);
+                        if (context_data_position == 5) {
+                            context_data_position = 0;
+                            context_data.push(keyStr.charAt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position++;
+                        }
+                    }
+                    value = context_w.charCodeAt(0);
+                    for (i = 0; i < 8; i++) {
+                        context_data_val = (context_data_val << 1) | (value & 1);
+                        if (context_data_position == 5) {
+                            context_data_position = 0;
+                            context_data.push(keyStr.charAt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position++;
+                        }
+                        value = value >> 1;
+                    }
+                } else {
+                    value = 1;
+                    for (i = 0; i < context_numBits; i++) {
+                        context_data_val = (context_data_val << 1) | value;
+                        if (context_data_position == 5) {
+                            context_data_position = 0;
+                            context_data.push(keyStr.charAt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position++;
+                        }
+                        value = 0;
+                    }
+                    value = context_w.charCodeAt(0);
+                    for (i = 0; i < 16; i++) {
+                        context_data_val = (context_data_val << 1) | (value & 1);
+                        if (context_data_position == 5) {
+                            context_data_position = 0;
+                            context_data.push(keyStr.charAt(context_data_val));
+                            context_data_val = 0;
+                        } else {
+                            context_data_position++;
+                        }
+                        value = value >> 1;
+                    }
+                }
+                context_enlargeIn--;
+                if (context_enlargeIn == 0) {
+                    context_enlargeIn = Math.pow(2, context_numBits);
+                    context_numBits++;
+                }
+                delete context_dictionaryToCreate[context_w];
+            } else {
+                value = context_dictionary[context_w];
+                for (i = 0; i < context_numBits; i++) {
+                    context_data_val = (context_data_val << 1) | (value & 1);
+                    if (context_data_position == 5) {
+                        context_data_position = 0;
+                        context_data.push(keyStr.charAt(context_data_val));
+                        context_data_val = 0;
+                    } else {
+                        context_data_position++;
+                    }
+                    value = value >> 1;
+                }
+            }
+            context_enlargeIn--;
+            if (context_enlargeIn == 0) {
+                context_enlargeIn = Math.pow(2, context_numBits);
+                context_numBits++;
+            }
+        }
+
+        value = 2;
+        for (i = 0; i < context_numBits; i++) {
+            context_data_val = (context_data_val << 1) | (value & 1);
+            if (context_data_position == 5) {
+                context_data_position = 0;
+                context_data.push(keyStr.charAt(context_data_val));
+                context_data_val = 0;
+            } else {
+                context_data_position++;
+            }
+            value = value >> 1;
+        }
+
+        while (true) {
+            context_data_val = (context_data_val << 1);
+            if (context_data_position == 5) {
+                context_data.push(keyStr.charAt(context_data_val));
+                break;
+            }
+            context_data_position++;
+        }
+        return context_data.join('');
+    },
+
+    decompress: function(compressed) {
+        if (compressed == null) return "";
+        if (compressed == "") return null;
+        let dictionary = [],
+            next,
+            enlargeIn = 4,
+            dictSize = 4,
+            numBits = 3,
+            entry = "",
+            result = [],
+            w,
+            c,
+            keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=";
+
+        const keyMap = {};
+        for (let i = 0; i < keyStr.length; i++) keyMap[keyStr.charAt(i)] = i;
+
+        let getVal = function(index) { return keyMap[compressed.charAt(index)]; };
+
+        let data_val = getVal(0);
+        let data_position = 32;
+        let data_index = 1;
+
+        let readBits = function(numBits) {
+            let bits = 0;
+            let max_power = Math.pow(2, numBits);
+            let power = 1;
+            while (power != max_power) {
+                let resb = data_val & data_position;
+                data_position >>= 1;
+                if (data_position == 0) {
+                    data_position = 32;
+                    data_val = getVal(data_index++);
+                }
+                bits |= (resb > 0 ? 1 : 0) * power;
+                power <<= 1;
+            }
+            return bits;
+        };
+
+        for (let i = 0; i < 3; i += 1) {
+            dictionary[i] = i;
+        }
+
+        let next_code = readBits(2);
+        switch (next_code) {
+            case 0:
+                c = String.fromCharCode(readBits(8));
+                break;
+            case 1:
+                c = String.fromCharCode(readBits(16));
+                break;
+            case 2:
+                return "";
+        }
+        dictionary[3] = c;
+        w = c;
+        result.push(c);
+
+        while (true) {
+            if (data_index > compressed.length) {
+                return "";
+            }
+
+            let c_code = readBits(numBits);
+            switch (c_code) {
+                case 0:
+                    c = String.fromCharCode(readBits(8));
+                    dictionary[dictSize++] = c;
+                    c_code = dictSize - 1;
+                    enlargeIn--;
+                    break;
+                case 1:
+                    c = String.fromCharCode(readBits(16));
+                    dictionary[dictSize++] = c;
+                    c_code = dictSize - 1;
+                    enlargeIn--;
+                    break;
+                case 2:
+                    return result.join('');
+            }
+
+            if (enlargeIn == 0) {
+                enlargeIn = Math.pow(2, numBits);
+                numBits++;
+            }
+
+            if (dictionary[c_code]) {
+                entry = dictionary[c_code];
+            } else {
+                if (c_code === dictSize) {
+                    entry = w + w.charAt(0);
+                } else {
+                    return null;
+                }
+            }
+            result.push(entry);
+
+            dictionary[dictSize++] = w + entry.charAt(0);
+            enlargeIn--;
+
+            if (enlargeIn == 0) {
+                enlargeIn = Math.pow(2, numBits);
+                numBits++;
+            }
+
+            w = entry;
+        }
+    }
+};
+
 // URL Hash Deep Linking & Sharing
 function encodeStateToURL() {
     try {
         const sessionName = sessionNameEl ? sessionNameEl.value.trim() : '';
-        const jsonStr = getJSONConfig();
-        const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+        const compact = getCompactConfig();
+        const jsonStr = JSON.stringify(compact);
+        const compressed = LZ.compress(jsonStr);
         
         let hashStr = '';
         if (sessionName) {
-            hashStr = `#session=${encodeURIComponent(sessionName)}&config=${base64}`;
+            hashStr = `#session=${encodeURIComponent(sessionName)}&z=${compressed}`;
         } else {
-            hashStr = `#config=${base64}`;
+            hashStr = `#z=${compressed}`;
         }
         history.replaceState(null, '', location.pathname + location.search + hashStr);
     } catch (e) {
@@ -1238,37 +1651,65 @@ function decodeStateFromURL() {
         const hash = location.hash.replace(/^#/, '').trim();
         if (!hash) return false;
         
-        let rawBase64 = '';
+        let compressed = '';
+        let legacyBase64 = '';
         let cleartextSession = '';
         
-        if (hash.includes('&config=')) {
-            const parts = hash.split('&config=');
-            rawBase64 = parts[1];
+        if (hash.includes('&z=')) {
+            const parts = hash.split('&z=');
+            compressed = parts[1];
             if (parts[0].startsWith('session=')) {
                 cleartextSession = decodeURIComponent(parts[0].slice(8));
             } else if (parts[0].startsWith('name=')) {
                 cleartextSession = decodeURIComponent(parts[0].slice(5));
             }
+        } else if (hash.includes('&config=')) {
+            const parts = hash.split('&config=');
+            legacyBase64 = parts[1];
+            if (parts[0].startsWith('session=')) {
+                cleartextSession = decodeURIComponent(parts[0].slice(8));
+            }
+        } else if (hash.startsWith('z=')) {
+            compressed = hash.slice(2);
         } else if (hash.startsWith('config=')) {
-            rawBase64 = hash.slice(7);
+            legacyBase64 = hash.slice(7);
         } else if (hash.startsWith('session=')) {
             cleartextSession = decodeURIComponent(hash.slice(8));
         } else {
-            rawBase64 = hash;
+            compressed = hash;
         }
         
         if (cleartextSession && sessionNameEl) {
             sessionNameEl.value = cleartextSession;
         }
-        
-        if (!rawBase64) return true;
-        
-        const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(rawBase64), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-        const result = importJSONConfig(jsonStr, false);
-        if (cleartextSession && sessionNameEl) {
-            sessionNameEl.value = cleartextSession;
+
+        if (compressed) {
+            try {
+                const decompressed = LZ.decompress(compressed);
+                if (decompressed) {
+                    const compactData = JSON.parse(decompressed);
+                    importCompactConfig(compactData);
+                    if (cleartextSession && sessionNameEl) {
+                        sessionNameEl.value = cleartextSession;
+                    }
+                    return true;
+                }
+            } catch (err) {
+                console.log('LZ decompress failed, trying legacy Base64 fallback', err);
+            }
         }
-        return result;
+
+        if (legacyBase64 || hash) {
+            const rawBase64 = legacyBase64 || hash;
+            const jsonStr = decodeURIComponent(Array.prototype.map.call(atob(rawBase64), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+            const result = importJSONConfig(jsonStr, false);
+            if (cleartextSession && sessionNameEl) {
+                sessionNameEl.value = cleartextSession;
+            }
+            return result;
+        }
+
+        return false;
     } catch (e) {
         console.error('Failed to decode URL config', e);
         return false;
